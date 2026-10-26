@@ -431,45 +431,52 @@ class SuggestionEngine(
         commits.clear()
     }
 
+    /** What [contextRevision] found: the word standing wrong, its replacement, and the words after it. */
+    class Revision(val wrong: String, val replacement: String, val followers: List<String>)
+
     /**
-     * The word before the one just committed, re-read with that word in
-     * sight (#issue right-context): "I want to by a car" has `by` wrong once
-     * `a car` lands. Judged by the context model over the readings the engine
-     * had for the word when it was committed: the one that fits the words on
-     * both sides best replaces it, when it beats the typed word by
-     * [REVISION_MARGIN] nats. Null when there is no model, no alternatives,
-     * or nothing clearly better. Chip-only by contract, like [RevisionAdvisor]:
-     * the caller offers, the user applies.
+     * A committed word re-read with the words after it in sight: "I want to
+     * by a car" has `by` wrong once `a car` lands. Each of the last [maxBack]
+     * commits before the newest is judged by the context model over the
+     * readings the engine had for it when it was committed, with every word
+     * after it as context on the right; the reading that fits best replaces
+     * it when it beats the typed word by [REVISION_MARGIN] nats, the best
+     * such swap over all positions winning. Null when there is no model, no
+     * alternatives, or nothing clearly better. Chip-only by contract, like
+     * [RevisionAdvisor]: the caller offers, the user applies.
      *
-     * @return the word to replace and its replacement, or null
+     * [maxBack] 1 is the commit-time question about the previous word; the
+     * pause rescoring asks about the last few.
      */
-    fun contextRevision(): Pair<String, String>? {
+    fun contextRevision(maxBack: Int = 1): Revision? {
         val model = contextModel ?: return null
         if (commits.size < 2 || sentence.size < 2) return null
-        val judged = commits[commits.size - 2]
-        val follower = commits.last().word
-        if (judged.alternatives.isEmpty()) return null
-        // The sentence as set holds the follower last and the judged word
-        // before it; the context is everything before the judged word.
-        if (!sentence.last().equals(follower, ignoreCase = true)) return null
-        if (!sentence[sentence.size - 2].equals(judged.word, ignoreCase = true)) return null
-        val context = sentence.subList(0, sentence.size - 2)
-        val candidates = listOf(judged.word) + judged.alternatives
-        val scores = model.revise(context, candidates, follower, register, contextField, model.slotOf(primaryLanguageId))
-        val own = scores.getOrNull(0)?.takeIf { !it.isNaN() } ?: return null
-        var best: Int = -1
-        var bestScore = own
-        for (i in 1 until candidates.size) {
-            val score = scores.getOrNull(i) ?: continue
-            if (!score.isNaN() && score > bestScore) {
-                bestScore = score
-                best = i
+        var best: Revision? = null
+        var bestGain = REVISION_MARGIN
+        for (back in 1..minOf(maxBack, commits.size - 1, sentence.size - 1)) {
+            val judged = commits[commits.size - 1 - back]
+            if (judged.alternatives.isEmpty()) continue
+            val followers = commits.subList(commits.size - back, commits.size).map { it.word }
+            // The sentence as set must end in the judged word and its
+            // followers, or the commits no longer describe the field.
+            val tail = sentence.subList(sentence.size - 1 - back, sentence.size)
+            if (!tail.first().equals(judged.word, ignoreCase = true)) break
+            if (tail.drop(1).zip(followers).any { (a, b) -> !a.equals(b, ignoreCase = true) }) break
+            val context = sentence.subList(0, sentence.size - 1 - back)
+            val candidates = listOf(judged.word) + judged.alternatives
+            val scores = model.revise(context, candidates, followers, register, contextField, model.slotOf(primaryLanguageId))
+            val own = scores.getOrNull(0)?.takeIf { !it.isNaN() } ?: continue
+            for (i in 1 until candidates.size) {
+                val score = scores.getOrNull(i) ?: continue
+                if (score.isNaN()) continue
+                val gain = (score - own).toDouble()
+                if (gain >= bestGain && !suppressed(candidates[i])) {
+                    bestGain = gain
+                    best = Revision(judged.word, matchCase(judged.word, displayForm(candidates[i])), followers)
+                }
             }
         }
-        if (best < 0 || bestScore - own < REVISION_MARGIN) return null
-        val replacement = candidates[best]
-        if (suppressed(replacement)) return null
-        return judged.word to matchCase(judged.word, displayForm(replacement))
+        return best
     }
 
     /**
@@ -2568,7 +2575,10 @@ class SuggestionEngine(
         private const val RERANK_POOL = 8
 
         /** How many committed words [contextRevision] keeps, with their readings. */
-        private const val REVISION_DEPTH = 3
+        private const val REVISION_DEPTH = 6
+
+        /** How far back the pause rescoring looks; see [contextRevision]. */
+        const val REVISION_PAUSE_BACK = 4
 
         /** How many other readings of a committed word are kept for it. */
         private const val REVISION_ALTERNATIVES = 6
@@ -2594,6 +2604,17 @@ class SuggestionEngine(
          */
         const val LM_BLEND = 0.2
         const val LM_BLEND_CAP = 1.0
+
+        /**
+         * How the blend grows with the taps' spread (mean distance to the
+         * nearest key centre, in key widths) over a careful typist's
+         * [LM_BLEND_SPREAD_REF], within half and twice the base: `rerank.rs`'s
+         * `LM_BLEND_SLOPE` and friends, number for number.
+         */
+        const val LM_BLEND_SLOPE = 0.0
+        const val LM_BLEND_SPREAD_REF = 0.35
+        const val LM_BLEND_MIN_FACTOR = 0.5
+        const val LM_BLEND_MAX_FACTOR = 2.0
 
         /**
          * How deep a glide decodes before reranking. Deeper than the four
@@ -2870,7 +2891,7 @@ class SuggestionEngine(
         // evidence. Silent when the leader is a word the model does not know.
         // Measured against the rank-unit term the reranker could carry
         // instead, this won on every typing profile (rerank.rs, LM_BLEND).
-        if (!ambiguous) blendContextModel(merged)
+        if (!ambiguous) blendContextModel(merged, touch)
 
         // Context re-rank: a candidate the user has typed after [previousWord]
         // before (or that the seed pairs know as a follower) gets a bounded
@@ -2974,10 +2995,19 @@ class SuggestionEngine(
             .map { if (it.contains('@')) it else matchCase(composing, displayForm(it)) }
     }
 
-    /** The context model's score-space shift on [merged]; see [suggest]. */
-    private fun blendContextModel(merged: HashMap<String, Double>) {
+    /**
+     * The context model's score-space shift on [merged]; see [suggest]. The
+     * weight grows with how far the word's [touch] taps landed from their
+     * keys: the keys say less, so the sentence says more (`rerank.rs`'s
+     * `lm_blend_for`).
+     */
+    private fun blendContextModel(merged: HashMap<String, Double>, touch: List<TouchPoint?>?) {
         val model = contextModel ?: return
         if (merged.size < 2) return
+        val spread = touchModelField?.let { keys ->
+            val distances = touch.orEmpty().mapNotNull { tap -> tap?.let(keys::nearestDistance) }
+            if (distances.isEmpty()) null else distances.average()
+        }
         val words = merged.keys.toList()
         val leader = words.maxByOrNull { merged.getValue(it) } ?: return
         val scores = model.scores(words.map { it.lowercase() })
@@ -2991,7 +3021,12 @@ class SuggestionEngine(
         if (adapter != null) {
             adapter.disagreement = if (best >= 0 && words[best] != leader) words[best] to leader else null
         }
-        val weight = LM_BLEND * (adapter?.weightFactor() ?: 1.0)
+        val base = LM_BLEND * (adapter?.weightFactor() ?: 1.0)
+        val weight = if (spread == null) {
+            base
+        } else {
+            base * (1.0 + LM_BLEND_SLOPE * (spread - LM_BLEND_SPREAD_REF)).coerceIn(LM_BLEND_MIN_FACTOR, LM_BLEND_MAX_FACTOR)
+        }
         for (i in words.indices) {
             val lp = scores[i]
             if (lp.isNaN()) continue
@@ -5057,7 +5092,9 @@ class SuggestionEngine(
         val probability = if (learnedGate && top != null) {
             val lmScores = contextModel?.scores(candidates.map { it.word })
             val lmTop = lmScores?.getOrNull(0) ?: Float.NaN
-            val lmBest = lmScores?.filterNot { it.isNaN() }?.maxOrNull() ?: Float.NaN
+            val lmSorted = lmScores?.filterNot { it.isNaN() }?.sortedDescending().orEmpty()
+            val lmBest = lmSorted.firstOrNull() ?: Float.NaN
+            val lmView = contextModel?.gateView(lower)
             Confidence.probability(
                 Confidence.Case(
                     margin = margin,
@@ -5079,6 +5116,10 @@ class SuggestionEngine(
                     lmBest = lmBest,
                     timing = Confidence.timingFeature(timingMultiplier),
                     typedShadowed = known,
+                    lmTyped = lmView?.logprob ?: Float.NaN,
+                    lmTypedRank = lmView?.rank ?: -1,
+                    lmEntropy = lmView?.entropy ?: Float.NaN,
+                    lmSecond = lmSorted.getOrNull(1) ?: Float.NaN,
                 ),
             )
         } else {

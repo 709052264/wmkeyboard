@@ -171,8 +171,8 @@ internal object PredictionNative {
         lmWeight: Double,
     ): IntArray?
 
-    /** The shipped weight of the context model's rerank term, `rerank.rs`'s `LM_WEIGHT`. */
-    const val LM_WEIGHT = 0.25
+    /** The shipped weight of the context model's rank-unit rerank term, `rerank.rs`'s `LM_WEIGHT`: off, the score-space blend carries it. */
+    const val LM_WEIGHT = 0.0
 
     // The neural context model (lm.rs), behind [ContextModel]: a mapped
     // `.wmlm` and a session on it that keeps the context last read.
@@ -191,6 +191,13 @@ internal object PredictionNative {
     /** ln P(word next) per word, NaN where the model has no opinion. */
     external fun lmScores(session: Long, words: Array<String>): FloatArray
 
+    /**
+     * The learned gate's view of the typed spelling: `[ln P(typed), rank of
+     * typed among next words, entropy of the distribution in nats]`, the
+     * first two NaN when the model cannot read the word as one token.
+     */
+    external fun lmGateView(session: Long, typed: String): FloatArray
+
     /** `[Array<String> words, FloatArray logprobs]`: the likeliest next words, best first. */
     external fun lmTop(session: Long, k: Int, minLogprob: Float): Array<Any>
 
@@ -198,12 +205,13 @@ internal object PredictionNative {
     external fun lmGenerate(session: Long, n: Int, minProb: Float): Array<Any>
 
     /**
-     * For each of [candidates] standing where the word before [follower]
-     * stands, after [context]: ln P(candidate | context) + ln P(follower |
-     * context, candidate), NaN where the model does not know a word. The
-     * session's context is put back after.
+     * For each of [candidates] standing where the word before [followers]
+     * stands, after [context]: ln P(candidate | context) plus the
+     * log-probability of each follower in turn with the candidate in place,
+     * NaN where the model cannot read a word. The session's context is put
+     * back after.
      */
-    external fun lmRevise(session: Long, register: Int, field: Int, lang: Int, context: Array<String>, candidates: Array<String>, follower: String): FloatArray
+    external fun lmRevise(session: Long, register: Int, field: Int, lang: Int, context: Array<String>, candidates: Array<String>, followers: Array<String>): FloatArray
 
     // The stores autocorrect learns from: CorrectionMemory (cm*) and
     // CorrectionStats (cs*). Spellings arrive folded.

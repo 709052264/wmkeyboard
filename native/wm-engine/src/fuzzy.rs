@@ -177,6 +177,19 @@ impl TouchModel {
         -(dx * dx + dy * dy) / (2.0 * self.sigma * self.sigma)
     }
 
+    /// How far `p` lies from the nearest key's centre, in key widths; `None`
+    /// off an empty model.
+    pub fn nearest_distance(&self, p: (f32, f32)) -> Option<f64> {
+        self.keys
+            .iter()
+            .map(|&(_, cx, cy)| {
+                let dx = (p.0 - cx) as f64;
+                let dy = (p.1 - cy) as f64;
+                (dx * dx + dy * dy).sqrt()
+            })
+            .fold(None, |m: Option<f64>, d| Some(m.map_or(d, |m| m.min(d))))
+    }
+
     /// The key a tap most likely meant: the nearest centre, the first listed
     /// on a tie.
     pub fn best_key(&self, p: (f32, f32)) -> Option<u16> {

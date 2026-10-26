@@ -17,8 +17,9 @@ and `smart/autocorrect.mdx` under "The learned gate".
 | `common.py` | the tokenisation both sides share (lower-case, trim punctuation, `<num>`, the sixteen specials) |
 | `corpus.py` | sentences out of Tatoeba and Leipzig archives, labelled with register and field |
 | `banglish.py` | romanised Bengali sentences out of a Leipzig Bengali corpus, with chat spellings from the spelling map |
-| `prep.py` | vocabulary and token arrays, plus the held-out sentences as text |
-| `model.py`, `train.py` | the model and its training loop (MPS or CPU) |
+| `prep.py` | vocabulary and token arrays, plus the held-out sentences as text; `pieces=N` reserves N slots for subword pieces so words outside the vocabulary are spelled rather than `<unk>` |
+| `model.py`, `train.py` | the model and its training loop (MPS or CPU); `distill=` adds a teacher's soft targets to the loss |
+| `distill.py` | runs a large causal LM (Qwen2.5-0.5B by default, through `transformers`) over a sample of the training sentences and writes its top-k next-word distribution mapped onto the student's vocabulary |
 | `export.py` | a checkpoint as a `.wmlm` |
 | `check.py` | PyTorch's answers for one context, to compare with `cargo run --example lm_probe` |
 | `train_confidence.py` | fits the learned autocorrect gate on the typing harness's rows and writes the constants into `confidence.rs` and `Confidence.kt` |
@@ -38,7 +39,26 @@ python export.py en_run/best.pt en_lm/vocab.txt en_context.wmlm --langs=en --nam
 
 Tatoeba sentences are labelled casual and chat, news formal; a third of
 the rows train with the neutral labels so a caller that does not know them
-is served too. The vocabulary takes every word of the keyboard's own
+is served too.
+
+The bigger recipe adds OpenSubtitles dialogue (`lines:<path>:1:1`, casual
+chat), reserves pieces, and trains a d256 six-layer model (10M parameters,
+about 10 MB int8):
+
+```bash
+python corpus.py tatoeba:eng_sentences.tsv.bz2 leipzig:eng_news_2023_1M.tar.gz lines:opensub_en.txt:1:1 > en2_sentences.tsv
+python prep.py en2_sentences.tsv en2_lm vocab=24576 pieces=2048 ctx=40 seed_words=../../app/dictionaries-src/en.txt
+python train.py en2_lm en2_run steps=16000 batch=512 d=256 layers=6 ff=768 ctx=40
+```
+
+Distillation (optional, needs a venv with `transformers`): write the
+teacher's soft targets for a sample of sentences, then train with them.
+
+```bash
+uv venv --python 3.12 .venv-distill && uv pip install --python .venv-distill/bin/python torch transformers
+.venv-distill/bin/python distill.py en2_lm en2_soft.npz sentences=100000 topk=24
+python train.py en2_lm en2_run_kd steps=16000 batch=512 d=256 layers=6 ff=768 ctx=40 distill=en2_soft.npz distill_alpha=0.5
+``` The vocabulary takes every word of the keyboard's own
 frequency list the corpus has seen, then the corpus's commonest words.
 
 ## English and Banglish in one model
@@ -72,4 +92,6 @@ PACK=pack MODES=base,lm,conf,lm+conf ./target/release/examples/typing_eval \
 `en_trigrams.txt` gunzipped, so the base has the n-gram pack the phone has.
 `DUMP=rows.csv` writes the gate's feature rows; `train_confidence.py` fits
 on them and writes the constants into both source files. Use `SKIP=10000`
-on a measuring run so it reads sentences the fit never saw.
+on a measuring run so it reads sentences the fit never saw. `LMBLEND`,
+`LMBCAP` and `LMBSLOPE` override the score-space blend's weight, cap and
+tap-spread slope (the slope measured flat, so it ships at 0).

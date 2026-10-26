@@ -28,15 +28,19 @@ class ConfidenceTest {
         hasRunner = true,
         runnerEditCost = 1.6,
         candidates = 4,
-        lmTop = -3.5f,
+        lmTop = -2.0f,
         lmBest = -2.0f,
         timing = 0.0,
         typedShadowed = false,
+        lmTyped = Float.NaN,
+        lmTypedRank = -1,
+        lmEntropy = 4.2f,
+        lmSecond = -3.5f,
     )
 
     @Test
     fun theFixedCaseScoresWhatTheRustPortScores() {
-        assertEquals(0.836369, Confidence.probability(fixed), 1e-4)
+        assertEquals(0.933238, Confidence.probability(fixed), 1e-4)
     }
 
     @Test

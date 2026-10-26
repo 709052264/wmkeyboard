@@ -58,6 +58,21 @@ class ContextModel private constructor(
         return PredictionNative.lmScores(session, words.toTypedArray())
     }
 
+    /** The model's view of a word as typed, for the learned gate; see [gateView]. */
+    class GateView(val logprob: Float, val rank: Int, val entropy: Float)
+
+    /**
+     * The model's view of [typed] where it stands: its log-probability, how
+     * many words rank above it (-1 when the model cannot read it), and the
+     * entropy of the next-word distribution. Null when closed.
+     */
+    fun gateView(typed: String): GateView? {
+        if (closed) return null
+        val out = PredictionNative.lmGateView(session, typed)
+        if (out.size < 3) return null
+        return GateView(out[0], if (out[1].isNaN()) -1 else out[1].toInt(), out[2])
+    }
+
     /** The [k] likeliest next words above [minLogprob], best first, with their log-probabilities. */
     fun topWords(k: Int, minLogprob: Float = NEXT_WORD_FLOOR): List<Pair<String, Float>> {
         if (closed || k <= 0) return emptyList()
@@ -83,22 +98,23 @@ class ContextModel private constructor(
     }
 
     /**
-     * How well each of [candidates] fits where the word before [follower]
-     * stands, after [context] (oldest first): ln P(candidate | context) +
-     * ln P(follower | context, candidate). NaN for a candidate or follower the
-     * model does not know. The context is left as it was.
+     * How well each of [candidates] fits where the word before [followers]
+     * stands, after [context] (oldest first): ln P(candidate | context) plus
+     * each follower's log-probability in turn with the candidate in place.
+     * NaN for a word the model cannot read. The context is left as it was.
      */
     fun revise(
         context: List<String>,
         candidates: List<String>,
-        follower: String,
+        followers: List<String>,
         register: Register = Register.NEUTRAL,
         field: ContextField = ContextField.OTHER,
         lang: Int = 0,
     ): FloatArray {
         if (closed || candidates.isEmpty()) return FloatArray(candidates.size) { Float.NaN }
         return PredictionNative.lmRevise(
-            session, register.ordinal, field.ordinal, lang, context.toTypedArray(), candidates.toTypedArray(), follower,
+            session, register.ordinal, field.ordinal, lang,
+            context.toTypedArray(), candidates.toTypedArray(), followers.toTypedArray(),
         )
     }
 

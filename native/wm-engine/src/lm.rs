@@ -50,6 +50,14 @@ pub const FIELD_EMAIL: u32 = 10;
 pub const FIELD_SEARCH: u32 = 11;
 pub const LANG_0: u32 = 12;
 pub const SPECIALS: u32 = 16;
+/// The markers subword pieces carry in the vocabulary: a word's first piece
+/// and its continuations (`tools/wmlm/common.py`).
+pub const PIECE_START: &str = "\u{2581}";
+pub const PIECE_CONT: &str = "##";
+/// The longest piece, in characters.
+pub const MAX_PIECE: usize = 5;
+/// The most pieces a word may be scored in; longer ones have no opinion.
+pub const MAX_WORD_PIECES: usize = 6;
 
 /// The conditioning tokens in front of a sentence: who is being written to,
 /// where, and in which of the model's languages.
@@ -99,6 +107,13 @@ pub struct Lm<B: AsRef<[u8]> = Vec<u8>> {
     pub langs: Vec<String>,
     vocab: Vec<String>,
     ids: HashMap<String, u32>,
+    /// Subword pieces for words the vocabulary lacks (`tools/wmlm/common.py`'s
+    /// `Pieces`): a word is one start piece then continuation pieces, greedy
+    /// longest match. Empty in a model without pieces, where such a word is
+    /// `<unk>`.
+    start_pieces: HashMap<String, u32>,
+    cont_pieces: HashMap<String, u32>,
+    is_piece: Vec<bool>,
     emb: I8Matrix,
     pos: Vec<f32>,
     out_bias: Vec<f32>,
@@ -153,12 +168,23 @@ impl<B: AsRef<[u8]>> Lm<B> {
         at += 4;
         let mut vocab = Vec::with_capacity(count);
         let mut ids = HashMap::with_capacity(count * 2);
+        let mut start_pieces = HashMap::new();
+        let mut cont_pieces = HashMap::new();
+        let mut is_piece = vec![false; count];
         for i in 0..count {
             let len = u16::from_le_bytes(b.get(at..at + 2)?.try_into().ok()?) as usize;
             at += 2;
             let word = std::str::from_utf8(b.get(at..at + len)?).ok()?.to_string();
             at += len;
-            ids.entry(word.clone()).or_insert(i as u32);
+            if let Some(rest) = word.strip_prefix(PIECE_START) {
+                start_pieces.insert(rest.to_string(), i as u32);
+                is_piece[i] = true;
+            } else if let Some(rest) = word.strip_prefix(PIECE_CONT) {
+                cont_pieces.insert(rest.to_string(), i as u32);
+                is_piece[i] = true;
+            } else {
+                ids.entry(word.clone()).or_insert(i as u32);
+            }
             vocab.push(word);
         }
         let data_start = pad4(at);
@@ -216,7 +242,7 @@ impl<B: AsRef<[u8]>> Lm<B> {
         }
         let ln_w = f32_tensor("ln.w", d)?;
         let ln_b = f32_tensor("ln.b", d)?;
-        Some(Lm { bytes, d, layers, heads, ff, ctx, name, langs, vocab, ids, emb, pos, out_bias, blocks, ln_w, ln_b })
+        Some(Lm { bytes, d, layers, heads, ff, ctx, name, langs, vocab, ids, start_pieces, cont_pieces, is_piece, emb, pos, out_bias, blocks, ln_w, ln_b })
     }
 
     pub fn vocab_size(&self) -> usize {
@@ -243,8 +269,55 @@ impl<B: AsRef<[u8]>> Lm<B> {
         }
     }
 
-    /// How many words of context the model reads: everything after the
-    /// prefix and the sentence start.
+    /// The tokens a word becomes: its own id, or its pieces when the model
+    /// has them and can spell it, else `<unk>`.
+    pub fn tokens_of(&self, word: &str) -> Vec<u32> {
+        let Some(key) = token_key(word) else { return vec![UNK] };
+        if let Some(&id) = self.ids.get(key.as_str()) {
+            return vec![id];
+        }
+        self.pieces_of(&key).unwrap_or_else(|| vec![UNK])
+    }
+
+    /// `key` spelled in pieces, greedy longest match from the left, or
+    /// `None` when a letter has no piece (or the model has none).
+    pub fn pieces_of(&self, key: &str) -> Option<Vec<u32>> {
+        if self.start_pieces.is_empty() || key == "<num>" {
+            return None;
+        }
+        let chars: Vec<char> = key.chars().collect();
+        let mut out = Vec::new();
+        let mut i = 0;
+        while i < chars.len() {
+            let table = if i == 0 { &self.start_pieces } else { &self.cont_pieces };
+            let mut taken = 0;
+            for j in (i + 1..=chars.len().min(i + MAX_PIECE)).rev() {
+                let piece: String = chars[i..j].iter().collect();
+                if let Some(&id) = table.get(&piece) {
+                    out.push(id);
+                    taken = j;
+                    break;
+                }
+            }
+            if taken == 0 {
+                return None;
+            }
+            i = taken;
+        }
+        Some(out)
+    }
+
+    /// Whether token `id` is a subword piece rather than a word.
+    pub fn is_piece(&self, id: u32) -> bool {
+        self.is_piece.get(id as usize).copied().unwrap_or(false)
+    }
+
+    pub fn has_pieces(&self) -> bool {
+        !self.start_pieces.is_empty()
+    }
+
+    /// How many tokens of context the model reads: everything after the
+    /// prefix and the sentence start, leaving room for the word predicted.
     pub fn max_words(&self) -> usize {
         self.ctx.saturating_sub(5)
     }
@@ -385,12 +458,15 @@ impl<B: AsRef<[u8]>> Session<B> {
         out.push(FIELD_OTHER + (prefix.field.min(3) as u32));
         out.push(LANG_0 + (prefix.lang.min(3) as u32));
         out.push(BOS);
-        let words: Vec<&str> = words.iter().copied().filter(|w| !w.starts_with('\u{1}') && !w.is_empty()).collect();
-        let keep = lm.max_words();
-        let start = words.len().saturating_sub(keep);
-        for w in &words[start..] {
-            out.push(lm.token_of(w));
+        let mut body: Vec<u32> = Vec::with_capacity(words.len());
+        for w in words.iter().copied().filter(|w| !w.starts_with('\u{1}') && !w.is_empty()) {
+            body.extend(lm.tokens_of(w));
         }
+        // The last tokens that fit; an unknown word spelled in pieces costs a
+        // few of them.
+        let keep = lm.max_words();
+        let start = body.len().saturating_sub(keep);
+        out.extend_from_slice(&body[start..]);
         out
     }
 
@@ -521,24 +597,72 @@ impl<B: AsRef<[u8]>> Session<B> {
         dist.get(id as usize).copied().unwrap_or(f32::NEG_INFINITY)
     }
 
-    /// ln P(`word` next | context), or `None` when the vocabulary does not
-    /// hold it: the model has no opinion about a word it never saw.
+    /// ln P(`word` next | context): a lookup for a word the vocabulary holds,
+    /// the product over its pieces for one it can spell (each piece scored
+    /// after the ones before it, the context then put back), and `None` when
+    /// it can do neither: the model has no opinion about a word it cannot
+    /// read.
     pub fn logprob(&mut self, word: &str) -> Option<f32> {
         let key = token_key(word)?;
         if key == "<num>" {
             return None;
         }
+        if let Some(id) = self.lm.id_of(&key) {
+            return Some(self.logprob_id(id));
+        }
+        let lm = self.lm.clone();
+        let pieces = lm.pieces_of(&key)?;
+        if pieces.len() > MAX_WORD_PIECES || self.tokens.len() + pieces.len() > lm.ctx {
+            return None;
+        }
+        let mut total = self.logprob_id(pieces[0]);
+        if pieces.len() > 1 {
+            let before = self.tokens.clone();
+            let dist_before = self.dist.take();
+            for w in pieces.windows(2) {
+                self.step(w[0]);
+                self.dist = None;
+                total += self.logprob_id(w[1]);
+            }
+            self.set_tokens(&before);
+            self.dist = dist_before;
+        }
+        Some(total)
+    }
+
+    /// How many words the model would put before `word` here: 0 when it is
+    /// the likeliest next word. `None` for a word the vocabulary does not
+    /// hold as one token. One pass over the vocabulary.
+    pub fn rank_of(&mut self, word: &str) -> Option<u32> {
+        let key = token_key(word)?;
         let id = self.lm.id_of(&key)?;
-        Some(self.logprob_id(id))
+        let lm = self.lm.clone();
+        let dist = self.distribution();
+        let own = dist[id as usize];
+        let rank = dist
+            .iter()
+            .enumerate()
+            .skip(SPECIALS as usize)
+            .filter(|(i, &lp)| lp > own && !lm.is_piece(*i as u32))
+            .count();
+        Some(rank as u32)
+    }
+
+    /// The entropy of the next-word distribution, in nats: low when the
+    /// model is sure what comes next, high when anything could.
+    pub fn entropy(&mut self) -> f32 {
+        let dist = self.distribution();
+        -dist.iter().filter(|lp| lp.is_finite()).map(|&lp| lp.exp() * lp).sum::<f32>()
     }
 
     /// The `k` likeliest next words (specials left out) above `min_logprob`,
     /// best first.
     pub fn top(&mut self, k: usize, min_logprob: f32) -> Vec<(String, f32)> {
         let dist = self.distribution().to_vec();
+        let lm = self.lm.clone();
         let mut best: Vec<(u32, f32)> = Vec::with_capacity(k + 1);
         for (id, &lp) in dist.iter().enumerate().skip(SPECIALS as usize) {
-            if lp < min_logprob {
+            if lp < min_logprob || lm.is_piece(id as u32) {
                 continue;
             }
             if best.len() < k || lp > best[best.len() - 1].1 {
@@ -572,11 +696,12 @@ impl<B: AsRef<[u8]>> Session<B> {
             if self.tokens.len() >= self.lm.ctx {
                 break;
             }
+            let lm = self.lm.clone();
             let dist = self.distribution();
             let mut best = (EOS, f32::NEG_INFINITY);
             for (id, &lp) in dist.iter().enumerate() {
                 let id = id as u32;
-                if (id < SPECIALS && id != EOS) || id == UNK {
+                if (id < SPECIALS && id != EOS) || id == UNK || lm.is_piece(id) {
                     continue;
                 }
                 if lp > best.1 {
@@ -603,24 +728,31 @@ impl<B: AsRef<[u8]>> Session<B> {
     /// context, candidate). `None` for a candidate or follower the model does
     /// not know. The context the session held is put back afterwards.
     pub fn revise(&mut self, prefix: Prefix, context: &[&str], candidates: &[&str], follower: &str) -> Vec<Option<f32>> {
+        self.revise_all(prefix, context, candidates, &[follower])
+    }
+
+    /// [`Session::revise`] with every word after the judged one in sight:
+    /// ln P(candidate | context) + Σ ln P(follower_i | context, candidate,
+    /// followers before it). `None` where a word cannot be read.
+    pub fn revise_all(&mut self, prefix: Prefix, context: &[&str], candidates: &[&str], followers: &[&str]) -> Vec<Option<f32>> {
         let before = self.tokens.clone();
-        let follower_key = token_key(follower).filter(|k| k != "<num>");
-        let follower_id = follower_key.and_then(|k| self.lm.id_of(&k));
         let mut out = Vec::with_capacity(candidates.len());
         for candidate in candidates {
-            let own = {
-                self.set_context(prefix, context);
-                self.logprob(candidate)
-            };
-            let score = match (own, follower_id) {
-                (Some(own), Some(fid)) => {
-                    let mut with: Vec<&str> = context.to_vec();
-                    with.push(candidate);
-                    self.set_context(prefix, &with);
-                    Some(own + self.logprob_id(fid))
+            self.set_context(prefix, context);
+            let mut score = self.logprob(candidate);
+            let mut with: Vec<&str> = context.to_vec();
+            with.push(candidate);
+            for follower in followers {
+                if score.is_none() {
+                    break;
                 }
-                _ => None,
-            };
+                self.set_context(prefix, &with);
+                score = match (score, self.logprob(follower)) {
+                    (Some(s), Some(f)) => Some(s + f),
+                    _ => None,
+                };
+                with.push(follower);
+            }
             out.push(score);
         }
         self.set_tokens(&before);

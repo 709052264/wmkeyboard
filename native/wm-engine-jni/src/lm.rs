@@ -163,6 +163,29 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
     })
 }
 
+/// `lmGateView(session, typed)`: `[ln P(typed), rank of typed, entropy]`
+/// for the learned gate, the first two NaN when the model cannot read the
+/// word as one token.
+#[no_mangle]
+pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_lmGateView(
+    mut env: JNIEnv,
+    _class: JClass,
+    session: jlong,
+    typed: JString,
+) -> jfloatArray {
+    guarded(&mut env, null_mut(), |env| {
+        let session = object!(env, SESSIONS, session);
+        let typed = read(env, &typed)?;
+        let mut s = session.lock().unwrap_or_else(|e| e.into_inner());
+        let out = [
+            s.logprob(&typed).unwrap_or(f32::NAN),
+            s.rank_of(&typed).map_or(f32::NAN, |r| r as f32),
+            s.entropy(),
+        ];
+        give_floats(env, &out)
+    })
+}
+
 /// `lmTop(session, k, minLogprob)`: `[String[] words, float[] logprobs]`,
 /// the likeliest next words, best first.
 #[no_mangle]
@@ -203,9 +226,9 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
     })
 }
 
-/// `lmRevise(session, register, field, lang, context, candidates, follower)`:
-/// each candidate's fit where the word before `follower` stands, NaN where
-/// the model does not know a word.
+/// `lmRevise(session, register, field, lang, context, candidates, followers)`:
+/// each candidate's fit where the word before `followers` stands, every
+/// follower in sight, NaN where the model cannot read a word.
 #[no_mangle]
 #[allow(clippy::too_many_arguments)]
 pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_lmRevise(
@@ -217,20 +240,21 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
     lang: jint,
     context: JObjectArray,
     candidates: JObjectArray,
-    follower: JString,
+    followers: JObjectArray,
 ) -> jfloatArray {
     guarded(&mut env, null_mut(), |env| {
         let session = object!(env, SESSIONS, session);
         let context = strings(env, &context)?;
         let candidates = strings(env, &candidates)?;
-        let follower = read(env, &follower)?;
+        let followers = strings(env, &followers)?;
         let prefix = Prefix { register: register.clamp(0, 2) as u8, field: field.clamp(0, 3) as u8, lang: lang.clamp(0, 3) as u8 };
         let ctx: Vec<&str> = context.iter().map(String::as_str).collect();
         let cands: Vec<&str> = candidates.iter().map(String::as_str).collect();
+        let after: Vec<&str> = followers.iter().map(String::as_str).collect();
         let scores: Vec<f32> = session
             .lock()
             .unwrap_or_else(|e| e.into_inner())
-            .revise(prefix, &ctx, &cands, &follower)
+            .revise_all(prefix, &ctx, &cands, &after)
             .into_iter()
             .map(|s| s.unwrap_or(f32::NAN))
             .collect();

@@ -121,7 +121,7 @@ pub enum SlipFixes {
 /// A tap per typed character, in key widths, `None` where unknown.
 pub type Taps = Vec<Option<(f32, f32)>>;
 
-pub use crate::rerank::{LM_BLEND, LM_BLEND_CAP, LM_CAP, LM_WEIGHT};
+pub use crate::rerank::{lm_blend_for, LM_BLEND, LM_BLEND_CAP, LM_BLEND_SLOPE, LM_CAP, LM_WEIGHT};
 /// The least likely a next word may be, in log-probability, for the model
 /// to offer it on an empty buffer.
 pub const LM_NEXT_WORD_FLOOR: f32 = -8.0;
@@ -688,6 +688,8 @@ pub struct Predictor {
     /// one of its nats is worth several of the model's; 0 is off.
     pub lm_blend: f64,
     pub lm_blend_cap: f64,
+    /// How the blend grows with the taps' spread; see [`lm_blend_for`].
+    pub lm_blend_slope: f64,
     /// The learned autocorrect gate; none keeps the margin gate.
     pub confidence: Option<Confidence>,
     /// What the gate saw on the last decision with a candidate, and that
@@ -744,6 +746,7 @@ impl Default for Predictor {
             lm_next_words: true,
             lm_blend: LM_BLEND,
             lm_blend_cap: LM_BLEND_CAP,
+            lm_blend_slope: LM_BLEND_SLOPE,
             confidence: None,
             last_case: RefCell::new(None),
             taps: RefCell::new(Vec::new()),
@@ -1099,9 +1102,34 @@ impl Predictor {
         }
     }
 
+    /// The mean distance of the current word's taps to the nearest key
+    /// centre, in key widths: how little the keys say. `None` without taps.
+    fn tap_spread(&self) -> Option<f64> {
+        let model = self.touch.as_ref()?;
+        let taps = self.taps.borrow();
+        let distances: Vec<f64> = taps.iter().filter_map(|t| t.and_then(|p| model.nearest_distance(p))).collect();
+        if distances.is_empty() {
+            None
+        } else {
+            Some(distances.iter().sum::<f64>() / distances.len() as f64)
+        }
+    }
+
     /// ln P(`word` next) from the context model, when it has one.
     fn lm_logprob(&self, word: &str) -> Option<f32> {
         self.lm.as_ref().and_then(|lm| lm.borrow_mut().logprob(word))
+    }
+
+    /// The context model's rank for `word` here and the entropy of its
+    /// next-word distribution; `None`s without a model.
+    fn lm_gate_view(&self, word: &str) -> (Option<u32>, Option<f32>) {
+        match &self.lm {
+            Some(lm) => {
+                let mut s = lm.borrow_mut();
+                (s.rank_of(word), Some(s.entropy()))
+            }
+            None => (None, None),
+        }
     }
 
     /// Learned-only words tagged with another language yield to this one's.
@@ -1232,9 +1260,10 @@ impl Predictor {
         if self.lm_blend > 0.0 && self.lm.is_some() && merged.len() > 1 {
             let leader = merged.iter().max_by(|a, b| a.1.partial_cmp(b.1).unwrap_or(Ordering::Equal)).map(|(w, _)| w.clone());
             if let Some(reference) = leader.and_then(|w| self.lm_logprob(&w)) {
+                let weight = lm_blend_for(self.lm_blend, self.lm_blend_slope, self.tap_spread());
                 let shifts: Vec<(String, f64)> = merged
                     .keys()
-                    .filter_map(|w| self.lm_logprob(w).map(|lp| (w.clone(), (self.lm_blend * (lp - reference) as f64).clamp(-self.lm_blend_cap, self.lm_blend_cap))))
+                    .filter_map(|w| self.lm_logprob(w).map(|lp| (w.clone(), (weight * (lp - reference) as f64).clamp(-self.lm_blend_cap, self.lm_blend_cap))))
                     .collect();
                 for (w, shift) in shifts {
                     if let Some(score) = merged.get_mut(&w) {
@@ -2002,6 +2031,9 @@ impl Predictor {
                 } else {
                     Vec::new()
                 };
+                let mut lm_sorted: Vec<f32> = lm_scores.iter().filter_map(|s| *s).collect();
+                lm_sorted.sort_by(|a, b| b.total_cmp(a));
+                let (lm_typed_rank, lm_entropy) = self.lm_gate_view(lower);
                 let case = Case {
                     margin,
                     top_score: t.score,
@@ -2022,6 +2054,10 @@ impl Predictor {
                     lm_best: lm_scores.iter().filter_map(|s| *s).fold(None, |m: Option<f32>, v| Some(m.map_or(v, |m| m.max(v)))),
                     timing: timing.max(1e-6).ln(),
                     typed_shadowed: shadowed,
+                    lm_typed: if self.lm.is_some() { self.lm_logprob(lower) } else { None },
+                    lm_typed_rank,
+                    lm_entropy,
+                    lm_second: lm_sorted.get(1).copied(),
                 };
                 *self.last_case.borrow_mut() = Some((case, t.word.clone()));
                 model.as_ref().map(|m| m.probability(&case))

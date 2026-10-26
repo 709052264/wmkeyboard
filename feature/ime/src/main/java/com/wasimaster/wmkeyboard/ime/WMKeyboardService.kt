@@ -19943,6 +19943,12 @@ open class WMKeyboardService : InputMethodService() {
     /** Slack past the two words for trailing separators and punctuation. */
     private val REVISION_LOOKBEHIND = 16
 
+    /** The pause rescoring's job (see refreshStrip), one at a time. */
+    private var pauseRevisionJob: Job? = null
+
+    /** How long the typing must pause before the last few words are re-read. */
+    private val REVISION_PAUSE_MS = 1_000L
+
     /**
      * The revision chip: replace the confusable word before the last commit
      * ("their going" → "they're going"). Verifies the field still ends with
@@ -20001,8 +20007,9 @@ open class WMKeyboardService : InputMethodService() {
             val committed = display + sep + followerActual + trailing
             ic.deleteSurroundingText(original.length, 0)
             ic.commitText(committed, 1)
-            // Context: the revised word replaces the old one two words back.
-            previousWord2 = replacement.lowercase()
+            // Context: the revised word replaces the old one two words back,
+            // when it was the word two back (one follower).
+            if (' ' !in follower) previousWord2 = replacement.lowercase()
             lastRevertible = RevertibleCommit(
                 RevertibleCommit.Kind.REVISION, original = original, committed = committed,
             )
@@ -24477,9 +24484,26 @@ open class WMKeyboardService : InputMethodService() {
             if (revision == null && typed.isEmpty() && state.allowsTypingIntelligence &&
                 state.settings.suggestionStrip.contextRevision
             ) {
-                engine.contextRevision()?.let { (wrong, replacement) ->
-                    revision = replacement
-                    revisionContext = wrong to previousWord.orEmpty()
+                engine.contextRevision()?.let { found ->
+                    revision = found.replacement
+                    revisionContext = found.wrong to found.followers.joinToString(" ")
+                }
+            }
+            // And the last few words once the typing pauses: the same chip,
+            // the model reading the whole tail. Nothing is offered while a
+            // chip already stands, and the job dies with the next keystroke.
+            pauseRevisionJob?.cancel()
+            if (typed.isEmpty() && revision == null && state.allowsTypingIntelligence &&
+                state.settings.suggestionStrip.contextRevision && engine.contextModel != null
+            ) {
+                pauseRevisionJob = serviceScope.launch {
+                    delay(REVISION_PAUSE_MS)
+                    val found = withContext(suggestionDispatcher) {
+                        engine.contextRevision(SuggestionEngine.REVISION_PAUSE_BACK)
+                    } ?: return@launch
+                    if (composing.isNotEmpty() || _uiState.value.revisionSuggestion != null) return@launch
+                    revisionContext = found.wrong to found.followers.joinToString(" ")
+                    _uiState.update { it.copy(revisionSuggestion = found.replacement) }
                 }
             }
             // The near-miss chip belongs to the word that was just committed,

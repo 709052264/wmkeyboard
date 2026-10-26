@@ -22,7 +22,7 @@
 //! Environment: `CASES` words per profile (3000), `SCATTER` (careful, fast,
 //! sloppy or all), `MODES` as a comma list of `base`, `lm`, `conf`, `lm+conf`
 //! (base and lm by default), `LMW`/`LMCAP` the model's rerank weight and
-//! cap, `LMBLEND`/`LMBCAP` its score-space blend and cap (0 off), `PREFIX=neutral` to hide the register and field from the model,
+//! cap, `LMBLEND`/`LMBCAP`/`LMBSLOPE` its score-space blend, cap and tap-spread slope, `PREFIX=neutral` to hide the register and field from the model,
 //! `DUMP=rows.csv` to write the gate's feature rows for
 //! `tools/wmlm/train_confidence.py`, `SAVINGS=0` to skip the savings pass,
 //! `SKIP=n` to start at the n-th sentence (so a run measures sentences a fit
@@ -189,8 +189,9 @@ fn main() {
     let modes: Vec<String> = std::env::var("MODES").unwrap_or_else(|_| if lm.is_some() { "base,lm".into() } else { "base".into() }).split(',').map(str::to_string).collect();
     let lm_weight: f64 = env("LMW", wm_engine::predict::LM_WEIGHT);
     let lm_cap: f64 = env("LMCAP", wm_engine::predict::LM_CAP);
-    let lm_blend: f64 = env("LMBLEND", 0.0);
-    let lm_blend_cap: f64 = env("LMBCAP", 1.0);
+    let lm_blend: f64 = env("LMBLEND", wm_engine::predict::LM_BLEND);
+    let lm_blend_cap: f64 = env("LMBCAP", wm_engine::predict::LM_BLEND_CAP);
+    let lm_blend_slope: f64 = env("LMBSLOPE", wm_engine::predict::LM_BLEND_SLOPE);
     let neutral = std::env::var("PREFIX").is_ok_and(|v| v == "neutral");
     let savings_pass: i32 = env("SAVINGS", 1);
     let skip: usize = env("SKIP", 0);
@@ -238,6 +239,7 @@ fn main() {
             p.lm_cap = lm_cap;
             p.lm_blend = lm_blend;
             p.lm_blend_cap = lm_blend_cap;
+            p.lm_blend_slope = lm_blend_slope;
             if use_lm {
                 p.lm = lm.as_ref().map(|m| std::cell::RefCell::new(Session::new(m.clone())));
             }
