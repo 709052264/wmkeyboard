@@ -1238,7 +1238,16 @@ private fun SettingsNavGraph(
                 { navController.popBackStack() },
                 route = "typing/gestures/glide",
             ) {
-                TypingGlideSettings(repository, settings)
+                TypingGlideSettings(repository, settings, onNavigate = { navController.navigate(it) })
+            }
+        }
+        composable("typing/gestures/glide/checkup") {
+            SettingsScreen(
+                stringResource(R.string.typing_glide_checkup_title),
+                { navController.popBackStack() },
+                route = "typing/gestures/glide/checkup",
+            ) {
+                TypingGlideCheckupSettings(repository, settings)
             }
         }
         composable("typing/gestures/spacebar") {

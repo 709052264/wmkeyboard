@@ -308,6 +308,7 @@ Gestures is a hub of three pages. Its own list is three rows: **Glide typing**, 
 | Words to choose from | Slider, 2–5 | 3 | Ask when a glide is unclear on |
 | Learn my swipe style | Toggle | On | Glide typing on and swipe mode is Type words |
 | Forget my swipe style | Action, with a confirm | | Glide typing on and swipe mode is Type words |
+| Glide check-up | Screen | | Glide typing on and swipe mode is Type words. The row's line says where the check-up stands |
 | Words a glide can produce | Choice: Everything / Large / Medium / Small | Large | Glide typing on and swipe mode is Type words |
 | Whose words a glide can produce | Choice: Every word / Prefer my words / Only my words / Automatic | Every word | Glide typing on and swipe mode is Type words |
 | Offer a full search while proofreading | Toggle | Off | Glide typing on and swipe mode is Type words |
@@ -369,6 +370,24 @@ A fold further down the Glide typing page, closed until you open it. Every row i
 The first three decide which words a stroke may be read as at all. The rest decide how a stroke marks a letter, which shape alone cannot: a pause on the key or a rub back and forth over it says the letter is in the word, and a small circle on it says the letter is written twice. Every value is in key widths except the pause, which is a multiple of your own speed in that same stroke, and the wiggle's strength, which is a percentage of a full stop. The last row is a count: how many of your own shapes [Learn my swipe style](/typing/glide-typing/#what-a-swipe-teaches) keeps for one word.
 
 Full writeup: [Marking a letter as you glide](/typing/glide-typing/#marking-a-letter-as-you-glide).
+
+#### Glide check-up
+
+<SettingsPath path="Typing / Gestures / Glide typing / Glide check-up" />
+
+| Setting | Type | Default | Shown when |
+| --- | --- | --- | --- |
+| Measure my swipes | Toggle | Off | always |
+| Measured so far | Line | | always |
+| Your swipes | Five lines: corner cutting, where your finger sits, stroke size, touch-down, lift-off | | At least one swipe measured |
+| Suggested change | Card: Apply / Not now, then Undo | | 30 swipes measured and a candidate value reads more of them right |
+| Checking the change | Card: Keep / Undo | | A change was applied and is being confirmed over the next 40 swipes |
+| Frequency weight | Line, with a reset | The language's own | always |
+| Start over | Action, with a confirm | | always |
+
+The check-up fits **Words a glide can produce** and the decoder's frequency weight to your own swipes. The frequency weight has no row of its own anywhere else: it is set per language, the check-up may lay a fitted value over the language's, and this screen is where that value is shown and reset. Measuring keeps only words, never strokes, and stops at 200 records.
+
+Full writeup: [The glide check-up](/typing/glide-typing/#the-glide-check-up).
 
 ### Spacebar
 

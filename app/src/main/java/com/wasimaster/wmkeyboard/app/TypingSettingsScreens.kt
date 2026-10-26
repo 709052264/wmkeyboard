@@ -1978,6 +1978,7 @@ internal fun TypingGesturesSettings(
 internal fun TypingGlideSettings(
     repository: SettingsRepository,
     settings: LiveSettings,
+    onNavigate: (String) -> Unit = {},
 ) {
     val scope = rememberCoroutineScope()
     // What decides which rows the groups hold; each row reads its own value.
@@ -2272,6 +2273,11 @@ internal fun TypingGlideSettings(
                     ) { scope.launch { repository.setGestureLearnSwipeStyle(it) } }
                 }
                 item(level = SettingLevel.ADVANCED) { ForgetSwipeStyleRow(repository) }
+                // The check-up fits the two weights below to the user's own
+                // swipes and proposes one change at a time (#966 §5.5).
+                item(level = SettingLevel.STANDARD) {
+                    GlideCheckupRow(repository, settings) { onNavigate("typing/gestures/glide/checkup") }
+                }
                 // How much of the dictionary a swipe may answer with. The
                 // shipped lists are smaller than every limit, so this does
                 // nothing until a large list is downloaded or imported (#28).

@@ -1221,6 +1221,35 @@ class SuggestionEngine(
     @Volatile
     private var languageTuning = GlideLanguageProfiles.tune(glideTuning, primaryLanguageIdField)
 
+    /**
+     * The frequency weight the user's own swipes fitted (the glide check-up,
+     * issue #966 §5.5), or null for the language's own. Layered over the
+     * profile, under nothing: the one weight the check-up may move that no
+     * setting row reaches.
+     */
+    @Volatile
+    var glideFreqWeightOverride: Double? = null
+        set(value) {
+            if (value == field) return
+            field = value
+            retuneGlide()
+        }
+
+    /**
+     * The weights every glide decoder runs with right now: the user's
+     * tuning with the language's profile and the check-up's override on it.
+     * What a replay ([glide] with a `tuning`) should start from.
+     */
+    val glideTuningInForce: GlideBeam.Tuning get() = languageTuning
+
+    /**
+     * Words in the largest list a swipe decodes against, or 0 when none
+     * carries a count — what decides whether a vocabulary cap cuts anything
+     * (the check-up skips a cap that would not).
+     */
+    fun glideVocabularySize(): Int =
+        walkSources().maxOfOrNull { it.walker.vocabularySize() } ?: 0
+
     @Volatile
     private var glideBeam = GlideBeam(languageTuning)
     private val glideWorkspace = ThreadLocal.withInitial { GlideWorkspace() }
@@ -1278,7 +1307,9 @@ class SuggestionEngine(
      * two languages with the same weights costs nothing.
      */
     private fun retuneGlide() {
-        val tuned = GlideLanguageProfiles.tune(glideTuning, primaryLanguageId)
+        val profiled = GlideLanguageProfiles.tune(glideTuning, primaryLanguageId)
+        val override = glideFreqWeightOverride
+        val tuned = if (override == null || override == profiled.freqWeight) profiled else profiled.copy(freqWeight = override)
         if (tuned == languageTuning) return
         languageTuning = tuned
         glideBeam = GlideBeam(tuned)
@@ -1440,6 +1471,14 @@ class SuggestionEngine(
         /** Leading and trailing samples that are a walk from or to the spacebar (#968); see [GlideBeam.decode]. */
         openHead: Int = 0,
         openTail: Int = 0,
+        /**
+         * Weights to replay the stroke under instead of the ones in force
+         * (the glide check-up, #966 §5.5): the built-in decoder only, since
+         * the weights are its, through the same sources, blacklist and
+         * rerank as the decode that typed the word. Null for an ordinary
+         * decode.
+         */
+        tuning: GlideBeam.Tuning? = null,
     ): List<GlideBeam.Candidate> {
         val romanization = glideRomanization
         val sources = if (romanization.isEmpty) {
@@ -1451,7 +1490,7 @@ class SuggestionEngine(
         if (sources.isEmpty()) return emptyList()
         // The other engines read the layout's own spellings only, so never
         // on a phonetic layout, where the answer is the romanization's own.
-        val neural = externalGlide?.takeIf { romanization.isEmpty }?.decode(
+        val neural = externalGlide?.takeIf { romanization.isEmpty && tuning == null }?.decode(
             path = path,
             keys = keys,
             keyWidth = keyWidth,
@@ -1469,7 +1508,12 @@ class SuggestionEngine(
                 previousWord, previousWord2, previousWord3, recentWords,
             )
         }
-        val decoded = (if (deep) deepGlideBeam else glideBeam).decode(
+        val beam = when {
+            tuning != null -> GlideBeam(tuning)
+            deep -> deepGlideBeam
+            else -> glideBeam
+        }
+        val decoded = beam.decode(
             path = path,
             keys = keys,
             keyWidth = keyWidth,

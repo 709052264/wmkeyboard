@@ -53,7 +53,8 @@
 		"telegram_stickers": "0.6.0",
 		"theme_assets/{themeId}": "0.5.13",
 		"typing/octopus": "0.5.4",
-		"whatsapp_stickers": "0.5.13"
+		"whatsapp_stickers": "0.5.13",
+		"typing/gestures/glide/checkup": "0.6.4"
 	},
 	"settings": {
 		"about_app_language_title": "0.5.12",
@@ -799,7 +800,11 @@
 		"voice_server_language_title": "0.5.11",
 		"voice_silence_stop_title": "0.5.14",
 		"voice_strip_language_title": "0.6.0",
-		"voice_system_on_device_title": "0.6.0"
+		"voice_system_on_device_title": "0.6.0",
+		"typing_glide_checkup_title": "0.6.4",
+		"typing_glide_checkup_measure_title": "0.6.4",
+		"typing_glide_checkup_frequency_title": "0.6.4",
+		"typing_glide_checkup_reset": "0.6.4"
 	},
 	"modes": {}
 }

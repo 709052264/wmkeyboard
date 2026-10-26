@@ -670,6 +670,7 @@ private fun SearchStrings.typingGlideRows(): List<SettingsSearchEntry> {
         row(R.string.typing_glide_picker_choices_title, R.string.typing_glide_picker_choices_subtitle),
         row(R.string.typing_glide_swipe_style_title, R.string.typing_glide_swipe_style_subtitle),
         row(R.string.typing_glide_swipe_style_forget),
+        row(R.string.typing_glide_checkup_title, R.string.typing_glide_checkup_subtitle),
         row(R.string.typing_space_after_glide_title, R.string.typing_space_after_glide_subtitle),
         row(R.string.typing_glide_backspace_undo_title, R.string.typing_glide_backspace_undo_subtitle),
         row(R.string.typing_glide_apostrophe_title, R.string.typing_glide_apostrophe_subtitle),
@@ -721,6 +722,19 @@ private fun SearchStrings.typingGlideRows(): List<SettingsSearchEntry> {
             R.string.typing_glide_strip_preview_title,
             R.string.typing_glide_strip_preview_subtitle,
         ),
+    )
+}
+
+/** Rows on the typing/gestures/glide/checkup page (#966 §5.5), in screen order. */
+private fun SearchStrings.typingGlideCheckupRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0) = entry(
+        title, subtitle, R.string.typing_glide_checkup_title, "typing/gestures/glide/checkup",
+        screenParent = R.string.typing_group_glide_title, screenRoot = R.string.home_typing_title,
+    )
+    return listOf(
+        row(R.string.typing_glide_checkup_measure_title, R.string.typing_glide_checkup_measure_subtitle),
+        row(R.string.typing_glide_checkup_frequency_title),
+        row(R.string.typing_glide_checkup_reset),
     )
 }
 
@@ -2759,6 +2773,11 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
             parent = R.string.home_typing_title,
         ),
         under(
+            R.string.typing_glide_checkup_title, R.string.typing_glide_checkup_subtitle,
+            R.string.typing_group_glide_title, "typing/gestures/glide/checkup",
+            parent = R.string.typing_group_gestures_title,
+        ),
+        under(
             R.string.typing_page_spacebar_title, R.string.typing_page_spacebar_subtitle,
             R.string.typing_group_gestures_title, "typing/gestures/spacebar",
             parent = R.string.home_typing_title,
@@ -3208,6 +3227,7 @@ internal fun settingsSearchIndex(strings: SearchStrings): List<SettingsSearchEnt
         typingChipsRows() +
         typingCodesRows() +
         typingGlideRows() +
+        typingGlideCheckupRows() +
         typingSpacebarRows() +
         typingFlicksRows() +
         typingHardwareRows() +

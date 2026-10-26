@@ -431,6 +431,7 @@ import com.wasimaster.wmkeyboard.core.settings.GlideApostropheKey
 import com.wasimaster.wmkeyboard.core.settings.GLIDE_OUTCOMES_FILE
 import com.wasimaster.wmkeyboard.core.settings.GLIDE_SHAPES_FILE
 import com.wasimaster.wmkeyboard.core.settings.GLIDE_SANDBOX_FILE
+import com.wasimaster.wmkeyboard.core.settings.GLIDE_CHECKUP_FILE
 import com.wasimaster.wmkeyboard.core.settings.GestureSettings
 import com.wasimaster.wmkeyboard.core.settings.TwoThumbWordEnd
 import com.wasimaster.wmkeyboard.core.settings.glideTuning
@@ -445,6 +446,7 @@ import com.wasimaster.wmkeyboard.core.settings.GlideSandbox
 import com.wasimaster.wmkeyboard.core.prediction.FuzzyBeamSearch
 import com.wasimaster.wmkeyboard.core.prediction.GlideGuessGate
 import com.wasimaster.wmkeyboard.core.prediction.GlideSandboxLadder
+import com.wasimaster.wmkeyboard.core.prediction.GlideCheckup
 import com.wasimaster.wmkeyboard.core.prediction.GlideSandboxPolicy
 import com.wasimaster.wmkeyboard.core.settings.APP_LANGUAGE_MIX_FILE
 import com.wasimaster.wmkeyboard.core.settings.TYPED_EMAILS_FILE
@@ -971,6 +973,7 @@ open class WMKeyboardService : InputMethodService() {
         glideOutcomes.save()
         glideShapes.save()
         glideSandbox.save()
+        glideCheckup.save()
         correctionStats.save()
         CjkLearning.store?.save()
         languageMixConfidence.save()
@@ -3082,6 +3085,18 @@ open class WMKeyboardService : InputMethodService() {
      */
     private var glideSandbox = GlideSandboxLadder(null)
 
+    /**
+     * The glide check-up's evidence (issue #966 §5.5): what each candidate
+     * weight read off the user's recent swipes. Fed by [measureGlideForCheckup]
+     * while the check-up screen's switch is on, told of corrections by
+     * [noteGlidePreference] and [noteGlideUndone], and answered through the
+     * decision pref the settings screen writes.
+     */
+    private var glideCheckup = GlideCheckup(null)
+
+    /** The last check-up decision acted on, so a settings emit replays none. */
+    private var checkupDecisionSeen: String? = null
+
     /** A sandbox rung earned and not yet answered, while its chip is up. */
     private var sandboxOfferPolicy: GlideSandboxPolicy? = null
 
@@ -4710,6 +4725,7 @@ open class WMKeyboardService : InputMethodService() {
             var lexiconVersion = -1
             var correctionsVersion = -1
             var swipeStyleVersion = -1
+            var checkupVersion = -1
             var statsVersion = -1
             var notesVersion = -1
             var todoVersion = -1
@@ -5023,6 +5039,22 @@ open class WMKeyboardService : InputMethodService() {
                     undoneGlide = null
                     glideShapes.reload()
                 }
+                // The check-up screen's "start over": the file is gone, and
+                // the copy here must not save it back (#966).
+                if (checkupVersion != -1 && settings.gesture.checkupVersion != checkupVersion) {
+                    glideCheckup.reload()
+                }
+                checkupVersion = settings.gesture.checkupVersion
+                // One decision from the check-up screen, acted on once: the
+                // screen cannot touch the evidence file while this keyboard
+                // holds it, so it asks.
+                val decision = settings.gesture.checkupDecision
+                if (decision.isNotEmpty() && decision != checkupDecisionSeen) {
+                    if (checkupDecisionSeen != null) actOnCheckupDecision(decision)
+                    checkupDecisionSeen = decision
+                } else if (checkupDecisionSeen == null) {
+                    checkupDecisionSeen = decision
+                }
                 // The Learned-corrections screen's deletes, and "forget" for
                 // the tap model: their own signal for the hand model's reason.
                 if (correctionsVersion != -1 &&
@@ -5207,6 +5239,10 @@ open class WMKeyboardService : InputMethodService() {
                 glideOutcomes.applied = settings.gesture.learnSwipeStyle
                 glideShapes.setShapesPerWord(settings.gesture.shapesPerWord)
                 glideReadings.strokeCapacity = settings.gesture.keptStrokes
+                // The frequency weight the check-up fitted to this user, over
+                // the language's own (#966); 0 is the language's own.
+                suggestionEngine?.glideFreqWeightOverride =
+                    settings.gesture.frequencyWeight.takeIf { it > 0f }?.toDouble()
                 suggestionEngine?.reranker = resolveReranker(settings)
                 // The engine sees one flat set: the global list plus the list of
                 // the language being typed (#136). Re-pointed on every language
@@ -5504,6 +5540,7 @@ open class WMKeyboardService : InputMethodService() {
         }
         glideSandbox = GlideSandboxLadder(store(GLIDE_SANDBOX_FILE))
         sandboxOfferPolicy = null
+        glideCheckup = GlideCheckup(store(GLIDE_CHECKUP_FILE))
         correctionStats = CorrectionStats(store("learning/correction_stats.json"))
         contextAdapter = ContextAdapter(store(ContextAdapter.FILE_NAME))
         suggestionEngine?.contextAdapter = contextAdapter
@@ -5824,6 +5861,8 @@ open class WMKeyboardService : InputMethodService() {
                 scriptChoices = this@WMKeyboardService.scriptChoices
                 fieldDetectionShift = fieldDetectionShift(_uiState.value.settings)
                 tuneGlide(_uiState.value.settings.gesture.glideTuning())
+                glideFreqWeightOverride =
+                    _uiState.value.settings.gesture.frequencyWeight.takeIf { it > 0f }?.toDouble()
                 ngramReranker = NgramReranker(
                     userLexicon,
                     seedBigrams,
@@ -26181,6 +26220,7 @@ open class WMKeyboardService : InputMethodService() {
     /** The user took [chosen] in place of [rejected], the word a stroke was read as (issue #52). */
     private fun noteGlidePreference(rejected: String, chosen: String) {
         if (swipeStyleLearning) glideOutcomes.observeAlternative(rejected, chosen)
+        glideCheckup.correct(rejected, chosen)
         learningBuffer.drop(rejected)
         pushRecentWord(chosen)
         previousWord = chosen
@@ -26189,6 +26229,85 @@ open class WMKeyboardService : InputMethodService() {
     /** The user backspaced [word] the moment a glide committed it. */
     private fun noteGlideUndone(word: String) {
         if (swipeStyleLearning) glideOutcomes.observeImmediateUndo(word)
+        glideCheckup.correct(word, null)
+    }
+
+    /**
+     * The glide check-up's measurement (issue #966 §5.5): the stroke that
+     * just typed [word] decoded again under every candidate weight, through
+     * the same sources, blacklist and context as the decode that typed it,
+     * and the one word each came back with handed to [glideCheckup] beside
+     * [current], what the weights in force read, and the five-axis profile
+     * of the stroke. Off the keyboard's thread, after the word is in the
+     * field; a handful of decodes a swipe, and only while the check-up
+     * screen's switch is on. No stroke is kept.
+     */
+    private fun measureGlideForCheckup(
+        points: List<GesturePoint>,
+        keys: List<KeyCenter>,
+        keyWidthPx: Float,
+        word: String,
+        current: String,
+        context: Pair<List<String?>, List<String>>,
+    ) {
+        val engine = suggestionEngine ?: return
+        val checkup = glideCheckup
+        val (previous, recent) = context
+        serviceScope.launch(Dispatchers.Default) {
+            val base = engine.glideTuningInForce
+            val size = engine.glideVocabularySize()
+            val candidates = GlideCheckup.candidates(base, size)
+            if (candidates.isEmpty()) return@launch
+            val map = keyMapFor(keys, keyWidthPx)
+            val shapes = shapeSourceFor(keys, keyWidthPx)
+            val under = HashMap<String, String>(candidates.size * 2)
+            for (candidate in candidates) {
+                val read = engine.glide(
+                    path = points,
+                    keys = map,
+                    keyWidth = keyWidthPx,
+                    limit = 1,
+                    previousWord = previous.getOrNull(0),
+                    previousWord2 = previous.getOrNull(1),
+                    previousWord3 = previous.getOrNull(2),
+                    recentWords = recent,
+                    shapes = shapes,
+                    tuning = candidate.applyTo(base),
+                ).firstOrNull()?.word ?: continue
+                under[candidate.id] = read
+            }
+            checkup.observe(
+                fingerprint = GlideCheckup.fingerprintOf(base, size),
+                candidates = candidates,
+                currents = GlideCheckup.currents(base),
+                committed = word,
+                current = current,
+                under = under,
+                sample = GlideCheckup.profileOf(points, keys, keyWidthPx, word),
+            )
+        }
+    }
+
+    /**
+     * One decision from the check-up screen (`GestureSettings.checkupDecision`):
+     * `nonce:KIND:payload`. APPLY starts the confirmation window, DECLINE
+     * buries the candidate, SETTLE closes the window. Saved at once, since
+     * the screen reads the file back.
+     */
+    private fun actOnCheckupDecision(decision: String) {
+        val parts = decision.split(':', limit = 3)
+        if (parts.size < 2) return
+        val payload = parts.getOrNull(2).orEmpty()
+        when (parts[1]) {
+            "APPLY" -> {
+                val (candidate, from) = payload.split('|', limit = 2).let { it[0] to it.getOrElse(1) { "" } }
+                if (candidate.isNotEmpty()) glideCheckup.applied(candidate, from)
+            }
+            "DECLINE" -> if (payload.isNotEmpty()) glideCheckup.decline(payload)
+            "SETTLE" -> glideCheckup.settle()
+            else -> return
+        }
+        serviceScope.launch(persistDispatcher) { glideCheckup.save() }
     }
 
     /**
@@ -28581,6 +28700,13 @@ open class WMKeyboardService : InputMethodService() {
                 glideDecode(points, keys, keyWidthPx)
             }
             val candidates = reading.words
+            // The words before this one, as the decode saw them, for the
+            // check-up's replay below: by then the commit has moved them on.
+            val checkupContext = if (state.settings.gesture.checkupMeasure) {
+                listOf(previousWord, previousWord2, previousWord3) to recentWords.toList()
+            } else {
+                null
+            }
             // One stroke, one observation: recorded here on the committing
             // decode rather than in `glideDecode`, which also runs for every
             // preview of a stroke still being drawn.
@@ -28692,6 +28818,11 @@ open class WMKeyboardService : InputMethodService() {
             // only the one the decode was allowed to see (#135).
             glideReadings.attach(word, stroke)
             lastHandAdjustment = hand
+            // The check-up replays the stroke under the candidate weights,
+            // off this thread, and keeps only the words that come out (#966).
+            if (checkupContext != null) {
+                measureGlideForCheckup(points, keys, keyWidthPx, word, candidates.first(), checkupContext)
+            }
             consumeShift()
             val floating = nextWordOctopus()
             val chips = nextWordEmoji()

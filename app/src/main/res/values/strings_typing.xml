@@ -582,6 +582,69 @@
     <string name="typing_glide_kept_strokes_subtitle">How many of the newest swiped words keep their stroke. More uses more memory</string>
     <string name="typing_glide_kept_strokes_info">A full search reads the stroke you drew again, so it only works for a word whose stroke the keyboard still keeps. The keyboard keeps the strokes of the newest swiped words in the field, 24 by default. Each stroke is every point your finger passed through, a few kilobytes, so keeping 500 can take a few megabytes while you write a long text. Raise it to search words further back; lower it, or set it to 0, to save memory. Strokes are forgotten when you leave the field.</string>
 
+    <!-- The glide check-up (issue #966 §5.5): a row on the Glide typing page and the screen behind it. -->
+    <string name="typing_glide_checkup_title">Glide check-up</string>
+    <string name="typing_glide_checkup_subtitle">Measure your own swipes, get one change proposed with its expected effect, and confirm it later</string>
+    <string name="typing_glide_checkup_info">Two of the numbers behind glide typing depend on what you write rather than on the keyboard: how much of the dictionary a swipe may answer with, and how much a word\'s commonness counts against the shape you drew. The check-up finds the right values from your own swipes. While it is measuring, each word you swipe is read again in the background under a few candidate values, and only the words that come out are kept, never the stroke. After 30 swipes it proposes one change at a time, says how many of your own swipes it would have read right, and lets you apply it. After the next 40 swipes it compares how often you corrected swiped words before and after, and offers to keep or undo. A change is never applied or undone over a value you set by hand in the meantime.</string>
+    <!-- The row's subtitle, by state. %1$d and %2$d are counts of swipes. -->
+    <string name="typing_glide_checkup_state_off">Off. Open to start measuring</string>
+    <string name="typing_glide_checkup_state_collecting">Measuring: <xliff:g id="done" example="18">%1$d</xliff:g> of <xliff:g id="needed" example="30">%2$d</xliff:g> swipes</string>
+    <string name="typing_glide_checkup_state_ready">A change is ready</string>
+    <string name="typing_glide_checkup_state_checking">Checking the change: <xliff:g id="done" example="12">%1$d</xliff:g> of <xliff:g id="needed" example="40">%2$d</xliff:g> swipes</string>
+    <string name="typing_glide_checkup_state_checked">Change checked: open to keep or undo it</string>
+    <string name="typing_glide_checkup_state_nothing">Nothing to change on <xliff:g id="count" example="60">%1$d</xliff:g> swipes</string>
+    <!-- The screen. -->
+    <string name="typing_glide_checkup_measure_title">Measure my swipes</string>
+    <string name="typing_glide_checkup_measure_subtitle">Read each swiped word again under a few candidate values, in the background</string>
+    <string name="typing_glide_checkup_measure_info">On, each word you swipe costs a few more decodes after it is typed, off the keyboard\'s thread. Only the words that come out are kept, up to 200 of them; no stroke is stored. Turn it off once you have a change you are happy with.</string>
+    <string name="typing_glide_checkup_measured_title">Measured so far</string>
+    <string name="typing_glide_checkup_measured_none">No swipes measured yet</string>
+    <!-- %1$d swipes measured, %2$d of them read right by the current values. -->
+    <string name="typing_glide_checkup_measured"><xliff:g id="count" example="60">%1$d</xliff:g> swipes, <xliff:g id="right" example="52">%2$d</xliff:g> read right first time</string>
+    <string name="typing_glide_checkup_profile_title">Your swipes</string>
+    <string name="typing_glide_checkup_profile_corner_title">Corner cutting</string>
+    <!-- %1$s is a distance in key widths, such as 0.3. -->
+    <string name="typing_glide_checkup_profile_corner_value"><xliff:g id="keys" example="0.3">%1$s</xliff:g> keys inside the corner, on average</string>
+    <string name="typing_glide_checkup_profile_offset_title">Where your finger sits</string>
+    <!-- %1$s keys to the %2$s (left or right), %3$s keys %4$s (up or down). -->
+    <string name="typing_glide_checkup_profile_offset_value"><xliff:g id="x" example="0.1">%1$s</xliff:g> keys to the <xliff:g id="side" example="left">%2$s</xliff:g>, <xliff:g id="y" example="0.2">%3$s</xliff:g> keys <xliff:g id="updown" example="down">%4$s</xliff:g> of the letters</string>
+    <string name="typing_glide_checkup_profile_left">left</string>
+    <string name="typing_glide_checkup_profile_right">right</string>
+    <string name="typing_glide_checkup_profile_up">up</string>
+    <string name="typing_glide_checkup_profile_down">down</string>
+    <string name="typing_glide_checkup_profile_scale_title">Stroke size</string>
+    <!-- %1$d is a percentage. -->
+    <string name="typing_glide_checkup_profile_scale_value"><xliff:g id="percent" example="92">%1$d</xliff:g>%% of the span of the letters</string>
+    <string name="typing_glide_checkup_profile_start_title">Touch-down</string>
+    <string name="typing_glide_checkup_profile_start_value"><xliff:g id="keys" example="0.2">%1$s</xliff:g> keys from the first letter</string>
+    <string name="typing_glide_checkup_profile_lift_title">Lift-off</string>
+    <string name="typing_glide_checkup_profile_lift_value"><xliff:g id="keys" example="0.2">%1$s</xliff:g> keys from the last letter</string>
+    <string name="typing_glide_checkup_proposal_title">Suggested change</string>
+    <string name="typing_glide_checkup_no_proposal_title">Nothing proposed yet</string>
+    <!-- %1$d is how many more swipes are needed. -->
+    <string name="typing_glide_checkup_need_more">Swipe <xliff:g id="count" example="12">%1$d</xliff:g> more words with measuring on</string>
+    <!-- %1$d is the number of swipes measured. -->
+    <string name="typing_glide_checkup_nothing">On your <xliff:g id="count" example="60">%1$d</xliff:g> swipes no other value reads more of them right</string>
+    <!-- %1$d swipes; %2$d read right with the proposed value, %3$d with the current one; %4$d fixed, %5$d broken. -->
+    <string name="typing_glide_checkup_effect">On your last <xliff:g id="count" example="60">%1$d</xliff:g> swipes this would have read <xliff:g id="then" example="56">%2$d</xliff:g> right instead of <xliff:g id="now" example="52">%3$d</xliff:g>: <xliff:g id="more" example="5">%4$d</xliff:g> more, <xliff:g id="fewer" example="1">%5$d</xliff:g> fewer.</string>
+    <string name="typing_glide_checkup_not_now">Not now</string>
+    <string name="typing_glide_checkup_stale">Not applied: the setting changed after this was measured. Measuring starts over.</string>
+    <string name="typing_glide_checkup_confirm_title">Checking the change</string>
+    <!-- %1$d of %2$d swipes since the change. -->
+    <string name="typing_glide_checkup_confirm_progress"><xliff:g id="done" example="12">%1$d</xliff:g> of <xliff:g id="needed" example="40">%2$d</xliff:g> swipes since the change</string>
+    <!-- Corrections and swipes after the change, then before it. -->
+    <string name="typing_glide_checkup_confirm_rates">Since the change: <xliff:g id="after_fixed" example="2">%1$d</xliff:g> of <xliff:g id="after" example="40">%2$d</xliff:g> swiped words fixed. Before it: <xliff:g id="before_fixed" example="5">%3$d</xliff:g> of <xliff:g id="before" example="40">%4$d</xliff:g>.</string>
+    <string name="typing_glide_checkup_confirm_worse">You fixed more swipes than before. Undo puts the old value back.</string>
+    <string name="typing_glide_checkup_confirm_fine">No more fixes than before.</string>
+    <string name="typing_glide_checkup_keep">Keep</string>
+    <string name="typing_glide_checkup_frequency_title">Frequency weight</string>
+    <string name="typing_glide_checkup_frequency_own">The language\'s own</string>
+    <!-- %1$s is the weight, such as 0.5. -->
+    <string name="typing_glide_checkup_frequency_fitted"><xliff:g id="weight" example="0.5">%1$s</xliff:g>, fitted to your swipes</string>
+    <string name="typing_glide_checkup_reset">Start over</string>
+    <string name="typing_glide_checkup_reset_title">Start the check-up over?</string>
+    <string name="typing_glide_checkup_reset_body">Forgets what has been measured and which proposals you turned down. The values you applied stay as they are.</string>
+
     <!-- One-of-four choice: how hard the word shown mid-glide resists change. -->
     <string name="typing_glide_steadiness_title">Steadiness of the word while you glide</string>
     <string name="typing_glide_steadiness_subtitle">Stop the word changing under your finger on every small movement</string>

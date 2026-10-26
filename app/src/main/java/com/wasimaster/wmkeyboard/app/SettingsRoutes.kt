@@ -82,6 +82,7 @@ internal object SettingsRoutes {
         "typing/codes",
         "typing/gestures",
         "typing/gestures/glide",
+        "typing/gestures/glide/checkup",
         "typing/gestures/spacebar",
         "typing/gestures/flicks",
         "typing/hardware",

@@ -4558,6 +4558,13 @@ const val GLIDE_SHAPES_FILE = "learning/glide_shapes.json"
 const val GLIDE_SANDBOX_FILE = "learning/glide_sandbox.json"
 
 /**
+ * The glide check-up's evidence (`GlideCheckup` in :core:prediction, issue
+ * #966 §5.5): the words each candidate weight read off the user's recent
+ * swipes, and the change in force. Words, never strokes.
+ */
+const val GLIDE_CHECKUP_FILE = "learning/glide_checkup.json"
+
+/**
  * Everything the "learn my swipe style" switch governs and its Forget deletes:
  * the stores a kept swipe teaches, apart from the word itself.
  */
@@ -7822,6 +7829,14 @@ val GlideShapesPerWordRange = 1..GlideShapeStore.MAX_SHAPES_PER_WORD
  */
 val GlideKeptStrokesRange = 0..com.wasimaster.wmkeyboard.core.prediction.GlideReadings.DEFAULT_CAPACITY
 
+/**
+ * Bounds for [GestureSettings.frequencyWeight] when it is set at all: the
+ * band the issue's sweep covered (0.25 was already past German's optimum on
+ * every corpus). 0 means the language's own weight and is outside the band
+ * on purpose.
+ */
+val GlideFrequencyWeightRange = 0.25f..1f
+
 /** Glide-typing behaviour and swipe-trail appearance. See [KeyboardSettings.gesture]. */
 data class GestureSettings(
     /**
@@ -8315,6 +8330,34 @@ data class GestureSettings(
      * this is a memory trade the user makes. Range [GlideKeptStrokesRange].
      */
     val keptStrokes: Int = com.wasimaster.wmkeyboard.core.prediction.GlideReadings.STROKE_CAPACITY,
+    /**
+     * The glide check-up is measuring (issue #966 §5.5): each swiped word is
+     * decoded again in the background under the candidate weights, and only
+     * the words that come out are kept. Off by default, since it costs a few
+     * extra decodes per swipe, and switched on from the check-up screen.
+     */
+    val checkupMeasure: Boolean = false,
+    /**
+     * The frequency weight fitted to this user's own swipes by the check-up,
+     * laid over the language's profile, or 0 for the language's own. No
+     * slider reaches it: the check-up proposes it, with its expected effect,
+     * and the check-up screen shows and resets it. Range
+     * [GlideFrequencyWeightRange] when set.
+     */
+    val frequencyWeight: Float = 0f,
+    /**
+     * Bumped by the check-up screen's "start over" so a running keyboard
+     * drops its in-memory evidence, on the contract of [swipeStyleVersion].
+     */
+    val checkupVersion: Int = 0,
+    /**
+     * The check-up screen's latest decision for a running keyboard to act
+     * on: `nonce:KIND:payload`, where KIND is APPLY (payload `candidateId|fromId`),
+     * DECLINE (`candidateId`) or SETTLE (the confirmation answered). The
+     * keyboard owns the evidence file, so the screen asks it rather than
+     * writing the file under it.
+     */
+    val checkupDecision: String = "",
     /**
      * Backspace right after a glide takes the whole swiped word back, and
      * the space it typed, in one press (#455). On by default: a wrong swipe
@@ -10520,6 +10563,10 @@ class SettingsRepository(private val context: Context) {
         private val GESTURE_SHAPE_SEEDING = booleanPreferencesKey("gesture_shape_seeding")
         private val GESTURE_SEARCH_ALL_CHIP = booleanPreferencesKey("gesture_search_all_chip")
         private val GESTURE_KEPT_STROKES = intPreferencesKey("gesture_kept_strokes")
+        private val GESTURE_CHECKUP_MEASURE = booleanPreferencesKey("gesture_checkup_measure")
+        private val GESTURE_FREQUENCY_WEIGHT = floatPreferencesKey("gesture_frequency_weight")
+        private val GESTURE_CHECKUP_VERSION = intPreferencesKey("gesture_checkup_version")
+        private val GESTURE_CHECKUP_DECISION = stringPreferencesKey("gesture_checkup_decision")
         private val GESTURE_BACKSPACE_UNDOES_GLIDE =
             booleanPreferencesKey("gesture_backspace_undoes_glide")
         private val GESTURE_SWIPE_STYLE_VERSION = intPreferencesKey("gesture_swipe_style_version")
@@ -12530,6 +12577,11 @@ class SettingsRepository(private val context: Context) {
             shapeSeeding = p[GESTURE_SHAPE_SEEDING] ?: defaults.gesture.shapeSeeding,
             searchAllChip = p[GESTURE_SEARCH_ALL_CHIP] ?: defaults.gesture.searchAllChip,
             keptStrokes = (p[GESTURE_KEPT_STROKES] ?: defaults.gesture.keptStrokes).coerceIn(GlideKeptStrokesRange),
+            checkupMeasure = p[GESTURE_CHECKUP_MEASURE] ?: defaults.gesture.checkupMeasure,
+            frequencyWeight = (p[GESTURE_FREQUENCY_WEIGHT] ?: defaults.gesture.frequencyWeight)
+                .let { if (it <= 0f) 0f else it.coerceIn(GlideFrequencyWeightRange) },
+            checkupVersion = p[GESTURE_CHECKUP_VERSION] ?: defaults.gesture.checkupVersion,
+            checkupDecision = p[GESTURE_CHECKUP_DECISION] ?: defaults.gesture.checkupDecision,
             backspaceUndoesGlide = p[GESTURE_BACKSPACE_UNDOES_GLIDE]
                 ?: defaults.gesture.backspaceUndoesGlide,
             swipeStyleVersion = p[GESTURE_SWIPE_STYLE_VERSION] ?: defaults.gesture.swipeStyleVersion,
@@ -19478,6 +19530,41 @@ class SettingsRepository(private val context: Context) {
     /** @see GestureSettings.keptStrokes */
     suspend fun setGestureKeptStrokes(value: Int) =
         editPrefs { it[GESTURE_KEPT_STROKES] = value.coerceIn(GlideKeptStrokesRange) }
+
+    /** @see GestureSettings.checkupMeasure */
+    suspend fun setGestureCheckupMeasure(value: Boolean) =
+        editPrefs { it[GESTURE_CHECKUP_MEASURE] = value }
+
+    /** @see GestureSettings.frequencyWeight; 0 for the language's own weight. */
+    suspend fun setGestureFrequencyWeight(value: Float) =
+        editPrefs { it[GESTURE_FREQUENCY_WEIGHT] = if (value <= 0f) 0f else value.coerceIn(GlideFrequencyWeightRange) }
+
+    /**
+     * Hands a running keyboard one decision from the check-up screen (see
+     * [GestureSettings.checkupDecision]). The nonce makes the same decision
+     * twice two changes, so the keyboard sees both.
+     */
+    suspend fun decideGlideCheckup(kind: String, payload: String = "") =
+        editPrefs { it[GESTURE_CHECKUP_DECISION] = "${System.currentTimeMillis()}:$kind:$payload" }
+
+    /**
+     * The check-up's "start over": the evidence file goes, and a running
+     * keyboard drops its copy on the version bump rather than saving it back.
+     */
+    suspend fun resetGlideCheckup() {
+        runCatching { File(context.filesDir, GLIDE_CHECKUP_FILE).delete() }
+        editPrefs { it[GESTURE_CHECKUP_VERSION] = (it[GESTURE_CHECKUP_VERSION] ?: 0) + 1 }
+    }
+
+    /**
+     * What the check-up has measured, read off the keyboard's evidence file
+     * the way [glideSandboxRung] reads the ladder's: the keyboard saves it
+     * when a field ends, which opening the settings app does.
+     */
+    suspend fun glideCheckupReport(): com.wasimaster.wmkeyboard.core.prediction.GlideCheckup.Report =
+        withContext(Dispatchers.IO) {
+            com.wasimaster.wmkeyboard.core.prediction.GlideCheckup(File(context.filesDir, GLIDE_CHECKUP_FILE)).report()
+        }
 
     suspend fun setGestureBackspaceUndoesGlide(value: Boolean) =
         editPrefs { it[GESTURE_BACKSPACE_UNDOES_GLIDE] = value }

@@ -605,6 +605,7 @@ internal object SettingsRouteIcons {
         "typing/codes" to { Icons.Outlined.Password },
         "typing/gestures" to { Icons.Outlined.Gesture },
         "typing/gestures/glide" to { Icons.Outlined.Gesture },
+        "typing/gestures/glide/checkup" to { Icons.Outlined.QueryStats },
         "typing/gestures/spacebar" to { Icons.Outlined.SpaceBar },
         "typing/gestures/flicks" to { Icons.Outlined.Swipe },
         "typing/hardware" to { SymbolIcons.KeyboardExternalInput },
