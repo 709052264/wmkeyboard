@@ -17,8 +17,10 @@ fn main() {
     println!("{} d{} layers {} heads {} ff {} ctx {} vocab {} langs {:?}", lm.name, lm.d, lm.layers, lm.heads, lm.ff, lm.ctx, lm.vocab_size(), lm.langs);
     let context: Vec<&str> = args.get(2).map(|s| s.split_whitespace().collect()).unwrap_or_default();
     let mut session = Session::new(lm.clone());
+    // `LANGSLOT=1` reads the context as the model's second language.
+    let prefix = Prefix { lang: std::env::var("LANGSLOT").ok().and_then(|v| v.parse().ok()).unwrap_or(0), ..Prefix::default() };
     let started = Instant::now();
-    session.set_context(Prefix::default(), &context);
+    session.set_context(prefix, &context);
     let top = session.top(10, f32::NEG_INFINITY);
     let cold = started.elapsed();
     println!("context {:?} -> {} tokens in {:?}", context, session.tokens().len(), cold);
@@ -32,10 +34,10 @@ fn main() {
     let mut longer: Vec<&str> = context.clone();
     longer.push(top.first().map(|(w, _)| w.as_str()).unwrap_or("the"));
     let started = Instant::now();
-    session.set_context(Prefix::default(), &longer);
+    session.set_context(prefix, &longer);
     let _ = session.distribution();
     println!("one more word: {:?}", started.elapsed());
-    session.set_context(Prefix::default(), &context);
+    session.set_context(prefix, &context);
     let (words, lp) = session.generate(4, 0.15);
     println!("greedy: {:?} (ln p {lp:.2})", words);
 }
