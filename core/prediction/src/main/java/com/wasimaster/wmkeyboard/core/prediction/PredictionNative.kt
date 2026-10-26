@@ -269,7 +269,9 @@ internal object PredictionNative {
      * (1 for user) and look-ahead in `ints`. Phase 1 returns every word the
      * shape channel will score, readings first, with the reading count in
      * the last int, for [glideFinish] on the same thread. Null when the
-     * stroke is no decode at all.
+     * stroke is no decode at all. [openHead] and [openTail] count the
+     * leading and trailing samples that are a walk from or to the spacebar
+     * (#968), 0 for a stroke that began and ended on keys.
      */
     @Suppress("LongParameterList")
     external fun glideDecode(
@@ -287,6 +289,8 @@ internal object PredictionNative {
         limit: Int,
         lookAhead: Int,
         phase: Int,
+        openHead: Int,
+        openTail: Int,
     ): Array<Any>?
 
     /** The last phase-1 [glideDecode] on this thread, finished with [shapes] per word and the seeding's [seeds]. */

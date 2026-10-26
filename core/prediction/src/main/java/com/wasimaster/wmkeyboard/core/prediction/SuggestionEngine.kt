@@ -1412,6 +1412,9 @@ class SuggestionEngine(
         shapes: GlideShapeSource? = null,
         tiers: Set<FuzzyBeamSearch.Tier>? = null,
         lookAhead: Int = 0,
+        /** Leading and trailing samples that are a walk from or to the spacebar (#968); see [GlideBeam.decode]. */
+        openHead: Int = 0,
+        openTail: Int = 0,
     ): List<GlideBeam.Candidate> {
         val romanization = glideRomanization
         val sources = if (romanization.isEmpty) {
@@ -1455,6 +1458,8 @@ class SuggestionEngine(
             // word whose length has nothing to do with them. Guessing ahead in
             // that pipeline needs its own design, not this one bolted on.
             lookAhead = if (romanization.isEmpty) lookAhead else 0,
+            openHead = openHead,
+            openTail = openTail,
         )
         return finishGlide(
             withApostrophes(decoded, romanization), romanization, limit,

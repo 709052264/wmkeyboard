@@ -20121,6 +20121,9 @@ open class WMKeyboardService : InputMethodService() {
     /** Slack past the two words for trailing separators and punctuation. */
     private val REVISION_LOOKBEHIND = 16
 
+    /** The fewest samples a chained segment keeps after its spacebar walks are cut for the fallback decode (#968). */
+    private val GLIDE_FALLBACK_MIN_POINTS = 3
+
     /** The pause rescoring's job (see refreshStrip), one at a time. */
     private var pauseRevisionJob: Job? = null
 
@@ -26558,7 +26561,9 @@ open class WMKeyboardService : InputMethodService() {
         keys: List<KeyCenter>,
         keyWidthPx: Float,
         guessAhead: Boolean = true,
-    ): GlideReading = trace(ImeTrace.GLIDE_DECODE) { decodeStroke(points, keys, keyWidthPx, guessAhead) }
+        openHead: Int = 0,
+        openTail: Int = 0,
+    ): GlideReading = trace(ImeTrace.GLIDE_DECODE) { decodeStroke(points, keys, keyWidthPx, guessAhead, openHead, openTail) }
 
     private fun decodeStroke(
         points: List<GesturePoint>,
@@ -26574,6 +26579,16 @@ open class WMKeyboardService : InputMethodService() {
          * be guessing over evidence.
          */
         guessAhead: Boolean = true,
+        /**
+         * How many of the stroke's first and last samples are its walk from
+         * or to the spacebar (#968): a chained stroke's segments end and
+         * start at the bar's edge, not on a key, and the decoder is told so
+         * rather than anchoring the word's first or last letter to whatever
+         * bottom-row key the walk passed. 0 for a stroke that began and
+         * ended on keys. See [GlideStroke.openRun].
+         */
+        openHead: Int = 0,
+        openTail: Int = 0,
     ): GlideReading {
         val engine = suggestionEngine ?: return GlideReading.NONE
         engine.externalGlide = glideEngineNow()
@@ -26611,6 +26626,8 @@ open class WMKeyboardService : InputMethodService() {
             shapes = shapeSourceFor(keys, keyWidthPx),
             tiers = tiers,
             lookAhead = guessing,
+            openHead = openHead,
+            openTail = openTail,
         )
 
         // Under LEARNED_ONLY the learned words are the whole search; under
@@ -29113,14 +29130,37 @@ open class WMKeyboardService : InputMethodService() {
             // inside itself, where a trailing space does not belong.
             var caretParked = false
             segments.forEachIndexed { index, segment ->
+                // Every segment but the last ends where the finger turned
+                // into the space bar, and every one but the first starts
+                // where it came back out (#968). Those walks are not letters:
+                // the decoder is told how many samples they are, so the
+                // word's first and last letters are placed by the stroke's
+                // shape and not anchored to the bottom-row key the walk
+                // happened to pass.
+                val openTail = if (index < segments.lastIndex) GlideStroke.openRun(segment, keyWidthPx, atEnd = true) else 0
+                val openHead = if (index > 0) GlideStroke.openRun(segment, keyWidthPx, atEnd = false) else 0
                 // Decoded inside the loop, not before it: each word is committed
                 // and learned as it lands, so the next segment is decoded with
                 // the one before it as context.
-                val reading = withContext(Dispatchers.Default) {
+                var reading = withContext(Dispatchers.Default) {
                     // Only the segment the finger lifted on may finish a word
                     // early: every earlier one ends at the space bar, drawn to
                     // its last letter (#121).
-                    glideDecode(segment, keys, keyWidthPx, guessAhead = index == segments.lastIndex)
+                    glideDecode(
+                        segment, keys, keyWidthPx, guessAhead = index == segments.lastIndex,
+                        openHead = openHead, openTail = openTail,
+                    )
+                }
+                // A segment the open ends could not read falls back to the
+                // stroke with its walks cut off, so a word is not dropped from
+                // the middle of a phrase without a second look.
+                if (reading.words.isEmpty() && (openHead > 0 || openTail > 0)) {
+                    val cut = segment.subList(openHead, segment.size - openTail)
+                    if (cut.size >= GLIDE_FALLBACK_MIN_POINTS) {
+                        reading = withContext(Dispatchers.Default) {
+                            glideDecode(cut, keys, keyWidthPx, guessAhead = index == segments.lastIndex)
+                        }
+                    }
                 }
                 val candidates = reading.words
                 // The pick belongs to the last segment, and survives an empty
@@ -29178,8 +29218,18 @@ open class WMKeyboardService : InputMethodService() {
                         glideCaseTrusted(shiftAtGesture, state, verdict.caseAt(index)),
                     origin = WordOrigin.GLIDE,
                 )
-                val (hand, shape) = withContext(Dispatchers.Default) {
-                    learnGlideStroke(segment, keys, keyWidthPx, word, reading.guesses[leader])
+                // A chained segment teaches nothing about the hand or the
+                // word's shape (#968): its ends are the spacebar's edge, and
+                // learning from them taught the hand model that every last
+                // letter sits at the bar. The word itself is still learned
+                // above, as any committed word is.
+                val chained = openHead > 0 || openTail > 0
+                val (hand, shape) = if (chained) {
+                    null to null
+                } else {
+                    withContext(Dispatchers.Default) {
+                        learnGlideStroke(segment, keys, keyWidthPx, word, reading.guesses[leader])
+                    }
                 }
                 if (shape != null) {
                     val targetWord = picked ?: word

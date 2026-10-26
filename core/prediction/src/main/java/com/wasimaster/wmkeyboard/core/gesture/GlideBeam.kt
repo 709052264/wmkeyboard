@@ -608,6 +608,11 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
      * short to be a gesture, or when nothing in the tries explains it.
      * [shapes] are the user's own learned shapes for this grid, when they
      * have any, for the shape channel to compare against beside the ideal.
+     * [openHead] and [openTail] are how many of the path's first and last
+     * samples are a walk from or to the spacebar (#968, a chained stroke):
+     * the first letter may stand anywhere on the head, the last anywhere on
+     * the tail, and the samples outside the word cost nothing. 0 and 0 for
+     * a stroke that began and ended on keys.
      */
     @Suppress("LongParameterList", "ReturnCount", "UNUSED_PARAMETER")
     fun decode(
@@ -619,11 +624,14 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
         limit: Int = 4,
         shapes: GlideShapeSource? = null,
         lookAhead: Int = 0,
+        openHead: Int = 0,
+        openTail: Int = 0,
     ): List<Candidate> {
         if (path.size < MIN_SAMPLES || keyWidth <= 0f) return emptyList()
         if (keys.keyCount == 0 || sources.isEmpty() || limit <= 0) return emptyList()
-        return NativeGlide.decode(tuning, nativeTuning, path, keys, keyWidth, sources, limit, shapes, lookAhead)
-            ?: error(NO_TWIN)
+        return NativeGlide.decode(
+            tuning, nativeTuning, path, keys, keyWidth, sources, limit, shapes, lookAhead, openHead, openTail,
+        ) ?: error(NO_TWIN)
     }
 
     /**

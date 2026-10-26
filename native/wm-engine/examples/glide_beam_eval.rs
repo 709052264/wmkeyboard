@@ -13,13 +13,20 @@
 //!
 //! Prints top-1 and top-4 over all strokes, then top-1 over the short words
 //! with a doubled letter (#886) and over the words of six letters or more.
+//!
+//! `CHAIN=1` measures chained strokes instead (#968): consecutive records on
+//! the same canvas are joined the way a glide across the spacebar reaches
+//! the decoder, the first word's stroke continued straight down to the
+//! bar's edge and the second's begun there, and each half is decoded as the
+//! keyboard decodes it, with the walk read as an open end, against the
+//! plain decode of the same half.
 
 use std::collections::HashSet;
 use std::io::{BufRead, Write};
 
 use wm_engine::fuzzy::Tier;
 use wm_engine::glide::keymap::KeyMap;
-use wm_engine::glide::{Decoder, Point, Source, Tuning};
+use wm_engine::glide::{open_run, Decoder, Point, Source, Tuning};
 use wm_engine::user_lexicon::UserTrie;
 
 struct Record {
@@ -134,6 +141,10 @@ fn main() {
         .collect();
     eprintln!("{} strokes", records.len());
 
+    if std::env::var("CHAIN").is_ok_and(|v| v == "1") {
+        chained(&records, &layout, &trie);
+        return;
+    }
     let run = |tuning: &Tuning| -> Tally {
         let chunk = records.len().div_ceil(threads).max(1);
         let tallies: Vec<Tally> = std::thread::scope(|scope| {
@@ -208,4 +219,89 @@ fn main() {
     if !any {
         report(run(&Tuning::default()));
     }
+}
+
+/// A straight walk from `from` to `to`, a fifth of a key per sample.
+fn walk(from: Point, to: Point, key_width: f32) -> Vec<Point> {
+    let d = ((to.x - from.x).powi(2) + (to.y - from.y).powi(2)).sqrt();
+    let steps = ((d / (key_width * 0.2)).ceil() as usize).max(1);
+    (1..=steps)
+        .map(|i| {
+            let f = i as f32 / steps as f32;
+            Point { x: from.x + (to.x - from.x) * f, y: from.y + (to.y - from.y) * f, t: from.t + 8 * i as i64 }
+        })
+        .collect()
+}
+
+/// The chained-stroke measurement (#968). Each consecutive pair of records
+/// on one canvas becomes the two halves of a stroke that crossed the
+/// spacebar: the first continued straight down to the bar's top edge, the
+/// second begun there. Both halves are decoded plain (what the keyboard did
+/// before) and with the walk as an open end (what it does now), and the
+/// whole-pair hit rate too.
+fn chained(records: &[Record], layout: &[(i32, f32, f32)], trie: &UserTrie) {
+    let sources = [Source { walker: trie, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0 }];
+    let mut decoder = Decoder::new(Tuning::default());
+    let (mut n, mut first_plain, mut first_open, mut second_plain, mut second_open, mut both_plain, mut both_open) =
+        (0usize, 0usize, 0usize, 0usize, 0usize, 0usize, 0usize);
+    let mut open_tails = 0usize;
+    let mut open_heads = 0usize;
+    let cy_min = layout.iter().map(|k| k.2).fold(f32::INFINITY, f32::min);
+    let cy_max = layout.iter().map(|k| k.2).fold(f32::NEG_INFINITY, f32::max);
+    for pair in records.windows(2) {
+        let (a, b) = (&pair[0], &pair[1]);
+        if a.width != b.width || a.height != b.height {
+            continue;
+        }
+        let kw = a.width * 0.1;
+        let pitch = (cy_max - cy_min) * a.height / 2.0;
+        let bar_top = cy_max * a.height + pitch / 2.0;
+        let a_last = *a.points.last().unwrap();
+        let b_first = b.points[0];
+        if a_last.y >= bar_top - kw * 0.1 || b_first.y >= bar_top - kw * 0.1 {
+            continue;
+        }
+        let keys = keymap(layout, a.width, a.height);
+        let mut seg1 = a.points.clone();
+        seg1.extend(walk(a_last, Point { x: a_last.x, y: bar_top, t: a_last.t }, kw));
+        let mut seg2 = walk(Point { x: b_first.x, y: bar_top, t: b_first.t - 400 }, b_first, kw);
+        seg2.pop();
+        seg2.extend(b.points.iter().cloned());
+        let top = |decoder: &mut Decoder, seg: &[Point]| -> Option<String> {
+            decoder.decode(seg, &keys, kw, &sources, 4, None, 0).first().map(|c| String::from_utf16_lossy(&c.word).to_lowercase())
+        };
+        decoder.open_head = 0;
+        decoder.open_tail = 0;
+        let p1 = top(&mut decoder, &seg1) == Some(a.word.clone());
+        let p2 = top(&mut decoder, &seg2) == Some(b.word.clone());
+        let tail = open_run(&seg1, kw, true);
+        let head = open_run(&seg2, kw, false);
+        open_tails += (tail > 0) as usize;
+        open_heads += (head > 0) as usize;
+        decoder.open_tail = tail;
+        let o1 = top(&mut decoder, &seg1) == Some(a.word.clone());
+        decoder.open_tail = 0;
+        decoder.open_head = head;
+        let o2 = top(&mut decoder, &seg2) == Some(b.word.clone());
+        decoder.open_head = 0;
+        n += 1;
+        first_plain += p1 as usize;
+        first_open += o1 as usize;
+        second_plain += p2 as usize;
+        second_open += o2 as usize;
+        both_plain += (p1 && p2) as usize;
+        both_open += (o1 && o2) as usize;
+    }
+    let f = |a: usize| a as f64 / n.max(1) as f64;
+    println!(
+        "chained pairs {n}: first word plain {:.4} open {:.4} | second word plain {:.4} open {:.4} | both plain {:.4} open {:.4} | open tail found {:.3} head {:.3}",
+        f(first_plain),
+        f(first_open),
+        f(second_plain),
+        f(second_open),
+        f(both_plain),
+        f(both_open),
+        f(open_tails),
+        f(open_heads)
+    );
 }

@@ -48,6 +48,15 @@ pub struct Workspace {
 
     pub arc_at: [f32; SAMPLE_POINTS],
     pub collapsed_samples: i32,
+    /// Open ends (#968): the first letter may stand on any sample up to
+    /// `open_head_to`, and the word may end on any sample from
+    /// `open_tail_from`; the samples before or after are the walk from or
+    /// to the spacebar and cost nothing when no letter claims them. `0` and
+    /// `samples - 1` for an ordinary stroke.
+    pub open_head_to: usize,
+    pub open_tail_from: usize,
+    /// Whether either end is open: the shape channel then stands down.
+    pub open_ends: bool,
     pub loop_from: [usize; SAMPLE_POINTS],
     pub loop_to: [usize; SAMPLE_POINTS],
     pub loop_x: [f32; SAMPLE_POINTS],
@@ -114,6 +123,9 @@ impl Workspace {
             pause_count: 0,
             arc_at: [0.0; SAMPLE_POINTS],
             collapsed_samples: 0,
+            open_head_to: 0,
+            open_tail_from: 0,
+            open_ends: false,
             loop_from: [0; SAMPLE_POINTS],
             loop_to: [0; SAMPLE_POINTS],
             loop_x: [0.0; SAMPLE_POINTS],

@@ -208,7 +208,11 @@ fn give_candidates(env: &mut JNIEnv, found: &[Candidate], extra: &[i32], drawn: 
 }
 
 /// `glideDecode(tuning, xs, ys, ts, keyMap, keyWidth, dicts, kinds, weights,
-/// tiers, minFrequencies, limit, lookAhead, phase)`.
+/// tiers, minFrequencies, limit, lookAhead, phase, openHead, openTail)`.
+///
+/// `openHead` and `openTail` are how many leading and trailing samples are
+/// the walk from or to the spacebar (#968), 0 for a stroke that began and
+/// ended on keys.
 ///
 /// `kinds` and `tiers` as for `fuzzySearch`; `minFrequencies` is each
 /// source's vocabulary cap. Phase 0 decodes outright; phase 1 stops before
@@ -234,6 +238,8 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
     limit: jint,
     look_ahead: jint,
     phase: jint,
+    open_head: jint,
+    open_tail: jint,
 ) -> jobjectArray {
     guarded(&mut env, null_mut(), |env| {
         let Some(tuning) = tuning(&doubles(env, &tuning_values)?) else {
@@ -247,6 +253,8 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
         let ranked = with_sources(env, &spec, |sources| {
             DECODER.with_borrow_mut(|decoder| {
                 decoder.tuning = tuning;
+                decoder.open_head = open_head.max(0) as usize;
+                decoder.open_tail = open_tail.max(0) as usize;
                 decoder.decode_ranked(&path, &keys, key_width, sources, limit, look_ahead)
             })
         })?;

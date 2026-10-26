@@ -264,11 +264,20 @@ pub struct Decoder {
     pub tuning: Tuning,
     pub ws: Workspace,
     scan: LoopScan,
+    /// How many of the path's leading samples are the walk up from the
+    /// spacebar (#968): a chained stroke's later word starts at the bar's
+    /// edge, not on a key. The first letter may stand anywhere on them and
+    /// the ones before it cost nothing. `0` for a stroke that started on a
+    /// key. Set before `decode`, read by every decode until changed.
+    pub open_head: usize,
+    /// The same for the trailing samples, the walk down to the bar from a
+    /// chained stroke's earlier word.
+    pub open_tail: usize,
 }
 
 impl Decoder {
     pub fn new(tuning: Tuning) -> Decoder {
-        Decoder { tuning, ws: Workspace::new(), scan: LoopScan::default() }
+        Decoder { tuning, ws: Workspace::new(), scan: LoopScan::default(), open_head: 0, open_tail: 0 }
     }
 
     /// `decode`, all of it: when the caller has its learned shapes at hand.
@@ -605,11 +614,9 @@ impl Decoder {
             let extra = self.ws.extra[s];
             let last_key = self.ws.last_key[s];
 
-            let at_end = last_key >= 0
-                && self.ws.end_key[last_key as usize]
-                && self.ws.cols[self.ws.column_of(s) + n - 1] < UNREACHABLE;
+            let total = self.terminal_cost(self.ws.column_of(s));
+            let at_end = last_key >= 0 && self.ws.end_key[last_key as usize] && total < UNREACHABLE;
             if at_end {
-                let total = self.ws.cols[self.ws.column_of(s) + n - 1];
                 let shape = total + extra + self.unclaimed_dwell(s, keys) + self.unclaimed_loop(s);
                 if length >= MIN_WORD_LENGTH && walker.is_word(node) && walker.frequency(node) >= min_frequency {
                     let score = src.log_weight + ln1p(walker.frequency(node)) - tuning.shape_weight * shape as f64;
@@ -779,12 +786,24 @@ impl Decoder {
         let n = self.ws.samples;
         let key_count = keys.key_count();
         let Some(prev_column) = prev_column else {
-            self.ws.scratch[0] = self.ws.point_cost[key];
-            for j in 1..n {
-                self.ws.scratch[j] = UNREACHABLE;
+            // The first letter stands on the first sample, or on any sample
+            // of an open head (#968): the walk up from the spacebar before
+            // it is nobody's letter.
+            let head_to = self.ws.open_head_to;
+            let mut best = UNREACHABLE;
+            for j in 0..n {
+                if j <= head_to {
+                    let at = self.ws.point_cost[j * key_count + key];
+                    self.ws.scratch[j] = at;
+                    let remain = self.ws.remain[j * key_count + key];
+                    if remain < UNREACHABLE && at + remain < best {
+                        best = at + remain;
+                    }
+                } else {
+                    self.ws.scratch[j] = UNREACHABLE;
+                }
             }
-            let remain = self.ws.remain[key];
-            return if remain >= UNREACHABLE { UNREACHABLE } else { self.ws.scratch[0] + remain };
+            return best;
         };
         let step = self.ws.arc_step;
         let span = keys.distance(prev_key as usize, key);
@@ -863,6 +882,13 @@ impl Decoder {
         for k in 0..key_count {
             self.ws.remain[last + k] = if self.ws.end_key[k] { 0.0 } else { UNREACHABLE };
         }
+        // An open tail (#968) ends on any of its samples at no further cost.
+        let tail_from = self.ws.open_tail_from.min(n - 1);
+        for j in tail_from..n - 1 {
+            for k in 0..key_count {
+                self.ws.remain[j * key_count + k] = 0.0;
+            }
+        }
         // The near keys' costs and remainders again, key by key in sample
         // order, for the band kernel to read in runs.
         for x in 0..count {
@@ -870,10 +896,12 @@ impl Decoder {
             for j in 0..n {
                 self.ws.point_cost_t[k * SAMPLE_POINTS + j] = self.ws.point_cost[j * key_count + k];
             }
-            self.ws.remain_t[k * SAMPLE_POINTS + n - 1] = self.ws.remain[last + k];
+            for j in tail_from..n {
+                self.ws.remain_t[k * SAMPLE_POINTS + j] = self.ws.remain[j * key_count + k];
+            }
         }
         let (start_slack, end_slack) = (self.tuning.start_slack(), self.tuning.end_slack());
-        for j in (0..n - 1).rev() {
+        for j in (0..tail_from).rev() {
             let base = j * key_count;
             let arc_j = self.ws.arc_at[j];
             for a in 0..key_count {
@@ -988,7 +1016,51 @@ impl Decoder {
             self.ws.path_t[out] = last.t;
             out += 1;
         }
+        self.map_open_ends(path, total_px);
         true
+    }
+
+    /// Where the open head ends and the open tail begins on the resampled
+    /// stroke (#968): the raw sample counts in `open_head` and `open_tail`,
+    /// read off the path by arc length. At least one sample stays closed at
+    /// each end, and the two zones never meet.
+    fn map_open_ends(&mut self, path: &[Point], total_px: f32) {
+        let n = self.ws.samples;
+        self.ws.open_head_to = 0;
+        self.ws.open_tail_from = n - 1;
+        self.ws.open_ends = false;
+        if (self.open_head == 0 && self.open_tail == 0) || total_px <= 0.0 || path.len() < 2 {
+            return;
+        }
+        let at = |raw: usize| -> usize {
+            let mut arc = 0f32;
+            for i in 1..=raw.min(path.len() - 1) {
+                arc += distance(&path[i - 1], &path[i]);
+            }
+            ((arc / total_px) * (n - 1) as f32).round() as usize
+        };
+        if self.open_head > 0 {
+            self.ws.open_head_to = at(self.open_head.min(path.len() - 1)).min(n - 2);
+        }
+        if self.open_tail > 0 {
+            let raw = path.len() - 1 - self.open_tail.min(path.len() - 1);
+            self.ws.open_tail_from = at(raw).max(1).max(self.ws.open_head_to + 1).min(n - 1);
+        }
+        self.ws.open_ends = self.ws.open_head_to > 0 || self.ws.open_tail_from < n - 1;
+    }
+
+    /// The cost of a finished word on the column `col`: the last sample's,
+    /// or the least over an open tail (#968).
+    fn terminal_cost(&self, col: usize) -> f32 {
+        let n = self.ws.samples;
+        let mut best = self.ws.cols[col + n - 1];
+        for j in self.ws.open_tail_from..n - 1 {
+            let v = self.ws.cols[col + j];
+            if v < best {
+                best = v;
+            }
+        }
+        best
     }
 
     fn build_costs(&mut self, keys: &KeyMap) {
@@ -1015,6 +1087,19 @@ impl Decoder {
         anchor_mask(xn, yn, keys, &mut self.ws.end_key, self.tuning.end_radius_sq());
         self.anchor_slack(0, self.tuning.start_slack(), true, keys);
         self.anchor_slack(n - 1, self.tuning.end_slack(), false, keys);
+        // An open end (#968) is no anchor at all: the stroke's end sits at
+        // the spacebar's edge, and any key the walk passed may begin or end
+        // the word. The near set widens to every key the open zone passed.
+        if self.ws.open_head_to > 0 {
+            for k in 0..key_count {
+                self.ws.start_key[k] = true;
+            }
+        }
+        if self.ws.open_tail_from < n - 1 {
+            for k in 0..key_count {
+                self.ws.end_key[k] = true;
+            }
+        }
     }
 
     fn anchor_slack(&mut self, j: usize, slack: f32, start: bool, keys: &KeyMap) {
@@ -1306,7 +1391,10 @@ impl Decoder {
 
     fn rescore_shape(&mut self, ranked: Vec<Candidate>, keys: &KeyMap, shapes: Option<&LearnedShapes>) -> Vec<Candidate> {
         let weight = self.tuning.shape_channel;
-        if weight <= 0.0 || ranked.is_empty() {
+        // A stroke with an open end carries a walk to or from the spacebar
+        // that no word's ideal path has (#968): the drawn shape and the
+        // ideal cannot be compared, so the walk's ranking stands.
+        if weight <= 0.0 || ranked.is_empty() || self.ws.open_ends {
             return ranked;
         }
         self.drawn_shape();
@@ -1511,6 +1599,59 @@ fn java_max(a: f64, b: f64) -> f64 {
         b
     }
 }
+
+/// How many samples at one end of `path` are a straight walk to or from
+/// the spacebar (#968): from the bar end inward, every sample that lies
+/// below the next one inward (within [`OPEN_RUN_LEVEL`] of level: the bar
+/// is under the keys, so the walk descends toward it in a tail and climbs
+/// away from it in a head) and stays within [`OPEN_RUN_DRIFT`] key widths of
+/// the bar end's column. The run has to drop at least [`OPEN_RUN_DESCENT`]
+/// in all, so the shallow last leg of an ordinary word does not pass for
+/// one. The letter the walk left may sit on the run itself ("then": `n` is
+/// straight above the bar), which is why the run becomes optional for the
+/// decoder rather than cut. `0` for no run, and never more than leaves
+/// three samples closed.
+pub fn open_run(path: &[Point], key_width: f32, at_end: bool) -> usize {
+    let n = path.len();
+    if n < 4 || key_width <= 0.0 {
+        return 0;
+    }
+    let level = OPEN_RUN_LEVEL * key_width;
+    let drift = OPEN_RUN_DRIFT * key_width;
+    let bar_end = if at_end { path[n - 1] } else { path[0] };
+    let mut run = 0usize;
+    let max_run = n - 3;
+    while run < max_run {
+        // The next sample inward, and the one between it and the bar.
+        let (inner, outer) = if at_end { (path[n - 2 - run], path[n - 1 - run]) } else { (path[run + 1], path[run]) };
+        // The bar-side sample sits lower on the board than the one inward.
+        if outer.y < inner.y - level || (inner.x - bar_end.x).abs() > drift {
+            break;
+        }
+        run += 1;
+    }
+    if run < 2 {
+        return 0;
+    }
+    let innermost = if at_end { path[n - 1 - run] } else { path[run] };
+    if bar_end.y - innermost.y < OPEN_RUN_DESCENT * key_width {
+        return 0;
+    }
+    run
+}
+
+/// `open_run`: how much a sample may sit above the next one inward, in key
+/// widths, and still be part of the walk.
+pub const OPEN_RUN_LEVEL: f32 = 0.05;
+
+/// `open_run`: how far from the bar end's column the walk may wander, in key
+/// widths, and still be a straight walk.
+pub const OPEN_RUN_DRIFT: f32 = 0.6;
+
+/// `open_run`: the least the walk must descend toward the bar in all, in key
+/// widths. The bottom row's centre is about seven tenths of a key above
+/// the bar's edge.
+pub const OPEN_RUN_DESCENT: f32 = 0.5;
 
 fn distance(a: &Point, b: &Point) -> f32 {
     let dx = b.x - a.x;
@@ -1738,5 +1879,135 @@ mod kernel_parity {
         #[cfg(target_arch = "aarch64")]
         assert!(active().neon, "the kernels must have run");
         assert!(candidates > 1000, "{candidates} candidates");
+    }
+}
+
+#[cfg(test)]
+mod chained {
+    //! Open ends (#968): a segment of a glide that crossed the spacebar ends
+    //! or starts at the bar's edge, and the walk there is not a letter.
+
+    use super::*;
+    use crate::user_lexicon::UserTrie;
+
+    const ROWS: [(&str, f32); 3] = [("qwertyuiop", 0.0), ("asdfghjkl", 0.5), ("zxcvbnm", 1.5)];
+    const KEY_W: f32 = 60.0;
+    const KEY_H: f32 = 84.0;
+    /// The bar's top edge: right under the bottom row.
+    const BAR_TOP: f32 = 3.0 * KEY_H;
+
+    fn centre(c: char) -> (f32, f32) {
+        for (row, (letters, offset)) in ROWS.iter().enumerate() {
+            if let Some(i) = letters.find(c) {
+                return ((offset + i as f32 + 0.5) * KEY_W, (row as f32 + 0.5) * KEY_H);
+            }
+        }
+        unreachable!()
+    }
+
+    fn keymap() -> KeyMap {
+        let mut letters: Vec<char> = ROWS.iter().flat_map(|(l, _)| l.chars()).collect();
+        letters.sort();
+        let xs = letters.iter().map(|&c| centre(c).0 / KEY_W).collect();
+        let ys = letters.iter().map(|&c| centre(c).1 / KEY_W).collect();
+        let cps = letters.iter().map(|&c| c as i32).collect();
+        KeyMap::new(xs, ys, cps, (0..letters.len() as i32).collect())
+    }
+
+    /// A straight line from `from` to `to`, a sample every eighth of a key.
+    fn line(out: &mut Vec<Point>, from: (f32, f32), to: (f32, f32)) {
+        let len = ((to.0 - from.0).powi(2) + (to.1 - from.1).powi(2)).sqrt();
+        let steps = ((len / KEY_W) * 8.0).ceil().max(1.0) as usize;
+        let t0 = out.last().map_or(0, |p| p.t);
+        for s in 1..=steps {
+            let f = s as f32 / steps as f32;
+            out.push(Point { x: from.0 + (to.0 - from.0) * f, y: from.1 + (to.1 - from.1) * f, t: t0 + 4 * s as i64 });
+        }
+    }
+
+    /// The word drawn centre to centre, no jitter.
+    fn swipe(word: &str) -> Vec<Point> {
+        let mut out = vec![Point { x: centre(word.chars().next().unwrap()).0, y: centre(word.chars().next().unwrap()).1, t: 0 }];
+        let chars: Vec<char> = word.chars().collect();
+        for w in chars.windows(2) {
+            line(&mut out, centre(w[0]), centre(w[1]));
+        }
+        out
+    }
+
+    /// `word` then straight down to the bar's edge: a chained stroke's earlier segment.
+    fn walked_to_bar(word: &str) -> Vec<Point> {
+        let mut out = swipe(word);
+        let last = *out.last().unwrap();
+        line(&mut out, (last.x, last.y), (last.x, BAR_TOP));
+        out
+    }
+
+    /// Up from the bar's edge into `word`: a chained stroke's later segment.
+    fn begun_at_bar(word: &str) -> Vec<Point> {
+        let first = centre(word.chars().next().unwrap());
+        let mut out = vec![Point { x: first.0, y: BAR_TOP, t: 0 }];
+        line(&mut out, (first.0, BAR_TOP), first);
+        out.extend(swipe(word).into_iter().skip(1).map(|p| Point { t: p.t + 400, ..p }));
+        out
+    }
+
+    fn trie() -> UserTrie {
+        let text = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/../../app/dictionaries-src/en.txt")).unwrap();
+        let mut trie = UserTrie::new();
+        for (word, frequency) in crate::wordlist::parse(&text) {
+            trie.insert(&word, frequency);
+        }
+        trie
+    }
+
+    fn top(decoder: &mut Decoder, trie: &UserTrie, path: &[Point]) -> Option<String> {
+        let sources = [Source { walker: trie, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0 }];
+        decoder.decode(path, &keymap(), KEY_W, &sources, 4, None, 0).first().map(|c| String::from_utf16_lossy(&c.word))
+    }
+
+    #[test]
+    fn the_walk_to_the_bar_is_an_open_run_and_a_plain_word_has_none() {
+        let walked = walked_to_bar("the");
+        let run = open_run(&walked, KEY_W, true);
+        // From e (top row) to the bar is a little over two and a half rows
+        // straight down: well over the twenty samples a two-row walk has.
+        assert!(run >= 20, "{run}");
+        assert_eq!(open_run(&swipe("the"), KEY_W, true), 0);
+        assert_eq!(open_run(&swipe("cat"), KEY_W, false), 0);
+        let begun = begun_at_bar("cat");
+        assert!(open_run(&begun, KEY_W, false) >= 4);
+    }
+
+    #[test]
+    fn words_walked_to_the_bar_read_with_an_open_tail() {
+        let trie = trie();
+        let mut decoder = Decoder::new(Tuning::default());
+        for word in ["the", "then", "want", "similar", "going"] {
+            let path = walked_to_bar(word);
+            decoder.open_tail = open_run(&path, KEY_W, true);
+            assert_eq!(top(&mut decoder, &trie, &path).as_deref(), Some(word), "{word} with an open tail");
+            decoder.open_tail = 0;
+        }
+    }
+
+    #[test]
+    fn words_begun_at_the_bar_read_with_an_open_head() {
+        let trie = trie();
+        let mut decoder = Decoder::new(Tuning::default());
+        for word in ["cat", "dog", "to", "understanding", "people"] {
+            let path = begun_at_bar(word);
+            decoder.open_head = open_run(&path, KEY_W, false);
+            assert_eq!(top(&mut decoder, &trie, &path).as_deref(), Some(word), "{word} with an open head");
+            decoder.open_head = 0;
+        }
+    }
+
+    #[test]
+    fn an_ordinary_stroke_is_unchanged_by_zero_open_ends() {
+        let trie = trie();
+        let mut decoder = Decoder::new(Tuning::default());
+        let path = swipe("keyboard");
+        assert_eq!(top(&mut decoder, &trie, &path).as_deref(), Some("keyboard"));
     }
 }

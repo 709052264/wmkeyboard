@@ -127,6 +127,8 @@ You don't have to lift your finger between words. Start a glide, cross the space
 
 A crossing has to reach the middle of the spacebar. Dip past its midline and come back up into the next word. A stroke that only clips the top of the bar on its way to a bottom-row letter like <KeyCap>n</KeyCap> or <KeyCap>m</KeyCap> stays part of the word it was drawing, so a long word that hugs the bottom row isn't cut in two.
 
+The words either side of a crossing are read knowing where they end. A word drawn alone ends on its last letter, and the decoder leans on that. A word that runs on into the spacebar ends at the bar's edge instead, after a straight walk down from its last letter, and the next word begins with the walk back up. Those walks are read as walks, not as letters: the decoder may put the last letter anywhere on the way down and the first anywhere on the way up, so "I want to by a car" no longer comes out with "by" read off the key the finger passed on its way to the bar, and "the" followed by a walk no longer vanishes because no word ended there. Measured on real swipes joined into phrases, the first word is read right 82% of the time where it was 12% before, the second 83% where it was 14%, and the whole two-word phrase 69% where it was 2%. A word in a chain teaches the keyboard the word, but not where your finger goes for its letters: its ends are the bar, not the keys.
+
 <PhoneFrame caption="One continuous stroke crossing the spacebar mid-glide, committing a full phrase.">
   {/* shot: typing/glide-multiword */}
 </PhoneFrame>
