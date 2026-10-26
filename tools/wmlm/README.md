@@ -75,6 +75,26 @@ python export.py en_bn_run/best.pt en_bn_lm/vocab.txt bn_rom_context.wmlm --lang
 entry for `bn_rom` points at it and the keyboard passes the slot of the
 language it is on.
 
+## Renting a GPU for the bigger model
+
+The d256 six-layer model with a 1.5B teacher and 30k steps is a job for a
+CUDA card: a Mac with unified memory swaps at this size, and a 6 GB card
+cannot hold the teacher. On a rented RTX 3090/4090 the whole of
+`remote/run_en2.sh` (teacher pass, training, export) takes under two hours.
+
+```bash
+# here: one upload (scripts + prep'd data + the small teacher's targets)
+tar -czf en2_bundle.tar.gz -C build/corpora en2_bundle   # what tools/wmlm packs
+# there, in the unpacked wmlm/ directory
+bash remote/setup.sh
+TEACHER=Qwen/Qwen2.5-1.5B STEPS=30000 bash remote/run_en2.sh
+# bring back out/en_context.wmlm and out/best.pt
+```
+
+`run_en2.sh` reads TEACHER, SENTENCES, STEPS, BATCH, D/LAYERS/FF/CTX, ALPHA
+and OUT from the environment; a sweep is the same script with another OUT.
+Qwen2.5-3B as the teacher wants a 16 GB card.
+
 ## Measuring
 
 The typing harness (`native/wm-engine/examples/typing_eval.rs`) runs the
