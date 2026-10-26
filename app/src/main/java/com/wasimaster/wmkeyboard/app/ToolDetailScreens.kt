@@ -830,6 +830,22 @@ internal fun ToolDetailSettings(
                     default = SettingsDefaults.suggestionStrip.snippetGridColumns.toFloat(),
                 ) { scope.launch { repository.setSnippetGridColumns(it.roundToInt()) } }
             }
+            item(level = SettingLevel.STANDARD) {
+                ToggleSetting(
+                    R.string.expander_titles_only_title,
+                    stringResource(R.string.expander_titles_only_subtitle),
+                    settings.watch { it.suggestionStrip.snippetTitlesOnly },
+                    default = SettingsDefaults.suggestionStrip.snippetTitlesOnly,
+                ) { scope.launch { repository.setSnippetTitlesOnly(it) } }
+            }
+            item(level = SettingLevel.STANDARD) {
+                ToggleSetting(
+                    R.string.expander_panel_stays_title,
+                    stringResource(R.string.expander_panel_stays_subtitle),
+                    settings.watch { it.suggestionStrip.snippetPanelStays },
+                    default = SettingsDefaults.suggestionStrip.snippetPanelStays,
+                ) { scope.launch { repository.setSnippetPanelStays(it) } }
+            }
             item {
                 NavRow(
                     R.string.tooldetail_snippets_all_title,

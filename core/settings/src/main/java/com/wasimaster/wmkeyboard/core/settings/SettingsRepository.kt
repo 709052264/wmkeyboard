@@ -9557,6 +9557,16 @@ data class SuggestionStripSettings(
      */
     val snippetGridColumns: Int = 2,
     /**
+     * The snippets panel draws each tile as its name alone, without the text
+     * under it (#970): a shorter tile, so a long list fits more to a screen.
+     */
+    val snippetTitlesOnly: Boolean = false,
+    /**
+     * Inserting a snippet from the panel leaves the panel open (#970), for
+     * several in a row. Off, the panel closes, as it always has.
+     */
+    val snippetPanelStays: Boolean = false,
+    /**
      * Let a word or suffix trigger expand in a password field (#555). Off by
      * default: with it on, the keyboard reads the few characters before the
      * caret back out of a password box when Space, Enter or a trigger's last
@@ -10698,6 +10708,8 @@ class SettingsRepository(private val context: Context) {
         private val USE_SYSTEM_DICTIONARY = booleanPreferencesKey("use_system_dictionary")
         private val SNIPPET_MULTI_EXPAND = stringPreferencesKey("snippet_multi_expand")
         private val SNIPPET_GRID_COLUMNS = intPreferencesKey("snippet_grid_columns")
+        private val SNIPPET_TITLES_ONLY = booleanPreferencesKey("snippet_titles_only")
+        private val SNIPPET_PANEL_STAYS = booleanPreferencesKey("snippet_panel_stays")
         private val SNIPPETS_IN_SECURE_FIELDS = booleanPreferencesKey("snippets_in_secure_fields")
         private val SNIPPET_ESCAPE = stringPreferencesKey("snippet_escape")
         private val SYSTEM_SMART_REPLIES = booleanPreferencesKey("system_smart_replies")
@@ -13074,6 +13086,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.suggestionStrip.snippetMultiExpand,
             snippetGridColumns = p[SNIPPET_GRID_COLUMNS]?.coerceIn(1, 4)
                 ?: defaults.suggestionStrip.snippetGridColumns,
+            snippetTitlesOnly = p[SNIPPET_TITLES_ONLY] ?: defaults.suggestionStrip.snippetTitlesOnly,
+            snippetPanelStays = p[SNIPPET_PANEL_STAYS] ?: defaults.suggestionStrip.snippetPanelStays,
             snippetsInSecureFields = p[SNIPPETS_IN_SECURE_FIELDS]
                 ?: defaults.suggestionStrip.snippetsInSecureFields,
             snippetEscape = p[SNIPPET_ESCAPE]?.take(1)
@@ -18928,6 +18942,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSnippetGridColumns(value: Int) =
         editPrefs { it[SNIPPET_GRID_COLUMNS] = value.coerceIn(1, 4) }
+
+    suspend fun setSnippetTitlesOnly(value: Boolean) =
+        editPrefs { it[SNIPPET_TITLES_ONLY] = value }
+
+    suspend fun setSnippetPanelStays(value: Boolean) =
+        editPrefs { it[SNIPPET_PANEL_STAYS] = value }
 
     suspend fun setSnippetsInSecureFields(value: Boolean) =
         editPrefs { it[SNIPPETS_IN_SECURE_FIELDS] = value }

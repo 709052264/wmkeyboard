@@ -46585,7 +46585,10 @@ open class WMKeyboardService : InputMethodService() {
         insertSnippetText(text, caret)
     }
 
-    /** Puts an already-expanded snippet in the field and closes the panel. */
+    /**
+     * Puts an already-expanded snippet in the field and closes the panel, or
+     * leaves it open on the grid when the user asked for that (#970).
+     */
     private fun insertSnippetText(text: String, caret: Int) {
         val ic = currentInputConnection
         if (ic != null) {
@@ -46599,7 +46602,8 @@ open class WMKeyboardService : InputMethodService() {
             invalidateExpectedSelection()
             invalidateRecentWords()
         }
-        _uiState.update { it.copy(panel = PanelMode.NONE, snippetPicker = null) }
+        val stays = _uiState.value.settings.suggestionStrip.snippetPanelStays
+        _uiState.update { it.copy(panel = if (stays) it.panel else PanelMode.NONE, snippetPicker = null) }
     }
 
     /**

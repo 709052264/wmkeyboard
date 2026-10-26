@@ -166,6 +166,10 @@
     <!-- What the keyboard does when a snippet it expands has more than one
          text to insert, or points at other snippets. -->
     <string name="expander_behaviour_title">Behaviour</string>
+    <string name="expander_titles_only_title">Names only</string>
+    <string name="expander_titles_only_subtitle">Show each snippet in the panel by its name alone, without its text, so more fit</string>
+    <string name="expander_panel_stays_title">Stay open after inserting</string>
+    <string name="expander_panel_stays_subtitle">Keep the snippets panel open when you tap a snippet, to insert several in a row</string>
     <string name="expander_grid_columns_title">Panel columns</string>
     <string name="expander_grid_columns_subtitle">How many snippet tiles sit side by side in the keyboard\'s panel</string>
     <string name="expander_secure_fields_title">Expand in password fields</string>

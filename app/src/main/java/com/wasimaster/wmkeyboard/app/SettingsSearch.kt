@@ -1521,6 +1521,8 @@ private fun SearchStrings.expanderRows(): List<SettingsSearchEntry> {
         row(R.string.expander_pattern_title),
         row(R.string.expander_multi_expand_title, R.string.expander_multi_expand_subtitle),
         row(R.string.expander_grid_columns_title, R.string.expander_grid_columns_subtitle),
+        row(R.string.expander_titles_only_title, R.string.expander_titles_only_subtitle),
+        row(R.string.expander_panel_stays_title, R.string.expander_panel_stays_subtitle),
         row(R.string.expander_secure_fields_title, R.string.expander_secure_fields_subtitle),
         row(R.string.expander_escape_title, R.string.expander_escape_subtitle),
         row(R.string.expander_add_action),

@@ -30482,6 +30482,7 @@ private fun SnippetsPanel(
                     snippet,
                     focused = tiles.size + index == focused,
                     candidateCount = state.snippetCandidateCounts[snippet.id] ?: 1,
+                    titleOnly = state.settings.suggestionStrip.snippetTitlesOnly,
                     modifier = snippetTileMotion(state.settings.reduceMotion),
                     onHold = { callbacks.onSnippetHold(snippet) },
                 ) { callbacks.onSnippet(snippet) }
@@ -30607,6 +30608,7 @@ private fun SnippetTile(
     snippet: Snippet,
     focused: Boolean,
     candidateCount: Int = 1,
+    titleOnly: Boolean = false,
     modifier: Modifier = Modifier,
     onHold: (() -> Unit)? = null,
     onClick: () -> Unit,
@@ -30658,14 +30660,28 @@ private fun SnippetTile(
             )
             if (several) {
                 Spacer(Modifier.width(4.dp))
-                Text(
-                    text = candidateCount.toString(),
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                // A filled badge, not a bare digit: next to a snippet named
+                // "1" or "2", a plain number read as part of the name (#970).
+                Box(
+                    modifier = Modifier
+                        .widthIn(min = 16.dp)
+                        .heightIn(min = 16.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary)
+                        .padding(horizontal = 4.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = candidateCount.toString(),
+                        fontSize = 10.sp,
+                        lineHeight = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                    )
+                }
             }
         }
+        if (titleOnly) return@Column
         Text(
             text = snippet.text,
             maxLines = 2,
