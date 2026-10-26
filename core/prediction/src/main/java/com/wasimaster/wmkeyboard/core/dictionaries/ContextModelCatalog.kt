@@ -50,7 +50,7 @@ object ContextModelCatalog {
         ),
         // Banglish and English in one model (tools/wmlm, `--langs=en,bn_rom`):
         // the two are typed in one sentence, so one model reads both.
-        ContextModelEntry(languageId = "bn_rom", repoCode = "bn", stem = "bn_rom_context", approxBytes = 6_600_000),
+        ContextModelEntry(languageId = "bn_rom", repoCode = "bn", stem = "bn_rom_context", approxBytes = 10_800_000),
     )
 
     private val byLanguage = entries.groupBy { it.languageId }
