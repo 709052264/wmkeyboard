@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.core.content.edit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.util.TimeZone
 import kotlinx.serialization.Serializable
 
 /**
@@ -22,6 +23,8 @@ data class ClockConfig(
     val hour24: Boolean? = null,
     val showSeconds: Boolean = true,
     val zones: List<WorldZone> = emptyList(),
+    /** The world clocks list earliest time first rather than in the order they were put in (#970). */
+    val sortZonesByTime: Boolean = false,
     val insertFormat: String = InsertFormat.TIME_PLACE.id,
     /** The [DiscordStyle.code] the Discord format types. */
     val discordStyle: String = "F",
@@ -49,6 +52,14 @@ data class ClockConfig(
         get() = PomodoroPlan(focusMinutes, shortBreakMinutes, longBreakMinutes, longBreakEvery)
 
     fun is24(systemIs24: Boolean): Boolean = hour24 ?: systemIs24
+
+    /**
+     * [zones] in the order the world clocks show them at [now]: as arranged,
+     * or by the time there, earliest first, when [sortZonesByTime] is on.
+     * Stable, so two cities on one offset keep the order they were put in.
+     */
+    fun shownZones(now: Long = System.currentTimeMillis()): List<WorldZone> =
+        if (sortZonesByTime) zones.sortedBy { TimeZone.getTimeZone(it.zoneId).getOffset(now) } else zones
 }
 
 /** The panel's tabs, in order. */

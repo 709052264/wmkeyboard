@@ -118,7 +118,7 @@ internal fun ClockScreen(initialTab: String?, onNavigate: (String) -> Unit) {
         ClockSection.ALARMS -> AlarmsSection(data, hour24)
         ClockSection.TIMERS -> TimersSection(data, hour24)
         ClockSection.STOPWATCH -> StopwatchSection(data)
-        ClockSection.CLOCKS -> ClocksSection(config.zones, hour24)
+        ClockSection.CLOCKS -> ClocksSection(config.shownZones(), hour24)
         ClockSection.COUNTDOWNS -> CountdownsSection(data)
         ClockSection.HISTORY -> HistorySection(data, hour24)
     }

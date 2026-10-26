@@ -42,6 +42,8 @@
     <string name="clock_hour_format_24">24-hour</string>
     <string name="clock_show_seconds_title">Show seconds</string>
     <string name="clock_show_seconds_subtitle">On the big clock and on the clock faces</string>
+    <string name="clock_sort_zones_title">Sort cities by time</string>
+    <string name="clock_sort_zones_subtitle">List the world clocks with the earliest time first, instead of in the order you added them</string>
     <string name="clock_insert_format_title">Default format</string>
     <string name="clock_insert_format_subtitle">A hold on your own clock types this one at once, and a hold on a city offers it first</string>
     <string name="clock_alarms_group">Alarms and timers</string>

@@ -523,7 +523,7 @@ internal class ClockController(
     /** Home first, then every clock on the list. */
     private fun conversionLine(at: Long): String {
         val places = listOf(placeName("") to TimeZone.getDefault()) +
-            _state.value.config.zones.map { placeName(it.zoneId) to TimeZone.getTimeZone(it.zoneId) }
+            _state.value.config.shownZones(at).map { placeName(it.zoneId) to TimeZone.getTimeZone(it.zoneId) }
         return ClockFormats.conversionLine(at, places, _state.value.hour24)
     }
 

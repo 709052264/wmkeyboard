@@ -99,6 +99,8 @@ internal fun ClocksTab(state: KeyboardUiState, ui: ClockUi, act: (ClockAction) -
     }
     val now = rememberNow(if (ui.config.showSeconds) 1000L else 15_000L)
     var menuFor by remember { mutableStateOf<String?>(null) }
+    // Re-sorted once a minute: the offsets only move at a change of daylight time.
+    val zones = remember(ui.config, now / 60_000L) { ui.config.shownZones(now) }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
@@ -110,7 +112,7 @@ internal fun ClocksTab(state: KeyboardUiState, ui: ClockUi, act: (ClockAction) -
         if (ui.insertZone == "") {
             item(key = "home-insert") { InsertSheet("", now, ui, act) }
         }
-        items(ui.config.zones, key = { it.zoneId }) { zone ->
+        items(zones, key = { it.zoneId }) { zone ->
             Column(Modifier.animateItem()) {
                 ZoneCard(
                     zone = zone,
@@ -311,11 +313,14 @@ private fun ZoneCard(
                     height = 32.dp,
                     modifier = Modifier.weight(1f, fill = false),
                 ) { act(ClockAction.InsertDefault(zone.zoneId)) }
-                RoundButton(Icons.Outlined.KeyboardArrowUp, stringResource(R.string.ime_clock_move_up_desc), size = 32.dp) {
-                    act(ClockAction.MoveZone(zone.zoneId, -1))
-                }
-                RoundButton(Icons.Outlined.KeyboardArrowDown, stringResource(R.string.ime_clock_move_down_desc), size = 32.dp) {
-                    act(ClockAction.MoveZone(zone.zoneId, 1))
+                // Sorted by time, the list has no order of its own to move a city in.
+                if (!ui.config.sortZonesByTime) {
+                    RoundButton(Icons.Outlined.KeyboardArrowUp, stringResource(R.string.ime_clock_move_up_desc), size = 32.dp) {
+                        act(ClockAction.MoveZone(zone.zoneId, -1))
+                    }
+                    RoundButton(Icons.Outlined.KeyboardArrowDown, stringResource(R.string.ime_clock_move_down_desc), size = 32.dp) {
+                        act(ClockAction.MoveZone(zone.zoneId, 1))
+                    }
                 }
                 RoundButton(Icons.Outlined.Edit, stringResource(R.string.ime_clock_rename_desc), size = 32.dp) {
                     act(ClockAction.RenameZone(zone.zoneId))
