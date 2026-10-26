@@ -1398,6 +1398,23 @@ open class WMKeyboardService : InputMethodService() {
 
     /** Manual pick from the Modes tool; wins until the user switches app. */
     private var manualModeId: String? = null
+
+    /**
+     * [manualModeId] on disk, so a mode kept "until changed" outlives a reboot
+     * or the process being killed (Telegram group): in memory alone it went
+     * back to automatic every time. Device-protected, since the keyboard runs
+     * before the first unlock.
+     */
+    private val manualModePrefs by lazy {
+        createDeviceProtectedStorageContext().getSharedPreferences("manual_mode", MODE_PRIVATE)
+    }
+
+    /** Whether [manualModePrefs] has been read back once this process. */
+    private var manualModeRestored = false
+
+    private fun saveManualMode(id: String?) {
+        manualModePrefs.edit().apply { if (id == null) remove("id") else putString("id", id) }.apply()
+    }
     /** Package name of the app the focused field belongs to. */
     private var currentPackage: String? = null
     /**
@@ -5071,6 +5088,16 @@ open class WMKeyboardService : InputMethodService() {
                     clearSandboxOffer()
                 }
                 baseSettings = settings
+                if (!manualModeRestored) {
+                    manualModeRestored = true
+                    if (manualModeId == null &&
+                        settings.rows.manualModeDuration == ManualModeDuration.UNTIL_CHANGED
+                    ) {
+                        manualModeId = manualModePrefs.getString("id", null)?.takeIf { id ->
+                            id == NoKeyboardModeId || settings.keyboardModes.any { it.id == id }
+                        }
+                    }
+                }
                 val mode = resolveKeyboardMode(
                     settings.keyboardModes, currentPackage, currentModeFields, manualModeId,
                     currentFieldHint,
@@ -7717,7 +7744,10 @@ open class WMKeyboardService : InputMethodService() {
         val pkg = info?.packageName
         val manualSticks = _uiState.value.settings.rows.manualModeDuration ==
             ManualModeDuration.UNTIL_CHANGED
-        if (pkg != null && pkg != currentPackage && !manualSticks) manualModeId = null
+        if (pkg != null && pkg != currentPackage && !manualSticks && manualModeId != null) {
+            manualModeId = null
+            saveManualMode(null)
+        }
         // A pick still waiting to be stored belongs to the app it was made in:
         // per-app memory reads a different id in the next app, which the pending
         // one would otherwise outrank for as long as the write took to land.
@@ -34644,6 +34674,7 @@ open class WMKeyboardService : InputMethodService() {
 
     private fun applyManualMode(id: String?) {
         manualModeId = id
+        saveManualMode(id)
         val base = baseSettings ?: return
         val mode = resolveKeyboardMode(
             base.keyboardModes, currentPackage, currentModeFields, manualModeId,
