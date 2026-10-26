@@ -5120,6 +5120,7 @@ class SuggestionEngine(
                     lmTypedRank = lmView?.rank ?: -1,
                     lmEntropy = lmView?.entropy ?: Float.NaN,
                     lmSecond = lmSorted.getOrNull(1) ?: Float.NaN,
+                    lmTypedPieces = lmView?.piecesLogprob ?: Float.NaN,
                 ),
             )
         } else {

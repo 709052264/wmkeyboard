@@ -192,9 +192,10 @@ internal object PredictionNative {
     external fun lmScores(session: Long, words: Array<String>): FloatArray
 
     /**
-     * The learned gate's view of the typed spelling: `[ln P(typed), rank of
-     * typed among next words, entropy of the distribution in nats]`, the
-     * first two NaN when the model cannot read the word as one token.
+     * The learned gate's view of the typed spelling: `[ln P(typed) if listed,
+     * rank of typed among next words, entropy of the distribution in nats,
+     * ln P(typed) spelled in pieces]`; the first two NaN when the vocabulary
+     * does not list the word, the last NaN when it does.
      */
     external fun lmGateView(session: Long, typed: String): FloatArray
 

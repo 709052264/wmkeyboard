@@ -164,9 +164,10 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
     })
 }
 
-/// `lmGateView(session, typed)`: `[ln P(typed), rank of typed, entropy]`
-/// for the learned gate, the first two NaN when the model cannot read the
-/// word as one token.
+/// `lmGateView(session, typed)`: `[ln P(typed) if listed, rank of typed,
+/// entropy, ln P(typed) spelled in pieces]` for the learned gate; the
+/// first two NaN when the vocabulary does not list the word, the last NaN
+/// when it does (or the model has no pieces).
 #[no_mangle]
 pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_lmGateView(
     mut env: JNIEnv,
@@ -178,10 +179,13 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
         let session = object!(env, SESSIONS, session);
         let typed = read(env, &typed)?;
         let mut s = session.lock().unwrap_or_else(|e| e.into_inner());
+        let listed = s.logprob_listed(&typed);
+        let pieces = if listed.is_none() { s.logprob(&typed) } else { None };
         let out = [
-            s.logprob(&typed).unwrap_or(f32::NAN),
+            listed.unwrap_or(f32::NAN),
             s.rank_of(&typed).map_or(f32::NAN, |r| r as f32),
             s.entropy(),
+            pieces.unwrap_or(f32::NAN),
         ];
         give_floats(env, &out)
     })

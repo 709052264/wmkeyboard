@@ -36,11 +36,12 @@ class ConfidenceTest {
         lmTypedRank = -1,
         lmEntropy = 4.2f,
         lmSecond = -3.5f,
+        lmTypedPieces = -28f,
     )
 
     @Test
     fun theFixedCaseScoresWhatTheRustPortScores() {
-        assertEquals(0.933238, Confidence.probability(fixed), 1e-4)
+        assertEquals(0.926967, Confidence.probability(fixed), 1e-4)
     }
 
     @Test

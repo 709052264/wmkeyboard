@@ -63,7 +63,7 @@ class ContextModel private constructor(
     }
 
     /** The model's view of a word as typed, for the learned gate; see [gateView]. */
-    class GateView(val logprob: Float, val rank: Int, val entropy: Float)
+    class GateView(val logprob: Float, val rank: Int, val entropy: Float, val piecesLogprob: Float)
 
     /**
      * The model's view of [typed] where it stands: its log-probability, how
@@ -73,8 +73,8 @@ class ContextModel private constructor(
     fun gateView(typed: String): GateView? {
         if (closed) return null
         val out = PredictionNative.lmGateView(session, typed)
-        if (out.size < 3) return null
-        return GateView(out[0], if (out[1].isNaN()) -1 else out[1].toInt(), out[2])
+        if (out.size < 4) return null
+        return GateView(out[0], if (out[1].isNaN()) -1 else out[1].toInt(), out[2], out[3])
     }
 
     /** The [k] likeliest next words above [minLogprob], best first, with their log-probabilities. */

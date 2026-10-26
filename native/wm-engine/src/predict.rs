@@ -2042,6 +2042,8 @@ impl Predictor {
                 let mut lm_sorted: Vec<f32> = lm_scores.iter().filter_map(|s| *s).collect();
                 lm_sorted.sort_by(|a, b| b.total_cmp(a));
                 let (lm_typed_rank, lm_entropy) = self.lm_gate_view(lower);
+                let lm_typed = if self.lm.is_some() { self.lm_logprob(lower) } else { None };
+                let lm_typed_pieces = if self.lm.is_some() && lm_typed.is_none() { self.lm_logprob_pieces(lower) } else { None };
                 let case = Case {
                     margin,
                     top_score: t.score,
@@ -2062,10 +2064,11 @@ impl Predictor {
                     lm_best: lm_scores.iter().filter_map(|s| *s).fold(None, |m: Option<f32>, v| Some(m.map_or(v, |m| m.max(v)))),
                     timing: timing.max(1e-6).ln(),
                     typed_shadowed: shadowed,
-                    lm_typed: if self.lm.is_some() { self.lm_logprob_pieces(lower) } else { None },
+                    lm_typed,
                     lm_typed_rank,
                     lm_entropy,
                     lm_second: lm_sorted.get(1).copied(),
+                    lm_typed_pieces,
                 };
                 *self.last_case.borrow_mut() = Some((case, t.word.clone()));
                 model.as_ref().map(|m| m.probability(&case))

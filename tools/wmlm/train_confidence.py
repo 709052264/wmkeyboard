@@ -5,7 +5,7 @@ usage: train_confidence.py <rows.csv> [<rows.csv> ...] [--mode=lm] [--hidden=16]
                            [--test=path/ConfidenceTest.kt]
 
 Rows come from `cargo run --release --example typing_eval -- ... DUMP=rows.csv`
-(mode, scatter, kind, label, f0..f24). The model is a one-hidden-layer
+(mode, scatter, kind, label, f0..f26). The model is a one-hidden-layer
 network (tanh) on standardised features, trained by Adam in numpy; the new
 words typed right (kind `new`) are weighted up, since a false rewrite of
 one is the failure the gate exists to stop. Rows are split by sentence
@@ -20,7 +20,7 @@ import sys
 
 import numpy as np
 
-F = 25
+F = 27
 
 
 def load(paths, mode):
@@ -130,7 +130,7 @@ def splice(path, body):
 def fixed_probability(mean, scale, W1, b1, W2, b2):
     """The case confidence.rs and ConfidenceTest.kt both score."""
     f = np.array([[2.3, 7.9, 0.105, 1, 1, 0, 0, 1, 0, 0, 0, 6, 1, 1.6, 4, -2.0, 0.0, 1, 0.0, 0,
-                   0.0, 0, 0.0, 4.2, 1.5]], dtype=np.float64)
+                   0.0, 0, 0.0, 4.2, 1.5, -28.0, 1]], dtype=np.float64)
     return float(predict(f, mean, scale, W1, b1, W2, b2)[0])
 
 
