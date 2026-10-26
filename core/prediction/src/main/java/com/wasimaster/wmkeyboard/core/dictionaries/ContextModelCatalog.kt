@@ -31,7 +31,7 @@ class ContextModelEntry(
 object ContextModelCatalog {
 
     val entries: List<ContextModelEntry> = listOf(
-        ContextModelEntry(languageId = "en", repoCode = "en", stem = "en_context", approxBytes = 4_900_000),
+        ContextModelEntry(languageId = "en", repoCode = "en", stem = "en_context", approxBytes = 10_800_000),
         // Banglish and English in one model (tools/wmlm, `--langs=en,bn_rom`):
         // the two are typed in one sentence, so one model reads both.
         ContextModelEntry(languageId = "bn_rom", repoCode = "bn", stem = "bn_rom_context", approxBytes = 6_600_000),

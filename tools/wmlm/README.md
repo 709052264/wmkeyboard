@@ -1,7 +1,7 @@
 # Context model (`.wmlm`) training
 
 The neural context model the keyboard downloads per language: a small
-word-level transformer (about 4.5M parameters, int8, under 5 MB) that reads
+word-level transformer (4.5M to 10M parameters, int8, 5 to 11 MB) that reads
 the sentence before the caret once per committed word and says what comes
 next. `wm-engine/src/lm.rs` runs it on the phone; `ContextModel.kt` is the
 Kotlin side; `ContextModelCatalog` lists the published files.
