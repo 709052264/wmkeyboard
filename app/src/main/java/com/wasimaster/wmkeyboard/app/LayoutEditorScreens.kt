@@ -139,6 +139,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ExpandMore
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MoreVert
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Refresh
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Slider
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -249,6 +250,7 @@ import com.wasimaster.wmkeyboard.core.script.ComposerType
 import com.wasimaster.wmkeyboard.core.settings.KeyboardMode
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import com.wasimaster.wmkeyboard.core.settings.SidePadScaleRange
 import com.wasimaster.wmkeyboard.core.settings.TextEditAction
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
@@ -3383,6 +3385,53 @@ internal fun KeyLayoutEditorScreen(
                 // rule the row-height slider follows.
                 onChange = { value -> editCoalesced { it.withAppearance(fontScale = value) } },
             )
+        }
+        // Telegram group: a one-handed grid sized for one thumb resized QWERTY
+        // with it, since every size was global. Each of these is this layout's
+        // own, over the theme and Layout & size; "Same as everywhere" drops it.
+        item(level = SettingLevel.STANDARD) {
+            val own = edited.watch { it.appearance?.keyHeightDp }
+            val global = settings.watch { it.keyHeightDp }
+            LayoutSizeOverrideRow(
+                title = stringResource(R.string.layout_editor_size_key_height_title),
+                value = own?.toFloat(),
+                global = global.toFloat(),
+                range = SettingsRepository.KEY_HEIGHT_MIN_DP.toFloat()..SettingsRepository.KEY_HEIGHT_MAX_DP.toFloat(),
+                display = { "${it.roundToInt()} dp" },
+            ) { value -> edit { s -> s.withSizing { it.copy(keyHeightDp = value?.roundToInt()) } } }
+        }
+        item(level = SettingLevel.STANDARD) {
+            val own = edited.watch { it.appearance?.keyGapScale }
+            val global = settings.watch { it.keyGapScale }
+            LayoutSizeOverrideRow(
+                title = stringResource(R.string.layout_editor_size_key_gap_title),
+                value = own,
+                global = global,
+                range = 0f..2f,
+                display = { "×%.2f".format(it) },
+            ) { value -> edit { s -> s.withSizing { it.copy(keyGapScale = value) } } }
+        }
+        item(level = SettingLevel.STANDARD) {
+            val own = edited.watch { it.appearance?.sidePadLeftScale }
+            val global = settings.watch { it.layoutBehavior.sidePadLeftScale }
+            LayoutSizeOverrideRow(
+                title = stringResource(R.string.layout_editor_size_side_left_title),
+                value = own,
+                global = global,
+                range = SidePadScaleRange,
+                display = { "${(it * 100).roundToInt()}%" },
+            ) { value -> edit { s -> s.withSizing { it.copy(sidePadLeftScale = value) } } }
+        }
+        item(level = SettingLevel.STANDARD) {
+            val own = edited.watch { it.appearance?.sidePadRightScale }
+            val global = settings.watch { it.layoutBehavior.sidePadRightScale }
+            LayoutSizeOverrideRow(
+                title = stringResource(R.string.layout_editor_size_side_right_title),
+                value = own,
+                global = global,
+                range = SidePadScaleRange,
+                display = { "${(it * 100).roundToInt()}%" },
+            ) { value -> edit { s -> s.withSizing { it.copy(sidePadRightScale = value) } } }
         }
         if (!secondary) item(level = SettingLevel.ADVANCED) {
             // `edit`, not `editCoalesced`, because one deliberate flip deserves
@@ -7378,8 +7427,63 @@ private fun LayoutSpec.withAppearance(
     fontId: String? = appearance?.fontId,
     fontScale: Float? = appearance?.fontScale,
 ): LayoutSpec {
-    val next = LayoutAppearance(fontId = fontId, fontScale = fontScale)
+    val next = (appearance ?: LayoutAppearance()).copy(fontId = fontId, fontScale = fontScale)
     return copy(appearance = next.takeUnless { it.isEmpty })
+}
+
+/** This layout's own sizes, changed; dropped again once none is left, as [withAppearance] does. */
+private fun LayoutSpec.withSizing(change: (LayoutAppearance) -> LayoutAppearance): LayoutSpec {
+    val next = change(appearance ?: LayoutAppearance())
+    return copy(appearance = next.takeUnless { it.isEmpty })
+}
+
+/**
+ * One of a layout's own sizes: the value, or "Same as everywhere" while it
+ * follows the global setting ([global]). A tap opens a slider; its reset drops
+ * the layout's own value.
+ */
+@Composable
+private fun LayoutSizeOverrideRow(
+    title: String,
+    value: Float?,
+    global: Float,
+    range: ClosedFloatingPointRange<Float>,
+    display: (Float) -> String,
+    onChange: (Float?) -> Unit,
+) {
+    var open by remember { mutableStateOf(false) }
+    WmRow(
+        title = title,
+        subtitle = value?.let(display)
+            ?: stringResource(R.string.layout_editor_size_inherit, display(global)),
+        onClick = { open = true },
+    )
+    if (open) {
+        var draft by remember { mutableFloatStateOf(value ?: global) }
+        AlertDialog(
+            onDismissRequest = { open = false },
+            title = { Text(title) },
+            text = {
+                Column {
+                    Text(display(draft))
+                    Slider(value = draft, onValueChange = { draft = it }, valueRange = range)
+                    Text(stringResource(R.string.layout_editor_size_hint))
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    open = false
+                    onChange(draft.coerceIn(range))
+                }) { Text(stringResource(android.R.string.ok)) }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    open = false
+                    onChange(null)
+                }) { Text(stringResource(R.string.layout_editor_size_reset)) }
+            },
+        )
+    }
 }
 
 /**

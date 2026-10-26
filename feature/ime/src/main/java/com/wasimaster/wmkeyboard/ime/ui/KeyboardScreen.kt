@@ -589,6 +589,7 @@ import com.wasimaster.wmkeyboard.core.layout.takesFlickActions
 import com.wasimaster.wmkeyboard.core.layout.arrangedBy
 import com.wasimaster.wmkeyboard.core.layout.asEmojiKey
 import com.wasimaster.wmkeyboard.core.layout.isLocalCurrencyKey
+import com.wasimaster.wmkeyboard.core.layout.LayoutAppearance
 import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
 import com.wasimaster.wmkeyboard.core.layout.composerType
 import com.wasimaster.wmkeyboard.core.layout.resolveLayout
@@ -2022,8 +2023,10 @@ private fun KeyboardScreenFrame(
     val activeSpec = remember(baseSettings, darkSlot) {
         baseSettings.activeThemeSpec(darkSlot)
     }
-    val settings = remember(baseSettings, variant, activeSpec) {
-        baseSettings.applyScreenDefaults(variant).applyThemeOverrides(activeSpec).resolvedFor(variant)
+    val layoutSizing = screenLayout.appearance?.takeIf { it.sizesBoard }
+    val settings = remember(baseSettings, variant, activeSpec, layoutSizing) {
+        baseSettings.applyScreenDefaults(variant).applyThemeOverrides(activeSpec)
+            .applyLayoutSizing(layoutSizing).resolvedFor(variant)
     }
     // The layout's own font, which is deliberately NOT part of that chain. The
     // chain produces one KeyboardSettings for the whole board, and a layout's
@@ -31829,4 +31832,27 @@ internal fun RecentWordRow(
             }
         }
     }
+}
+
+
+/**
+ * The layout's own sizes over the theme's and the globals' (Telegram group):
+ * more specific than a theme, which dresses every layout, and less than a
+ * per-screen override, which [resolvedFor] lays on last. The same instance
+ * back when the layout sets none, so the caller's remember holds.
+ */
+private fun KeyboardSettings.applyLayoutSizing(sizing: LayoutAppearance?): KeyboardSettings {
+    if (sizing == null || !sizing.sizesBoard) return this
+    return copy(
+        keyHeightDp = sizing.keyHeightDp ?: keyHeightDp,
+        keyGapScale = sizing.keyGapScale ?: keyGapScale,
+        layoutBehavior = if (sizing.sidePadLeftScale != null || sizing.sidePadRightScale != null) {
+            layoutBehavior.copy(
+                sidePadLeftScale = sizing.sidePadLeftScale ?: layoutBehavior.sidePadLeftScale,
+                sidePadRightScale = sizing.sidePadRightScale ?: layoutBehavior.sidePadRightScale,
+            )
+        } else {
+            layoutBehavior
+        },
+    )
 }

@@ -432,6 +432,13 @@
     <!-- Sets the size back to the one the settings give. Keep it short: it is
          the first chip in a row of sizes. -->
     <string name="layout_editor_font_scale_auto_chip">Auto</string>
+    <string name="layout_editor_size_key_height_title">Key height on this layout</string>
+    <string name="layout_editor_size_key_gap_title">Key spacing on this layout</string>
+    <string name="layout_editor_size_side_left_title">Left padding on this layout</string>
+    <string name="layout_editor_size_side_right_title">Right padding on this layout</string>
+    <string name="layout_editor_size_inherit">Same as everywhere (%1$s)</string>
+    <string name="layout_editor_size_hint">Only this layout changes. The others keep the size from Layout and size, or from your theme.</string>
+    <string name="layout_editor_size_reset">Same as everywhere</string>
     <string name="layout_editor_font_scale_hint">Makes every label on this layout larger or smaller than the size in Settings. It does not change the size on other layouts.</string>
     <!-- Label size for one layer of the layout, which overrides the layout-wide
          size above. %1$.2f is the multiple, for example 1.20. -->

@@ -206,9 +206,25 @@ data class LayerSpec(
 data class LayoutAppearance(
     val fontId: String? = null,
     val fontScale: Float? = null,
+    /**
+     * This layout's own key height, key spacing and side padding, over the
+     * theme's and the global Layout & size settings (Telegram group): a
+     * one-handed grid sized for one thumb no longer resizes QWERTY with it.
+     * Each null follows the setting it stands in for.
+     */
+    val keyHeightDp: Int? = null,
+    val keyGapScale: Float? = null,
+    val sidePadLeftScale: Float? = null,
+    val sidePadRightScale: Float? = null,
 ) {
     /** Whether this says anything at all; an all-null instance is stored as null. */
-    val isEmpty: Boolean get() = fontId == null && fontScale == null
+    val isEmpty: Boolean
+        get() = fontId == null && fontScale == null && keyHeightDp == null && keyGapScale == null &&
+            sidePadLeftScale == null && sidePadRightScale == null
+
+    /** Whether this sets any of the board's sizes. */
+    val sizesBoard: Boolean
+        get() = keyHeightDp != null || keyGapScale != null || sidePadLeftScale != null || sidePadRightScale != null
 }
 
 /**
