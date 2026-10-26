@@ -611,6 +611,8 @@ With this on, the keyboard draws Burmese in its own copy of Noto Sans Myanmar, a
          are examples and stay as they are. 发 is the Simplified form, 發 means
          "to send" and 髮 means "hair". -->
     <string name="languages_cjk_traditional_info">The keyboard converts each candidate from Simplified (简体) to Traditional (繁體) before it shows the candidate. Some Simplified characters have more than one Traditional form, and the word decides which one is correct: 发 is 發 in 發展 but 髮 in 頭髮, and 后 is 後 in 後來 but 后 in 皇后. With the phrase table pack downloaded, the keyboard reads whole words, so it writes the correct form. Without the pack, or for a word that is in no table, it converts one character at a time.</string>
+    <string name="languages_cjk_traditional_button_title">繁 button</string>
+    <string name="languages_cjk_traditional_button_subtitle">A button beside the candidates switches between Simplified and Traditional</string>
     <string name="languages_cjk_region_title">Regional wording</string>
     <!-- The Chinese characters are examples and stay as they are. 出租車 and
          計程車 both mean "taxi", but they are different words with different

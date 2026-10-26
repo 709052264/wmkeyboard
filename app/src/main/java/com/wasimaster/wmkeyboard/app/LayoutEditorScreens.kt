@@ -5260,6 +5260,13 @@ internal val KeyActionCatalog: List<KeyActionOption> = listOf(
         R.string.layout_editor_action_reading_column_detail,
         { KeyAction.ReadingColumn }, { it == KeyAction.ReadingColumn },
     ),
+    // The Simplified/Traditional switch the Pinyin layout's '词 key holds (#962).
+    KeyActionOption(
+        R.string.layout_editor_action_han_script_title,
+        R.string.layout_editor_action_group_typing,
+        R.string.layout_editor_action_han_script_detail,
+        { KeyAction.HanScript }, { it == KeyAction.HanScript },
+    ),
     KeyActionOption(
         R.string.layout_editor_action_symbols_title,
         R.string.layout_editor_action_group_layers,

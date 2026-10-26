@@ -438,6 +438,9 @@
     <!-- The strip button on Burmese layouts. Zawgyi is the name of the encoding, not a word to translate. -->
     <string name="ime_zawgyi_button" translatable="false">Zawgyi</string>
     <string name="ime_zawgyi_output">Zawgyi output</string>
+    <!-- The strip button on Chinese and Cantonese layouts: 繁 is the first character of 繁體, Traditional. Not translated. -->
+    <string name="ime_traditional_button" translatable="false">繁</string>
+    <string name="ime_traditional_output">Traditional characters</string>
     <!-- Strip chip after a paste the keyboard found to be in Zawgyi, the old Burmese font encoding. Tapping it replaces the paste with Unicode. -->
     <string name="ime_zawgyi_paste_offer">Pasted Zawgyi. Convert to Unicode</string>
     <!-- Strip chip on a Burmese layout when the text box already holds Zawgyi. Tapping it makes the keyboard write Zawgyi in this text box. -->

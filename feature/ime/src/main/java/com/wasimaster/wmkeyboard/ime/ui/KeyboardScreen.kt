@@ -4477,6 +4477,17 @@ private fun RowScope.StripOfferChips(
             onStripOfferAction(StripOfferAction.ToggleZawgyi)
         }
     }
+    // Chinese and Cantonese's 繁 button, the same switch over Traditional
+    // characters (#962). Lit while candidates come out Traditional.
+    if ((state.language.id == "zh" || state.language.id == "yue") && state.settings.cjk.traditionalButton) {
+        EncodingToggle(
+            active = state.settings.cjk.traditionalOutput,
+            label = stringResource(R.string.ime_traditional_button),
+            description = stringResource(R.string.ime_traditional_output),
+        ) {
+            onStripOfferAction(StripOfferAction.ToggleTraditional)
+        }
+    }
     // Autofill chips take the whole strip while they are up: they
     // answer the field directly ("use this saved login"), which beats
     // any word the dictionary could offer, and they are transient —

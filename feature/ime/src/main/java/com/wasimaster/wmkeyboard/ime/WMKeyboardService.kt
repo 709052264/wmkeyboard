@@ -9952,6 +9952,8 @@ open class WMKeyboardService : InputMethodService() {
             }
             // A syllable picked from a 九宫格 pad's reading column (#635).
             KeyAction.ReadingColumn -> pickConversionReading(key.output.orEmpty())
+            // The Simplified/Traditional switch on the Pinyin '词 key's hold (#962).
+            KeyAction.HanScript -> onTraditionalOutputToggle()
             KeyAction.Fn -> onFn()
             is KeyAction.BrailleDot -> onBrailleDot(key.action as KeyAction.BrailleDot)
             KeyAction.MorseDot -> onMorseSignal(dash = false)
@@ -19000,6 +19002,10 @@ open class WMKeyboardService : InputMethodService() {
             onZawgyiOutputToggle()
             return
         }
+        if (action == StripOfferAction.ToggleTraditional) {
+            onTraditionalOutputToggle()
+            return
+        }
         if (_uiState.value.learnOffer != null) {
             when (action) {
                 is StripOfferAction.Accept -> acceptLearnOffer()
@@ -19069,7 +19075,7 @@ open class WMKeyboardService : InputMethodService() {
             StripOfferAction.Back -> onSnippetOfferBack()
             StripOfferAction.Decline -> clearSnippetOffer()
             StripOfferAction.Explain -> Unit
-            StripOfferAction.ToggleAnsi, StripOfferAction.ToggleZawgyi -> Unit
+            StripOfferAction.ToggleAnsi, StripOfferAction.ToggleZawgyi, StripOfferAction.ToggleTraditional -> Unit
         }
     }
 
@@ -34335,6 +34341,33 @@ open class WMKeyboardService : InputMethodService() {
         // turning off a field the offer started writes a setting that already
         // reads off, which the collector never sees.
         if (_uiState.value.language.id == "my") setOutputEncoding(if (next) OutputEncoding.ZawgyiOutput else null)
+    }
+
+    /**
+     * Chinese candidates in Simplified or Traditional characters (#962): the
+     * strip's 繁 button and the [KeyAction.HanScript] key, over the same
+     * setting as the Chinese screen's Traditional characters row.
+     *
+     * Unlike the ANSI and Zawgyi buttons nothing is committed first: what is
+     * composing is a reading, not text, and the candidates for it are drawn
+     * again in the new script on the spot. The composers read
+     * [CjkConfig.traditionalOutput] at call time, so it is switched here
+     * rather than when the settings write comes back, which also keeps a
+     * quick second tap from reading the old value.
+     */
+    fun onTraditionalOutputToggle() {
+        vibrate()
+        val next = !CjkConfig.traditionalOutput
+        CjkConfig.traditionalOutput = next
+        if (next) loadHanVariantTables()
+        Toast.makeText(
+            this,
+            getString(if (next) R.string.ime_service_traditional_on_toast else R.string.ime_service_traditional_off_toast),
+            Toast.LENGTH_SHORT,
+        ).show()
+        serviceScope.launch { settingsRepository.setCjkTraditionalOutput(next) }
+        val state = _uiState.value
+        if (state.composer.isConversion && composing.isNotEmpty()) refreshConversionCandidates(state)
     }
 
     /**

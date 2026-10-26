@@ -2560,6 +2560,9 @@ sealed interface StripOfferAction {
 
     /** The Zawgyi button beside the words on a Burmese layout, the same kind of button as [ToggleAnsi]. */
     data object ToggleZawgyi : StripOfferAction
+
+    /** The 繁 button beside the candidates on a Chinese or Cantonese layout (#962), the same kind of button as [ToggleAnsi]. */
+    data object ToggleTraditional : StripOfferAction
 }
 
 /**

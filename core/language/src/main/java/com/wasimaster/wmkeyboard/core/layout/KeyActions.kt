@@ -329,6 +329,15 @@ sealed interface KeyAction {
     @Serializable @SerialName("reading_column") data object ReadingColumn : KeyAction
 
     /**
+     * Flips Chinese candidates between Simplified and Traditional characters,
+     * the same setting as the Chinese screen's Traditional characters row
+     * (#962). The shipped Pinyin layout puts it on the hold of its '词 key,
+     * where the Chinese keyboards its users come from keep the switch; any
+     * layout can bind it. A word being typed takes the new script at once.
+     */
+    @Serializable @SerialName("han_script") data object HanScript : KeyAction
+
+    /**
      * Fires an Android broadcast with [action] as its intent action, so a key
      * can trigger an automation app (Tasker et al.) or any app with a matching
      * receiver — the keyboard equivalent of a physical macro key. Types no text
@@ -533,6 +542,7 @@ fun KeyAction.fallbackLabel(): String = when (this) {
     // The board draws its list, never a label; this is what the editor's
     // preview shows for one left unlabelled.
     KeyAction.ReadingColumn -> "≡"
+    KeyAction.HanScript -> "简/繁"
     KeyAction.MorseDot -> "·"
     KeyAction.MorseDash -> "–"
     // Drawn from the enter icon slot on the board, so the key itself never
@@ -743,6 +753,8 @@ fun KeyAction.canRepeatOnHold(): Boolean = when (this) {
     is KeyAction.Unknown -> false
     // A list, not a key: nothing presses it as a whole.
     KeyAction.ReadingColumn -> false
+    // A switch: every second repeat would undo the one before.
+    KeyAction.HanScript -> false
     else -> !holdIsSpokenFor()
 }
 
@@ -771,6 +783,8 @@ fun KeyAction.commitsNoText(): Boolean = when (this) {
     // Switching into a URL or email mode to reach `:` or `@` is the same
     // trip the ?123 key makes, and must leave the typed space as spendable.
     is KeyAction.Mode -> true
+    // Flips the script the next candidates come out in; the text stays put.
+    KeyAction.HanScript -> true
     else -> false
 }
 

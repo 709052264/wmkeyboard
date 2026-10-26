@@ -5594,6 +5594,15 @@ data class CjkSettings(
     /** Convert candidate output to Traditional characters (Taiwan, Hong Kong). */
     val traditionalOutput: Boolean = false,
     /**
+     * A 繁 button beside the candidates on the Chinese and Cantonese layouts
+     * that flips [traditionalOutput] (#962), for someone who writes both and
+     * would otherwise go to the settings app twice for one message in the
+     * other script. Off by default: the strip is where the candidates are, and
+     * most people write one script only. The Pinyin layout's '词 key flips the
+     * same setting from its hold whatever this says.
+     */
+    val traditionalButton: Boolean = false,
+    /**
      * Cantonese: match lazy-pronunciation mergers (n↔l, ng↔∅, -ng↔-n, -k↔-t).
      * On by default, because the mergers are how most speakers actually say the
      * words: someone who says 你 as lei5 types `lei` and, without this, gets
@@ -10808,6 +10817,7 @@ class SettingsRepository(private val context: Context) {
         private val PINYIN_DOUBLE_PINYIN = stringPreferencesKey("pinyin_double_pinyin")
         private val PINYIN_DOUBLE_PINYIN_CUSTOM = stringPreferencesKey("pinyin_double_pinyin_custom")
         private val CJK_TRADITIONAL_OUTPUT = booleanPreferencesKey("cjk_traditional_output")
+        private val CJK_TRADITIONAL_BUTTON = booleanPreferencesKey("cjk_traditional_button")
         private val JYUTPING_LAZY = booleanPreferencesKey("jyutping_lazy")
         private val KANA_LOOSE_MARKS = booleanPreferencesKey("kana_loose_marks")
         private val FULL_WIDTH_SPACE_LANGUAGES = stringSetPreferencesKey("full_width_space_languages")
@@ -12734,6 +12744,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.cjk.pinyinDoublePinyin,
             pinyinDoublePinyinCustom = p[PINYIN_DOUBLE_PINYIN_CUSTOM] ?: defaults.cjk.pinyinDoublePinyinCustom,
             traditionalOutput = p[CJK_TRADITIONAL_OUTPUT] ?: defaults.cjk.traditionalOutput,
+            traditionalButton = p[CJK_TRADITIONAL_BUTTON] ?: defaults.cjk.traditionalButton,
             jyutpingLazy = p[JYUTPING_LAZY] ?: defaults.cjk.jyutpingLazy,
             kanaLooseMarks = p[KANA_LOOSE_MARKS] ?: defaults.cjk.kanaLooseMarks,
             fullWidthSpaceLanguages = p[FULL_WIDTH_SPACE_LANGUAGES] ?: defaults.cjk.fullWidthSpaceLanguages,
@@ -20456,6 +20467,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setCjkTraditionalOutput(value: Boolean) =
         editPrefs { it[CJK_TRADITIONAL_OUTPUT] = value }
+
+    suspend fun setCjkTraditionalButton(value: Boolean) =
+        editPrefs { it[CJK_TRADITIONAL_BUTTON] = value }
 
     suspend fun setJyutpingLazy(value: Boolean) =
         editPrefs { it[JYUTPING_LAZY] = value }

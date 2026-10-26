@@ -485,6 +485,10 @@
     <string name="layout_editor_action_reading_column_title">Pinyin syllable list</string>
     <!-- Detail line for the action above. -->
     <string name="layout_editor_action_reading_column_detail">A scrolling list in place of the key. While you type on a T9 pinyin pad it lists the syllables your keys could spell, to pick one; otherwise it lists the key\'s long-press characters</string>
+    <!-- A key action that flips Chinese candidates between Simplified and Traditional characters (issue #962). -->
+    <string name="layout_editor_action_han_script_title">Simplified / Traditional Chinese</string>
+    <!-- Detail line for the action above. -->
+    <string name="layout_editor_action_han_script_detail">Switches Chinese candidates between Simplified (简体) and Traditional (繁體) characters. The same setting as Traditional characters on the Chinese screen</string>
 
     <string name="layout_editor_action_symbols_title">Symbols page</string>
     <!-- ?123 and =\\&lt; are printed on the two symbol keys. Do not translate them. -->

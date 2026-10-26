@@ -162,11 +162,11 @@ Type `v` and then a number, with a decimal point if you like, for the number in 
 
 ### Narrowing the list by strokes
 
-When the character you want is far down a long list, narrow it by how the character is written. Hold <KeyCap>'词</KeyCap> for a backtick, then type the first strokes with the letters fcitx and Sogou use: `h` for 横 (一), `s` for 竖 (丨), `p` for 撇 (丿), `d` or `n` for 点 (丶) and `z` for 折 (乙). `yi` then `` `z `` leaves 乙 and the other characters that start with 折; the composing text shows the strokes as you type them. Picking a candidate ends the filter, and only the letters that candidate covers are used up. It needs the Stroke dictionary download, which is where the stroke order comes from. Without it the filter narrows nothing.
+When the character you want is far down a long list, narrow it by how the character is written. Hold <KeyCap>'词</KeyCap> and slide to the backtick, then type the first strokes with the letters fcitx and Sogou use: `h` for 横 (一), `s` for 竖 (丨), `p` for 撇 (丿), `d` or `n` for 点 (丶) and `z` for 折 (乙). `yi` then `` `z `` leaves 乙 and the other characters that start with 折; the composing text shows the strokes as you type them. Picking a candidate ends the filter, and only the letters that candidate covers are used up. It needs the Stroke dictionary download, which is where the stroke order comes from. Without it the filter narrows nothing.
 
 ### The word separator key
 
-On the Pinyin layout the key left of <KeyCap>z</KeyCap> is <KeyCap>'词</KeyCap> (<KeyCap>'詞</KeyCap> with Traditional characters on), not Shift. It types the apostrophe that marks a syllable boundary, so `xi'an` and `s'h` take one tap each, the way Gboard's Pinyin keyboard has it.
+On the Pinyin layout the key left of <KeyCap>z</KeyCap> is <KeyCap>'词</KeyCap> (<KeyCap>'詞</KeyCap> with Traditional characters on), not Shift. It types the apostrophe that marks a syllable boundary, so `xi'an` and `s'h` take one tap each, the way Gboard's Pinyin keyboard has it. Hold it and let go to switch between Simplified and Traditional characters, see [Switching scripts from the keyboard](#switching-scripts-from-the-keyboard); the backtick is the second entry in the same popup.
 
 ### Swiping
 
@@ -192,6 +192,15 @@ A single toggle switches candidate output from Simplified to Traditional Han, ap
 The character tables ship with the app. The phrase table is the **Traditional characters phrase table** pack, about 1 MB, which you download from the Chinese or Cantonese options page like the other tables below. It is one download: the row on either page is the same file. Without it, Traditional output still works, but one character at a time: each character takes its most common form, so 头发 comes out as 頭發. Conversion itself never goes online. The tables load the first time you turn the toggle on, so for a moment after that the candidates can still show in Simplified.
 
 With Traditional on, a second control appears: a region picker (Standard / Taiwan / Taiwan wording / Hong Kong). **Taiwan** follows OpenCC's `s2tw`: Taiwan's character preferences (為, 裡, 著), and the word stays the one you typed, so `chuzuche` gives 出租車 and `jichengche` gives 計程車. **Taiwan wording** follows OpenCC's `s2twp`, which also swaps regional vocabulary: Taiwan's 計程車 instead of the mainland's 出租車 for "taxi," for instance, even though you typed the reading of 出租車. Vocabulary is matched inside a candidate too, so 出租车光盘 becomes 計程車光碟. It is a separate choice because a swap can also change the meaning: 支持 becomes 支援 and 文件 becomes 檔案 in every sense of the word. **Hong Kong** follows OpenCC's `s2hk`: the standard wording with Hong Kong's character preferences (説, 衞, 温). The Hong Kong choices come straight from OpenCC's tables and have not been reviewed by a Hong Kong writer yet; a wrong one is worth reporting.
+
+### Switching scripts from the keyboard
+
+For a message in the other script you don't need the settings app. Two switches flip **Traditional characters** from the keys, and each one changes the same setting as the row on the options page, so it stays the way you left it:
+
+- **Hold <KeyCap>'词</KeyCap>** on the Pinyin layout and let go. A toast says which script the keyboard now writes.
+- **The 繁 button.** Turn on **繁 button** under <SettingsPath path="Languages & layouts / Chinese / Chinese options / 繁 button" /> (also on the Cantonese page; off by default). A 繁 button then sits beside the candidates on every Chinese and Cantonese layout, lit while candidates come out Traditional. Like the other buttons beside the words, it shows while the candidate strip is up, not while the toolbar is.
+
+A reading you are in the middle of typing switches with it: the candidates on the strip are drawn again in the new script, so you can type `toufa`, see 头发, switch and pick 頭髮. Any layout can carry the switch too: in the [layout editor](/languages/custom-layouts/) it's the **Simplified / Traditional Chinese** action, and in a layout file it's `{"type": "han_script"}`.
 
 Both controls are on the Chinese and Cantonese options pages only, and they are one setting shared by the two languages. Japanese candidates never pass through this conversion, so the Japanese page does not show them.
 
@@ -325,6 +334,7 @@ Opening a Chinese, Cantonese, or Japanese entry from the Languages screen shows 
 |---|---|---|
 | Conversion dictionary download | Not downloaded | Chinese, Cantonese, Japanese (see below) |
 | Traditional characters | Off | Chinese and Cantonese, shared between them |
+| 繁 button | Off | Same, a switch for the row above beside the candidates |
 | Regional wording (Standard / Taiwan / Taiwan wording / Hong Kong) | Standard | Same, only shown once Traditional is on |
 | Lazy pronunciation (懶音) | On | Cantonese only |
 | Match kana without marks | On | Japanese only, and only kana typed on Flick or Kana JIS |

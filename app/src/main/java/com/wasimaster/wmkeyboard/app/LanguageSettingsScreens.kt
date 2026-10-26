@@ -1902,6 +1902,17 @@ private fun CjkDictPackManager(
             ) { on -> scope.launch { repository.setCjkTraditionalOutput(on) } }
         }
 
+        // The switch above, one tap from the keys (#962): for someone who
+        // writes in both scripts, not only in the other one.
+        item(visible = hanLang, level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.languages_cjk_traditional_button_title,
+                stringResource(R.string.languages_cjk_traditional_button_subtitle),
+                settings.watch { it.cjk.traditionalButton },
+                default = SettingsDefaults.cjk.traditionalButton,
+            ) { on -> scope.launch { repository.setCjkTraditionalButton(on) } }
+        }
+
         // Taiwan and Hong Kong each prefer some character forms of their own
         // (為, 説). Taiwan wording also swaps vocabulary (出租車 → 計程車), so
         // it is a separate choice and never the plain Taiwan one (#641). Only
