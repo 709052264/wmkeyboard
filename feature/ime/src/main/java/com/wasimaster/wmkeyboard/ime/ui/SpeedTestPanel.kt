@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -41,6 +42,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
@@ -289,6 +291,7 @@ private fun RunningFace(state: KeyboardUiState, onAction: (SpeedTestAction) -> U
             Spacer(Modifier.height(8.dp))
             LiveLine(
                 SpeedTestMath.smooth(ui.liveSamples),
+                slots = state.settings.speedTest.duration * SAMPLES_PER_SECOND,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(44.dp),
@@ -312,23 +315,63 @@ private fun LiveSpeed(mbps: State<Double>, unit: SpeedUnit) {
     )
 }
 
-/** The running phase's samples as a thin line, newest at the right. */
+/**
+ * The running phase's samples as a thin line on a fixed time axis: one slot
+ * per expected sample, so the points already drawn stay put as new ones
+ * arrive. The newest point glides in over the time to the next sample and
+ * the vertical scale glides with the peak, both read only in the draw pass,
+ * and the line is a curve through the points rather than a polyline.
+ */
 @Composable
-private fun LiveLine(samples: List<Float>, modifier: Modifier = Modifier) {
+private fun LiveLine(samples: List<Float>, slots: Int, modifier: Modifier = Modifier) {
     val kb = LocalKbTheme.current
+    val motion = kb.motion.any
+    // A new phase starts from nothing: snap there rather than sweep back.
+    val count = animateFloatAsState(
+        targetValue = samples.size.toFloat(),
+        animationSpec = if (motion && samples.size > 1) tween(SPEED_GLIDE_MS) else snap(),
+        label = "points",
+    )
+    val peakTarget = samples.maxOrNull()?.takeIf { it > 0f } ?: 0f
+    val peak = animateFloatAsState(
+        targetValue = peakTarget,
+        animationSpec = if (motion && peakTarget > 0f) tween(SPEED_GLIDE_MS) else snap(),
+        label = "peak",
+    )
     Canvas(modifier) {
         val base = size.height - 1.dp.toPx()
         drawLine(kb.divider, Offset(0f, base), Offset(size.width, base), strokeWidth = 1.dp.toPx())
-        if (samples.size < 2) return@Canvas
-        val peak = samples.max().takeIf { it > 0f } ?: return@Canvas
-        val step = size.width / (samples.size - 1)
-        val path = Path()
-        samples.forEachIndexed { i, v ->
-            val x = step * i
-            val y = base - (v / peak) * (size.height - 4.dp.toPx())
-            if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+        val shown = count.value.coerceIn(0f, samples.size.toFloat())
+        val top = peak.value
+        if (shown < 2f || top <= 0f) return@Canvas
+        val step = size.width / (maxOf(slots, samples.size) - 1).coerceAtLeast(1)
+        val span = size.height - 4.dp.toPx()
+        fun yOf(v: Float) = base - (v / top).coerceIn(0f, 1f) * span
+        // The whole points, then the one still gliding in between the last two.
+        val whole = shown.toInt().coerceAtMost(samples.size)
+        val points = ArrayList<Offset>(whole + 1)
+        for (i in 0 until whole) points += Offset(step * i, yOf(samples[i]))
+        val fraction = shown - whole
+        if (whole < samples.size && fraction > 0f) {
+            val from = samples[whole - 1]
+            val to = samples[whole]
+            points += Offset(step * (whole - 1 + fraction), yOf(from + (to - from) * fraction))
         }
-        drawPath(path, kb.accent, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round))
+        if (points.size < 2) return@Canvas
+        val path = Path()
+        path.moveTo(points[0].x, points[0].y)
+        if (points.size == 2) {
+            path.lineTo(points[1].x, points[1].y)
+        } else {
+            // Through the midpoints, each sample as the control point: smooth,
+            // and the curve never overshoots a sample.
+            for (i in 1 until points.size - 1) {
+                val mid = Offset((points[i].x + points[i + 1].x) / 2f, (points[i].y + points[i + 1].y) / 2f)
+                path.quadraticTo(points[i].x, points[i].y, mid.x, mid.y)
+            }
+            path.lineTo(points.last().x, points.last().y)
+        }
+        drawPath(path, kb.accent, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
     }
 }
 
@@ -467,6 +510,9 @@ private fun layoutLabel(layout: SpeedCardLayout): Int = when (layout) {
 
 /** How long the dial takes to glide from one of the engine's reports to the next; the reports are 200 ms apart. */
 private const val SPEED_GLIDE_MS = 220
+
+/** The engine samples every 200 ms, so a phase of N seconds is 5N points on the line. */
+private const val SAMPLES_PER_SECOND = 5
 
 /** The dial's largest size; on a short keyboard it is the height instead. */
 private val DIAL_MAX: Dp = 150.dp
