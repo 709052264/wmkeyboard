@@ -9986,7 +9986,12 @@ open class WMKeyboardService : InputMethodService() {
             // everything else is one operation per press.
             is KeyAction.Edit -> {
                 val op = (key.action as KeyAction.Edit).op
-                if (op == TextEditAction.SELECT) onSelectKeyTap() else onTextEdit(op, haptic = false)
+                // On the typing grid a Shift the user put up turns a move into
+                // Shift+Arrow, as it does for an arrow key sent as a key event
+                // (#970). Not on a panel grid, which has no Shift of its own to
+                // read: one left up there is a leftover (see [onCursorTool]).
+                val extend = _uiState.value.panel == PanelMode.NONE && _uiState.value.shiftSelectsText
+                if (op == TextEditAction.SELECT) onSelectKeyTap() else onTextEdit(op, extendSelection = extend, haptic = false)
             }
             // A panel component's cell. The panel grid never dispatches one;
             // this is the exhaustive `when` insisting the case be decided.
