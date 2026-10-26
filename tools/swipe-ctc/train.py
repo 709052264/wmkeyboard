@@ -141,7 +141,7 @@ def main():
     train_path, test_path, qwerty_path, out = sys.argv[1:5]
     o = opts(sys.argv[5:])
     os.makedirs(out, exist_ok=True)
-    dev = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+    dev = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
     torch.manual_seed(o["seed"])
     gen = torch.Generator(device=dev).manual_seed(o["seed"])
     train, test = Data(train_path, dev), Data(test_path, dev)

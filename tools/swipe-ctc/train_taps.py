@@ -63,7 +63,7 @@ def main():
     words_path, out = sys.argv[1:3]
     o = opts(sys.argv[3:])
     os.makedirs(out, exist_ok=True)
-    dev = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+    dev = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
     torch.manual_seed(o["seed"])
     rng = np.random.default_rng(o["seed"])
     words, probs = tapsim.load_words(words_path)
