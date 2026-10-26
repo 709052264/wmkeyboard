@@ -1749,9 +1749,36 @@ open class WMKeyboardService : InputMethodService() {
             // Same boundary for the typing-rhythm signal: a fresh (or
             // re-armed) word starts with no rhythm history.
             keystrokeTiming.reset()
+            // A new reading is edited at its end until a tap says otherwise.
+            readingCaret = -1
+            readingCaretEchoes.clear()
             publishComposingRoman()
             publishKanaVariantReady()
         }
+
+    /**
+     * Where in [composing] the next key goes while a conversion reading is
+     * being edited in the middle (#960), or -1 for its end. A tap inside the
+     * underlined reading sets it ([updateSelection]) instead of ending the
+     * composition, keys insert there ([appendComposing]), backspace takes the
+     * key in front of it, and every rewrite of the region puts the field's
+     * caret back on it ([updateComposingText]). Japanese only, and only while
+     * the reading is not split into segments; see [editsInsideReading].
+     */
+    private var readingCaret = -1
+
+    /** Where the composing region starts in the field, from the last echo that reported one. */
+    private var readingRegionStart = -1
+
+    /**
+     * The carets [updateComposingText] put inside the reading whose echoes
+     * have not arrived, oldest first. Each rewrite's own echo, with the caret
+     * at the region's end, comes ahead of its caret and must not be taken for
+     * a move to the end; and keys typed faster than the echoes leave several
+     * waiting, none of which is the user moving the caret.
+     */
+    private val readingCaretEchoes = ArrayDeque<Int>()
+
     private var previousWord: String? = null
 
     /** The word before [previousWord], for trigram context. Null whenever a
@@ -1954,6 +1981,21 @@ open class WMKeyboardService : InputMethodService() {
             val opensSentence = previousWord == WordContext.SENTENCE_START
             composingCaseTrusted = state.shiftState == ShiftState.OFF ||
                 (state.shiftState == ShiftState.ON && state.shiftPressedByUser && !opensSentence)
+        }
+        val caret = readingCaret
+        if (caret in 0 until composing.length) {
+            // Into the middle of a reading (#960). The per-key frames are for
+            // a word typed left to right, which this one no longer is.
+            composing.insert(caret, text)
+            readingCaret = caret + text.length
+            composingTouch.clear()
+            composingKeys.clear()
+            composingHints.clear()
+            if (text.length == 1) keystrokeTiming.onKeystroke(SystemClock.uptimeMillis())
+            pendingTouch = null
+            pendingKeyLetters = null
+            pendingKeyHint = null
+            return
         }
         composing.append(text)
         if (composingTouch.size == composing.length - text.length) {
@@ -8235,6 +8277,45 @@ open class WMKeyboardService : InputMethodService() {
         refreshSuggestions()
     }
 
+    /**
+     * A collapsed caret inside (or at the end of) a Japanese reading being
+     * composed: becomes [readingCaret], so the reading stays open and the next
+     * key is typed there (#960). True when it did; false leaves the update to
+     * the rules for an ordinary composing word, which end the composition.
+     */
+    private fun moveReadingCaret(selStart: Int, selEnd: Int, candidatesStart: Int, candidatesEnd: Int): Boolean {
+        if (candidatesStart < 0 || candidatesEnd <= candidatesStart || !editsInsideReading(_uiState.value)) {
+            readingCaretEchoes.clear()
+            return false
+        }
+        readingRegionStart = candidatesStart
+        if (selStart != selEnd || selStart < candidatesStart || selStart > candidatesEnd) {
+            readingCaretEchoes.clear()
+            return false
+        }
+        if (readingCaretEchoes.isNotEmpty()) {
+            // One of ours: settled up to it.
+            val ours = readingCaretEchoes.indexOf(selStart)
+            if (ours >= 0) {
+                repeat(ours + 1) { readingCaretEchoes.removeFirst() }
+                return true
+            }
+            // A rewrite's own echo, ahead of the caret put back after it.
+            if (selStart == candidatesEnd) return true
+            readingCaretEchoes.clear()
+        }
+        val was = readingCaret
+        readingCaret = if (selStart == candidatesEnd) {
+            -1
+        } else {
+            val buffer = composing.toString()
+            _uiState.value.composer.bufferIndex(buffer, selStart - candidatesStart)
+                .let { if (it >= buffer.length) -1 else it }
+        }
+        if (readingCaret != was) publishKanaVariantReady()
+        return true
+    }
+
     private fun updateSelection(
         oldSelStart: Int,
         oldSelEnd: Int,
@@ -8350,6 +8431,7 @@ open class WMKeyboardService : InputMethodService() {
             }
         }
         val wasComposing = composing.isNotEmpty()
+        val caretInReading = wasComposing && moveReadingCaret(newSelStart, newSelEnd, candidatesStart, candidatesEnd)
         val cursorOutsideCandidates =
             cursorLeftComposingRegion(newSelStart, newSelEnd, candidatesStart, candidatesEnd)
         // A caret placed *inside* the composing word (a tap mid-word) also ends
@@ -8362,7 +8444,9 @@ open class WMKeyboardService : InputMethodService() {
         // only be the user's. Dropping composition here lets the fall-through
         // below re-derive the context at the new caret, mid-word taps landing
         // in the no-resume branch of restartSuggestionsAtCursor.
-        val cursorInsideCandidates = candidatesStart >= 0 && candidatesEnd > candidatesStart &&
+        // A Japanese reading is the exception: there a caret inside it is
+        // where the next key goes (#960), handled above.
+        val cursorInsideCandidates = !caretInReading && candidatesStart >= 0 && candidatesEnd > candidatesStart &&
             newSelStart == newSelEnd &&
             newSelStart >= candidatesStart && newSelStart < candidatesEnd
 
@@ -13807,6 +13891,24 @@ open class WMKeyboardService : InputMethodService() {
             // being deleted all the same; the buffer path just never reaches
             // [noteDeletedForLearning].
             if (expectedSelStart > 0) declinedSpots.onDeleted(expectedSelStart - 1, expectedSelStart)
+            // Mid-reading (#960): the key in front of the caret goes, the rest
+            // of the reading stays, and at its start there is nothing to take.
+            val readingAt = readingCaret
+            if (readingAt in 0 until composing.length && editsInsideReading(state)) {
+                if (readingAt == 0) return
+                val whole = composing.toString()
+                val head = state.composer.backspaceBuffer(whole.substring(0, readingAt))
+                composing.setLength(0)
+                composing.append(head).append(whole, readingAt, whole.length)
+                composingTouch.clear()
+                composingKeys.clear()
+                composingHints.clear()
+                ambiguousReading = null
+                readingCaret = head.length
+                updateComposingText(ic)
+                refreshSuggestions()
+                return
+            }
             // The buffer is the field's own text, so a backspace has to take the
             // same thing off it that the branch below would take off the field —
             // for a cluster-shaping layout, a whole conjunct rather than one code
@@ -17185,6 +17287,17 @@ open class WMKeyboardService : InputMethodService() {
         ).firstOrNull()
     }
 
+    /**
+     * Whether a caret inside the composing reading edits it rather than ending
+     * it (#960): a conversion reading that stays kana until it is converted,
+     * not split into segments (Mozc's arrows own those), in the app's field.
+     */
+    private fun editsInsideReading(state: KeyboardUiState): Boolean {
+        val composer = state.composer
+        return composer.isConversion && composer.keepsUnconvertedReading && composing.isNotEmpty() &&
+            state.captureTarget() == null && composer.focusedSegment(composing.toString()) == null
+    }
+
     private fun updateComposingText(ic: InputConnection) {
         val preview = composedPreview(_uiState.value, composing.toString())
         // A fragment typed into a word the user came back to rewrites itself
@@ -17194,6 +17307,21 @@ open class WMKeyboardService : InputMethodService() {
             revisionFragment = preview
         }
         ic.setComposingText(segmentMarked(preview), 1)
+        // Mid-reading, setComposingText left the caret at the region's end:
+        // back to where the next key goes (#960).
+        val caret = readingCaret
+        if (caret in 0 until composing.length && readingRegionStart >= 0 &&
+            editsInsideReading(_uiState.value)
+        ) {
+            val offset = _uiState.value.composer.previewOffset(composing.toString(), caret)
+                .coerceIn(0, preview.length)
+            val at = readingRegionStart + offset
+            if (readingCaretEchoes.size >= READING_ECHOES_MAX) readingCaretEchoes.removeFirst()
+            readingCaretEchoes.addLast(at)
+            ic.setSelection(at, at)
+        } else {
+            readingCaret = -1
+        }
         _uiState.update { it.copy(composingPreview = preview) }
         publishComposingRoman()
         publishKanaVariantReady()
@@ -17234,6 +17362,8 @@ open class WMKeyboardService : InputMethodService() {
         // field was left half-way through (#527).
         val last = if (state.captureTarget() != null) {
             captureComposition?.keys?.lastOrNull()
+        } else if (readingCaret in 1 until composing.length) {
+            composing[readingCaret - 1]
         } else {
             composing.lastOrNull()
         }
@@ -19196,6 +19326,7 @@ open class WMKeyboardService : InputMethodService() {
      * time through [commitConversionPrefix].
      */
     private fun flushConversion(ic: InputConnection) {
+        readingCaret = -1
         val composer = _uiState.value.composer
         var guard = 0
         var converted = false
@@ -19460,6 +19591,8 @@ open class WMKeyboardService : InputMethodService() {
             if (!commitConversionRepick(ic, chosen)) commitConversionPrediction(ic, chosen)
             return
         }
+        // A pick converts from the reading's start; whatever is left is edited at its end.
+        readingCaret = -1
         val composer = _uiState.value.composer
         val buf = composing.toString()
         // By strip position when the caller knows it, which is exact even where a
@@ -19528,10 +19661,13 @@ open class WMKeyboardService : InputMethodService() {
         if (cycleCaptureKanaVariant()) return
         val ic = currentInputConnection ?: return
         if (composing.isEmpty()) return
-        val last = composing[composing.length - 1]
+        // The kana in front of the caret, which is the last one unless the
+        // reading is being edited in the middle (#960).
+        val at = if (readingCaret in 1 until composing.length) readingCaret - 1 else composing.length - 1
+        val last = composing[at]
         val cycled = Kana.cycleVariant(last)
         if (cycled == last) return
-        composing.setCharAt(composing.length - 1, cycled)
+        composing.setCharAt(at, cycled)
         updateComposingText(ic)
         refreshSuggestions()
     }
@@ -53344,6 +53480,9 @@ private const val FIND_VERIFY_WINDOW = 400
  * to the old word's end is put back; see [WMKeyboardService.undoCaretSnapBack].
  */
 private const val CARET_SNAP_BACK_WINDOW_MS = 600L
+
+/** Echoes the reading caret waits for at most (#960); past it the oldest is long gone. */
+private const val READING_ECHOES_MAX = 16
 
 /** How many words' synonyms are kept for the sheet to reopen with (#321). */
 private const val SYNONYMS_CACHE_SIZE = 32

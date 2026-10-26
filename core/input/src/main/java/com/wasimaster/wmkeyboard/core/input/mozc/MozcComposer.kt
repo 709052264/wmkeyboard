@@ -72,6 +72,11 @@ class MozcComposer internal constructor(val base: Composer) : Composer {
     override fun finishBuffer(buffer: String): String = base.finishBuffer(buffer)
     override fun typedReading(buffer: String): String = base.typedReading(buffer)
 
+    // Unsegmented, the reading shows as the base composer's kana; the service
+    // only edits inside a reading that is not split (#960).
+    override fun previewOffset(buffer: String, index: Int): Int = base.previewOffset(buffer, index)
+    override fun bufferIndex(buffer: String, offset: Int): Int = base.bufferIndex(buffer, offset)
+
     // Mozc brings its own dictionary, and needs none of the built-in packs.
     override val missingPack: String? get() = null
     override val improvingPack: String? get() = null

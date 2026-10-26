@@ -394,6 +394,30 @@ interface Composer {
     fun composeBuffer(buffer: String): String = buffer
 
     /**
+     * Where a caret at [index] in [buffer] sits in [composeBuffer]'s text: the
+     * keyboard keeps the field's caret there while a reading is being edited
+     * in the middle (#960). The default renders the keys before the caret on
+     * their own, which is right wherever a key's output does not depend on the
+     * keys after it.
+     */
+    fun previewOffset(buffer: String, index: Int): Int =
+        composeBuffer(buffer.substring(0, index.coerceIn(0, buffer.length))).length
+
+    /**
+     * The buffer position for a caret put at [offset] in [composeBuffer]'s
+     * text: the last one whose [previewOffset] is not past it, so a caret
+     * dropped inside a kana two keys spelled lands in front of both keys.
+     */
+    fun bufferIndex(buffer: String, offset: Int): Int {
+        var found = 0
+        for (index in 1..buffer.length) {
+            if (previewOffset(buffer, index) > offset) break
+            found = index
+        }
+        return found
+    }
+
+    /**
      * What a transliterator commits when the word ends, where that differs
      * from what [composeBuffer] shows while it is being typed. An m17n ITRANS
      * method shows क् for `k` (the next key may add a vowel) and drops that
