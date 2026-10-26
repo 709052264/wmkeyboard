@@ -340,7 +340,7 @@ private fun slotTransition(
     } else {
         slideOutVertically(tween(160)) { h -> -h / 2 } + scaleOut(tween(160), targetScale = 0.6f) + fadeOut(tween(120))
     }
-    return (enter togetherWith exit).using(SizeTransform(clip = false))
+    return ContentTransform(enter, exit, sizeTransform = SizeTransform(clip = false))
 }
 
 /**

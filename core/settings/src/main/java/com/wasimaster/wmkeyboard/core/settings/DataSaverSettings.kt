@@ -194,6 +194,8 @@ data class DataSaverSettings(
      * on Listen. Asked, like [cloudVoice]: the tap is the moment to ask at.
      */
     val cloudMusic: MeteredPolicy = MeteredPolicy.ASK,
+
+    /**
      * A run of the speed test, which moves more data than anything else the
      * keyboard does (a hundred megabytes or more on a fast line). Asks by
      * default: the panel says how much a run is likely to cost before it goes.

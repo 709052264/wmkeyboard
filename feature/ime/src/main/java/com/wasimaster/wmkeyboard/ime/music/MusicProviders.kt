@@ -1,5 +1,14 @@
-package com.wasimaster.wmkeyboard.core.music
+package com.wasimaster.wmkeyboard.ime.music
 
+import com.wasimaster.wmkeyboard.core.music.AcrCloudClient
+import com.wasimaster.wmkeyboard.core.music.AuddClient
+import com.wasimaster.wmkeyboard.core.music.AudioTagClient
+import com.wasimaster.wmkeyboard.core.music.MusicClient
+import com.wasimaster.wmkeyboard.core.music.MusicOutcome
+import com.wasimaster.wmkeyboard.core.music.MusicProviderException
+import com.wasimaster.wmkeyboard.core.music.MusicServerClient
+import com.wasimaster.wmkeyboard.core.music.RapidShazamClient
+import com.wasimaster.wmkeyboard.core.music.SongMatch
 import com.wasimaster.wmkeyboard.core.providers.CredentialSpec
 import com.wasimaster.wmkeyboard.core.providers.ProviderRunner
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool

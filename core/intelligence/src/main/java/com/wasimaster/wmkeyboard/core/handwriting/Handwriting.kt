@@ -522,15 +522,18 @@ class HandwritingRecognizerCache {
         maxCandidates: Int = 4,
     ): List<String> {
         if (strokes.isEmpty()) return emptyList()
-        val recognizer = if (ZinniaModels.isTag(tag)) {
-            recognizerFor(tag) { ZinniaModels.recognizer(tag) }
-        } else if (InkOcrModels.isTag(tag)) {
-            recognizerFor(tag) { InkOcrModels.recognizer(tag) }?.also { (it as? InkOcrRecognizer)?.lexicon = lexicon }
-        } else {
-            val engine = HandwritingModels.runtimeForRecognition() ?: error("Handwriting runtime is not here")
-            HandwritingModels.prepare(engine)
-            recognizerFor(tag) { engine.recognizer(tag) }
-        } ?: error("No recognizer for $tag")
+        // Bracketed so the elvis covers every branch, not only the last.
+        val recognizer = (
+            if (ZinniaModels.isTag(tag)) {
+                recognizerFor(tag) { ZinniaModels.recognizer(tag) }
+            } else if (InkOcrModels.isTag(tag)) {
+                recognizerFor(tag) { InkOcrModels.recognizer(tag) }?.also { (it as? InkOcrRecognizer)?.lexicon = lexicon }
+            } else {
+                val engine = HandwritingModels.runtimeForRecognition() ?: error("Handwriting runtime is not here")
+                HandwritingModels.prepare(engine)
+                recognizerFor(tag) { engine.recognizer(tag) }
+            }
+            ) ?: error("No recognizer for $tag")
         return recognizer.recognize(strokes, preContext, writingAreaWidth, writingAreaHeight)
             .filter { it.isNotEmpty() }
             .distinct()

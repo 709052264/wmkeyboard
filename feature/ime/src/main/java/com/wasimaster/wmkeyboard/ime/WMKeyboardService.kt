@@ -14227,7 +14227,7 @@ open class WMKeyboardService : InputMethodService() {
      * about script: a sibling or a completion is a different word, not the same
      * one written differently.
      */
-    private fun notePhoneticPick(suggestion: String) {
+    private fun noteScriptPick(suggestion: String) {
         val language = _uiState.value.composer.phoneticLanguage ?: return
         val engine = suggestionEngine ?: return
         val typed = composing.toString()
@@ -25446,7 +25446,7 @@ open class WMKeyboardService : InputMethodService() {
         // overwrites a committed word lands in a place whose case was decided
         // when that word was written, and the shift that decided it is long
         // since spent — auto-capitalize's above all (#212).
-        notePhoneticPick(suggestion)
+        noteScriptPick(suggestion)
         val committed = _uiState.value.let { state ->
             val cased = displayCaseForShift(
                 caseLike(suggestion, replacedWord?.takeIf { gestureWordShifted }, state.language.letterCaseIsSpelling),
