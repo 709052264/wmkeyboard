@@ -491,6 +491,9 @@ object WMFileTypes {
         if (FileSniff.isFont(head)) return Opened.Font(emoji = FileSniff.isColourFont(head))
         if (FileSniff.isSound(head, name)) return Opened.KeySound
         if (AospDictionary.looksLikeDictionary(head)) return dictionariesIn(context, uri, name)
+        if (com.wasimaster.wmkeyboard.core.prediction.SogouScel.looksLikeScel(head)) {
+            return dictionariesIn(context, uri, name)
+        }
         if (FileSniff.isSqlite(head) || FileSniff.isTar(head)) return kaomojiIn(context, uri)
 
         // A gzipped file is read through the inflater: the data repository

@@ -376,6 +376,7 @@ A list you import for Chinese, Cantonese or Japanese goes into the candidates, n
 - **Rime** dictionaries (`.dict.yaml`), such as Luna Pinyin: `word`, the spaced reading, then a count or a percentage. The YAML header is skipped.
 - **Mozc and Google Japanese Input** user dictionaries: `reading`, `word`, part of speech. A katakana reading is read as hiragana.
 - The packs' own format, `reading`, `word`, `frequency`, one tab between each.
+- **Sogou's `.scel` cell dictionaries** (细胞词库), as Sogou publishes them: each word with its pinyin and Sogou's count.
 
 Tone numbers and tone marks are dropped and ü is spelt `v`, the same as in the packs. A line with no reading, such as a plain column of characters, is skipped, and the count on the Custom dictionaries screen is the number of lines that do have one.
 
@@ -387,12 +388,11 @@ A list goes live the next time you open a text field, and only the table for its
 
 Most Chinese dictionary projects on GitHub are built for the desktop input methods, and many ship two files per release: a `.dict` for fcitx5 and a `.dict.yaml` for Rime. Take the `.dict.yaml`. It is the Rime format from the list above, so it imports as it is: pick **Chinese**, open **Custom dictionaries** and import the file.
 
-The other formats are compiled, and the keyboard can't read them:
+Sogou's own `.scel` cell dictionaries import directly too, from Custom dictionaries or by opening the file with WM Keyboard; the import names them as a Chinese list.
 
-- **fcitx5's `.dict`** is libime's binary dictionary. Look for the Rime file in the same release, or convert the project's source text instead.
-- **Sogou's `.scel` cell dictionaries** (细胞词库) are binary too. [imewlconverter](https://github.com/studyzy/imewlconverter) (深蓝词库转换) turns them into Rime's format: choose 搜狗细胞词库 scel as the input and Rime 中州韵 as the output, then import what it writes.
+fcitx5's `.dict` is compiled, and the keyboard can't read it: it is libime's binary dictionary. Look for the Rime file or the `.scel` files in the same release, or convert the project's source text instead.
 
-Each file can be at most 32 MB. That rules out the whole-corpus builds, such as [fcitx5-pinyin-sougou-dict](https://github.com/blackteahamburger/fcitx5-pinyin-sougou-dict), whose `sougou.dict.yaml` is over 400 MB: the import refuses it, and splitting it wouldn't help, because the keyboard reads every list into memory when it builds the Chinese table. That project's release also carries `sougou_dict.tar.gz`, the raw Sogou cell dictionaries it was built from. Convert the topics you actually type, such as computing, place names or medicine, and import those. A few thematic lists of a few megabytes each give most of the benefit and load fast.
+Each file can be at most 32 MB. That rules out the whole-corpus builds, such as [fcitx5-pinyin-sougou-dict](https://github.com/blackteahamburger/fcitx5-pinyin-sougou-dict), whose `sougou.dict.yaml` is over 400 MB: the import refuses it, and splitting it wouldn't help, because the keyboard reads every list into memory when it builds the Chinese table. That project's release also carries `sougou_dict.tar.gz`, the raw Sogou cell dictionaries it was built from. Unpack it and import the `.scel` files for the topics you actually type, such as computing, place names or medicine. A few thematic lists of a few megabytes each give most of the benefit and load fast.
 
 ## The RIME engine
 
