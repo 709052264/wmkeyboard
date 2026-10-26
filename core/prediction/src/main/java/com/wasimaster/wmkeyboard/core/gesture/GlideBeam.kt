@@ -527,6 +527,32 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
          * user added by hand still wins the moment nothing plain competes.
          */
         val joinerCost: Float = 0.2f,
+        /**
+         * Nats charged for each join of a compound read as two or three
+         * listed words in a row (issue #966 §5.2), and the switch: infinite,
+         * the default, reads no compounds and the decode is the plain one
+         * to the bit.
+         *
+         * A list cannot hold the compounds a language builds as it goes.
+         * On real German swipes 36 % of the words of 15 letters or more
+         * were missing from a 150k list, and adding generated compounds to
+         * the list was a net loss (under 2 % of them were words anyone
+         * writes); an oracle that held just the missing ones read 4.9 more
+         * swipes in a hundred. So the decoder reads them where the stroke
+         * is decoded instead: at a listed word of three letters or more
+         * with stroke still ahead of it, the walk may go on from the top of
+         * the trie as a second part, on the same alignment, as if the list
+         * held the joined spelling. The joined word scores on the rarest of
+         * its parts, this much the poorer per join, so a listed compound
+         * beats its own joining and a common short word plus a stray one
+         * does not beat a word the list holds whole. The bound carries
+         * both, so the walk's pruning stays exact.
+         *
+         * No setting reaches it: [GlideLanguageProfiles] sets it per
+         * language, German first. The value there is unmeasured on real
+         * strokes; `glide_beam_eval` takes `join_cost=` for the sweep.
+         */
+        val joinCost: Double = Double.POSITIVE_INFINITY,
     ) {
         val invTwoSigmaSq: Float get() = 1f / (2f * sigma * sigma)
         val startRadiusSq: Float get() = startRadius * startRadius

@@ -52,6 +52,16 @@ class KotlinGlideWorkspace {
     var bound = DoubleArray(INITIAL); private set
 
     /**
+     * Compounds (#966): the least frequency among the parts this state has
+     * already finished ([NO_PART] before any join), the length at which the
+     * current part began, and how many joins the chain has made. Copied
+     * from the parent on every [push]; the walk sets them where it joins.
+     */
+    var partFreq = IntArray(INITIAL); private set
+    var partFrom = IntArray(INITIAL); private set
+    var joins = IntArray(INITIAL); private set
+
+    /**
      * Samples the current stroke was resampled to: [SHORT_SAMPLES], or
      * [SAMPLE_POINTS] for a stroke of [LONG_STROKE] key widths or more. Every
      * per-sample array holds [SAMPLE_POINTS]; a decode reads the first
@@ -263,8 +273,24 @@ class KotlinGlideWorkspace {
         this.extra[id] = extra
         this.floorCost[id] = floorCost
         this.bound[id] = bound
+        if (parent >= 0) {
+            partFreq[id] = partFreq[parent]
+            partFrom[id] = partFrom[parent]
+            joins[id] = joins[parent]
+        } else {
+            partFreq[id] = NO_PART
+            partFrom[id] = 0
+            joins[id] = 0
+        }
         heapPush(id)
         return id
+    }
+
+    /** Files state [id] as the start of a compound's next part: `wm-engine`'s walk writes the three fields in place. */
+    fun join(id: Int, partFreq: Int, partFrom: Int, joins: Int) {
+        this.partFreq[id] = partFreq
+        this.partFrom[id] = partFrom
+        this.joins[id] = joins
     }
 
     /** Start of state [id]'s column within [cols]. */
@@ -328,6 +354,9 @@ class KotlinGlideWorkspace {
         extra = extra.copyOf(capacity)
         floorCost = floorCost.copyOf(capacity)
         bound = bound.copyOf(capacity)
+        partFreq = partFreq.copyOf(capacity)
+        partFrom = partFrom.copyOf(capacity)
+        joins = joins.copyOf(capacity)
         cols = cols.copyOf(capacity * SAMPLE_POINTS)
     }
 
@@ -458,5 +487,8 @@ class KotlinGlideWorkspace {
 
         /** Sentinel for the root, which consumed no trie edge. */
         val NO_LABEL: Char = 0.toChar()
+
+        /** [partFreq] of a state that has joined nothing: no cap on the frequency. */
+        const val NO_PART = Int.MAX_VALUE
     }
 }

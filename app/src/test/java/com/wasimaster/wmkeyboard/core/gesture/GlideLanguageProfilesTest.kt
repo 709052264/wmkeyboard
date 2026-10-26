@@ -9,12 +9,24 @@ import org.junit.Test
 class GlideLanguageProfilesTest {
 
     @Test
-    fun `german lowers the frequency weight and raises the gap weight`() {
+    fun `german lowers the frequency weight, raises the gap weight and reads compounds`() {
         val tuned = GlideLanguageProfiles.tune(GlideBeam.Tuning.DEFAULT, "de")
         assertEquals(0.5, tuned.freqWeight, 0.0)
         assertEquals(2.0f, tuned.gapWeight, 0f)
+        assertEquals(3.0, tuned.joinCost, 0.0)
         // Nothing else moves.
-        assertEquals(GlideBeam.Tuning.DEFAULT, tuned.copy(freqWeight = 1.0, gapWeight = GlideBeam.Tuning.DEFAULT.gapWeight))
+        assertEquals(
+            GlideBeam.Tuning.DEFAULT,
+            tuned.copy(freqWeight = 1.0, gapWeight = GlideBeam.Tuning.DEFAULT.gapWeight, joinCost = Double.POSITIVE_INFINITY),
+        )
+    }
+
+    @Test
+    fun `the compound reading is off everywhere but german`() {
+        assertEquals(Double.POSITIVE_INFINITY, GlideBeam.Tuning.DEFAULT.joinCost, 0.0)
+        for (id in listOf("en", "fr", "nl", "fi", null)) {
+            assertEquals(id, Double.POSITIVE_INFINITY, GlideLanguageProfiles.tune(GlideBeam.Tuning.DEFAULT, id).joinCost, 0.0)
+        }
     }
 
     @Test
@@ -42,9 +54,13 @@ class GlideLanguageProfilesTest {
         assertEquals(1.4f, tuned.nearRadius, 0f)
         assertEquals(30000, tuned.vocabularyRank)
         assertEquals(0.5, tuned.freqWeight, 0.0)
+        assertEquals(3.0, tuned.joinCost, 0.0)
         // Applying it again changes nothing, so a language re-set is free.
         assertSame(tuned, GlideLanguageProfiles.tune(tuned, "de"))
         // And a switch back to English gives the user's own weights back.
-        assertEquals(mine, GlideLanguageProfiles.tune(tuned, "en").copy(gapWeight = mine.gapWeight, freqWeight = mine.freqWeight))
+        assertEquals(
+            mine,
+            GlideLanguageProfiles.tune(tuned, "en").copy(gapWeight = mine.gapWeight, freqWeight = mine.freqWeight, joinCost = mine.joinCost),
+        )
     }
 }

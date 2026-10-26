@@ -39,6 +39,11 @@ pub struct Point {
 /// language profile moves (#966, `GlideLanguageProfiles` on the Kotlin
 /// side): every bound carries it too, so the walk's pruning stays sound
 /// at any value, and at 1.0 a decode is the unweighted one to the bit.
+/// `join_cost` is the charge, in nats, for each join of a compound read
+/// as two or three listed words in a row (#966 §5.2); infinite, the
+/// default, switches the joining off and the decode is the plain one to
+/// the bit. A language profile sets it where the list cannot hold the
+/// compounds people swipe.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Tuning {
     pub sigma: f32,
@@ -68,6 +73,7 @@ pub struct Tuning {
     pub look_ahead_cost: f64,
     pub look_ahead_budget: i32,
     pub joiner_cost: f32,
+    pub join_cost: f64,
 }
 
 impl Default for Tuning {
@@ -100,6 +106,7 @@ impl Default for Tuning {
             look_ahead_cost: 1.4,
             look_ahead_budget: 48,
             joiner_cost: 0.2,
+            join_cost: f64::INFINITY,
         }
     }
 }
@@ -136,6 +143,16 @@ impl Tuning {
             self.dwell_full
         } else {
             MIN_DWELL_FULL
+        }
+    }
+    /// What `joins` joins cost: nothing for none, which keeps a plain
+    /// word's score the plain one even with the joining off (infinite
+    /// times zero is not zero).
+    fn join_charge(&self, joins: i32) -> f64 {
+        if joins > 0 {
+            self.join_cost * joins as f64
+        } else {
+            0.0
         }
     }
 }
@@ -206,6 +223,13 @@ impl Marks {
     }
 }
 
+/// Letters each part of a compound must have (#966): `an` + `halt` is not
+/// a reading of `anhalt`, it is a search of every short word against every
+/// other, and the charge alone would not keep that out of the pool.
+const MIN_JOIN_PART: i32 = 3;
+/// Most joins in one reading: three parts, `bundes`-`verfassungs`-`gericht`
+/// sized, and no further.
+const MAX_JOINS: i32 = 2;
 const MIN_STROKE_LENGTH: f32 = 0.5;
 const MIN_SAMPLES: usize = 3;
 const MIN_WORD_LENGTH: i32 = 2;
@@ -227,6 +251,18 @@ pub const SHAPE_QUANT: f32 = 10.0;
 
 fn ln1p(v: i32) -> f64 {
     strict_math::ln1p_count(v)
+}
+
+/// The frequency a compound's language-model term is read at: the least
+/// of its finished parts' (`cap`, `workspace::NO_PART` for none) and `f`, the current
+/// part's or its subtree's. `f` itself for a plain word, so the plain
+/// decode's arithmetic is untouched.
+fn lm_cap(cap: i32, f: i32) -> i32 {
+    if f < cap {
+        f
+    } else {
+        cap
+    }
 }
 
 fn by_score(a: &Candidate, b: &Candidate) -> std::cmp::Ordering {
@@ -605,6 +641,7 @@ impl Decoder {
         let key_count = keys.key_count();
         let min_frequency = src.min_frequency;
         let tuning = self.tuning.clone();
+        let join_on = tuning.join_cost.is_finite();
 
         self.ws.reset();
         let root = walker.root();
@@ -624,12 +661,25 @@ impl Decoder {
             let extra = self.ws.extra[s];
             let last_key = self.ws.last_key[s];
 
+            let part_freq = self.ws.part_freq[s];
+            let part_from = self.ws.part_from[s];
+            let joins = self.ws.joins[s];
+            let charge = tuning.join_charge(joins);
+
             let total = self.terminal_cost(self.ws.column_of(s));
             let at_end = last_key >= 0 && self.ws.end_key[last_key as usize] && total < UNREACHABLE;
             if at_end {
                 let shape = total + extra + self.unclaimed_dwell(s, keys) + self.unclaimed_loop(s);
-                if length >= MIN_WORD_LENGTH && walker.is_word(node) && walker.frequency(node) >= min_frequency {
-                    let score = src.log_weight + tuning.freq_weight * ln1p(walker.frequency(node)) - tuning.shape_weight * shape as f64;
+                // A compound's last part is held to the same length as its
+                // first; `part_from` is 0 and `charge` 0.0 for a plain word.
+                if length >= MIN_WORD_LENGTH
+                    && length - part_from >= if joins > 0 { MIN_JOIN_PART } else { 0 }
+                    && walker.is_word(node)
+                    && walker.frequency(node) >= min_frequency
+                {
+                    let score = src.log_weight + tuning.freq_weight * ln1p(lm_cap(part_freq, walker.frequency(node)))
+                        - tuning.shape_weight * shape as f64
+                        - charge;
                     if score > floor - EPS || results.len() < k {
                         let word = self.ws.materialize(s);
                         if !(src.tier == Tier::Dictionary && is_non_word(&word)) {
@@ -641,13 +691,42 @@ impl Decoder {
                     }
                 }
                 if let Some(ahead) = ahead.as_deref_mut() {
-                    if *budget > 0 && length >= MIN_LOOKAHEAD_PREFIX {
+                    if *budget > 0 && length - part_from >= MIN_LOOKAHEAD_PREFIX {
                         self.look_ahead(src, node, s, shape, min_frequency, ahead, budget);
                     }
                 }
             }
             if length >= MAX_WORD_LENGTH || length as usize >= n {
                 continue;
+            }
+
+            // A compound (#966 §5.2): a finished part of three letters or
+            // more may hand the rest of the stroke to a second word, read
+            // from the trie root on the same alignment column, as if the
+            // list held the joined spelling. The joined word scores on the
+            // rarest of its parts, `join_cost` the poorer per join, and
+            // the bound carries both, so a join never ranks above what the
+            // single-word bound allows and the walk's pruning stays exact.
+            if join_on
+                && joins < MAX_JOINS
+                && length - part_from >= MIN_JOIN_PART
+                && (length + MIN_JOIN_PART) as usize <= n
+                && walker.is_word(node)
+                && walker.frequency(node) >= min_frequency
+            {
+                let cap = lm_cap(part_freq, walker.frequency(node));
+                let floor_cost = self.ws.floor_cost[s];
+                let bound = src.log_weight + tuning.freq_weight * ln1p(lm_cap(cap, walker.max_subtree(root)))
+                    - tuning.shape_weight * (floor_cost + extra) as f64
+                    - tuning.join_charge(joins + 1);
+                if bound >= floor - EPS {
+                    if let Some(id) = self.ws.push(root, s as i32, NO_LABEL, last_key, length, extra, floor_cost, bound, self.ws.letter_cp[s]) {
+                        self.ws.part_freq[id] = cap;
+                        self.ws.part_from[id] = length;
+                        self.ws.joins[id] = joins + 1;
+                        self.ws.copy_column(s, id);
+                    }
+                }
             }
 
             walker.children_into(node, &mut children);
@@ -702,7 +781,9 @@ impl Decoder {
                     }
                 }
 
-                let bound = src.log_weight + tuning.freq_weight * ln1p(subtree) - tuning.shape_weight * (min_col + child_extra) as f64;
+                let bound = src.log_weight + tuning.freq_weight * ln1p(lm_cap(part_freq, subtree))
+                    - tuning.shape_weight * (min_col + child_extra) as f64
+                    - charge;
                 if bound < floor - EPS {
                     continue;
                 }
@@ -724,7 +805,9 @@ impl Decoder {
 
     #[allow(clippy::too_many_arguments)]
     fn descend_silent(&mut self, src: &Source, subtree: i32, s: usize, child: u32, label: u16, extra: f32, floor: f64) -> bool {
-        let bound = src.log_weight + self.tuning.freq_weight * ln1p(subtree) - self.tuning.shape_weight * (self.ws.floor_cost[s] + extra) as f64;
+        let bound = src.log_weight + self.tuning.freq_weight * ln1p(lm_cap(self.ws.part_freq[s], subtree))
+            - self.tuning.shape_weight * (self.ws.floor_cost[s] + extra) as f64
+            - self.tuning.join_charge(self.ws.joins[s]);
         if bound < floor - EPS {
             return true;
         }
@@ -781,8 +864,10 @@ impl Decoder {
             return;
         }
         let extra = (word.len() - prefix.len()) as i32;
-        let score =
-            src.log_weight + self.tuning.freq_weight * ln1p(best) - self.tuning.shape_weight * shape as f64 - self.tuning.look_ahead_cost * extra as f64;
+        let score = src.log_weight + self.tuning.freq_weight * ln1p(lm_cap(self.ws.part_freq[s], best))
+            - self.tuning.shape_weight * shape as f64
+            - self.tuning.look_ahead_cost * extra as f64
+            - self.tuning.join_charge(self.ws.joins[s]);
         let replace = match ahead.get(&word) {
             None => true,
             Some(existing) => score > existing.score,

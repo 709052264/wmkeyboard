@@ -93,6 +93,7 @@ fn set(t: &mut Tuning, name: &str, value: f64) {
         "end_radius" => t.end_radius = value as f32,
         "near_radius" => t.near_radius = value as f32,
         "joiner_cost" => t.joiner_cost = value as f32,
+        "join_cost" => t.join_cost = value,
         _ => panic!("no tuning field {name}"),
     }
 }

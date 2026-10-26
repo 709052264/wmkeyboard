@@ -332,6 +332,7 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
         // The vocabulary cap as this source's own frequency. A source with no
         // frequency ranking answers 0, which switches every test below off.
         val minFrequency = walker.frequencyAtRank(tuning.vocabularyRank)
+        val joinOn = tuning.joinCost.isFinite()
 
         ws.reset()
         ws.push(
@@ -351,6 +352,10 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
             val length = ws.length[s].toInt()
             val extra = ws.extra[s]
             val lastKey = ws.lastKey[s]
+            val partFreq = ws.partFreq[s]
+            val partFrom = ws.partFrom[s]
+            val joins = ws.joins[s]
+            val charge = joinCharge(joins)
 
             // The prefix's last letter must land on the last sample. For a
             // finished word that is where the finger lifted; for a look-ahead
@@ -368,11 +373,16 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
                 // a score, never raise one.
                 val shape = total + extra + unclaimedDwell(s, keys, ws) +
                     unclaimedLoop(s, ws)
-                if (length >= MIN_WORD_LENGTH && walker.isWord(node) &&
+                // A compound's last part is held to the same length as its
+                // first; `partFrom` is 0 and `charge` 0.0 for a plain word.
+                if (length >= MIN_WORD_LENGTH &&
+                    length - partFrom >= (if (joins > 0) MIN_JOIN_PART else 0) &&
+                    walker.isWord(node) &&
                     walker.frequency(node) >= minFrequency
                 ) {
-                    val score = src.logWeight + tuning.freqWeight * ln1p(walker.frequency(node)) -
-                        tuning.shapeWeight * shape
+                    val score = src.logWeight + tuning.freqWeight * ln1p(lmCap(partFreq, walker.frequency(node))) -
+                        tuning.shapeWeight * shape -
+                        charge
                     if (score > floor - EPS || results.size < k) {
                         val word = ws.materialize(s)
                         if (!listedNonWord(word, src)) {
@@ -381,11 +391,43 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
                         }
                     }
                 }
-                if (ahead != null && budget[0] > 0 && length >= MIN_LOOKAHEAD_PREFIX) {
+                if (ahead != null && budget[0] > 0 && length - partFrom >= MIN_LOOKAHEAD_PREFIX) {
                     lookAhead(src, walker, node, s, shape, minFrequency, ws, ahead, budget)
                 }
             }
             if (length >= MAX_WORD_LENGTH || length >= n) continue
+
+            // A compound (#966 §5.2): a finished part of three letters or
+            // more may hand the rest of the stroke to a second word, read
+            // from the trie root on the same alignment column, as if the
+            // list held the joined spelling. The joined word scores on the
+            // rarest of its parts, `joinCost` the poorer per join, and the
+            // bound carries both, so a join never ranks above what the
+            // single-word bound allows and the walk's pruning stays exact.
+            if (joinOn &&
+                joins < MAX_JOINS &&
+                length - partFrom >= MIN_JOIN_PART &&
+                length + MIN_JOIN_PART <= n &&
+                walker.isWord(node) &&
+                walker.frequency(node) >= minFrequency
+            ) {
+                val cap = lmCap(partFreq, walker.frequency(node))
+                val floorCost = ws.floorCost[s]
+                val bound = src.logWeight + tuning.freqWeight * ln1p(lmCap(cap, walker.maxSubtree(walker.root))) -
+                    tuning.shapeWeight * (floorCost + extra) -
+                    joinCharge(joins + 1)
+                if (bound >= floor - EPS) {
+                    val id = ws.push(
+                        node = walker.root, parent = s, viaLabel = KotlinGlideWorkspace.NO_LABEL, lastKey = lastKey,
+                        length = length, extra = extra, floorCost = floorCost, bound = bound,
+                        letterCp = ws.letterCp[s],
+                    )
+                    if (id >= 0) {
+                        ws.join(id, partFreq = cap, partFrom = length, joins = joins + 1)
+                        ws.copyColumn(s, id)
+                    }
+                }
+            }
 
             val count = walker.childrenInto(node, ws.children)
             // The trie is spelled in UTF-16 units, so a letter outside the BMP
@@ -462,8 +504,9 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
                     if (minCol >= KotlinGlideWorkspace.UNREACHABLE) continue
                 }
 
-                val bound = src.logWeight + tuning.freqWeight * ln1p(subtree) -
-                    tuning.shapeWeight * (minCol + childExtra)
+                val bound = src.logWeight + tuning.freqWeight * ln1p(lmCap(partFreq, subtree)) -
+                    tuning.shapeWeight * (minCol + childExtra) -
+                    charge
                 if (bound < floor - EPS) continue
 
                 val id = ws.push(
@@ -477,6 +520,13 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
         }
         return floor
     }
+
+    /**
+     * What [joins] joins cost: nothing for none, which keeps a plain word's
+     * score the plain one even with the joining off (infinity times zero is
+     * not zero).
+     */
+    private fun joinCharge(joins: Int): Double = if (joins > 0) tuning.joinCost * joins else 0.0
 
     /**
      * Whether [word] is a word list's non-word that the decoder should not
@@ -513,8 +563,9 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
         floor: Double,
         ws: KotlinGlideWorkspace,
     ): Boolean {
-        val bound = src.logWeight + tuning.freqWeight * ln1p(subtree) -
-            tuning.shapeWeight * (ws.floorCost[s] + extra)
+        val bound = src.logWeight + tuning.freqWeight * ln1p(lmCap(ws.partFreq[s], subtree)) -
+            tuning.shapeWeight * (ws.floorCost[s] + extra) -
+            joinCharge(ws.joins[s])
         if (bound < floor - EPS) return true
         val id = ws.push(
             node = child, parent = s, viaLabel = label, lastKey = ws.lastKey[s],
@@ -586,8 +637,10 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
         val spelled = word.toString()
         if (listedNonWord(spelled, src)) return
         val extra = spelled.length - prefix.length
-        val score = src.logWeight + tuning.freqWeight * ln1p(best) - tuning.shapeWeight * shape -
-            tuning.lookAheadCost * extra
+        val score = src.logWeight + tuning.freqWeight * ln1p(lmCap(ws.partFreq[s], best)) -
+            tuning.shapeWeight * shape -
+            tuning.lookAheadCost * extra -
+            joinCharge(ws.joins[s])
         val existing = ahead[spelled]
         if (existing == null || score > existing.score) {
             ahead[spelled] = Candidate(spelled, score, shape.toDouble(), src.tier, extra)
@@ -1630,6 +1683,16 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
         private const val MIN_WORD_LENGTH = 2
 
         /**
+         * Letters each part of a compound must have (#966): `an` + `halt`
+         * is not a reading of `anhalt`, it is a search of every short word
+         * against every other.
+         */
+        private const val MIN_JOIN_PART = 3
+
+        /** Most joins in one reading: three parts, and no further. */
+        private const val MAX_JOINS = 2
+
+        /**
          * Letters a stroke must have spelled before the decoder will guess what
          * it is going to spell next.
          *
@@ -1679,6 +1742,14 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
         private const val EPS = 1e-9
 
         private fun ln1p(v: Int): Double = ln(1.0 + v)
+
+        /**
+         * The frequency a compound's language-model term is read at: the
+         * least of its finished parts' ([cap], [KotlinGlideWorkspace.NO_PART]
+         * for none) and [f], the current part's or its subtree's. [f] itself
+         * for a plain word, so the plain decode's arithmetic is untouched.
+         */
+        private fun lmCap(cap: Int, f: Int): Int = if (f < cap) f else cap
     }
 }
 

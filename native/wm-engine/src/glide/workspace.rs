@@ -40,6 +40,8 @@ pub const MAX_STATES: usize = 8192;
 pub const MAX_IDEAL_POINTS: usize = 34;
 pub const UNREACHABLE: f32 = f32::MAX / 4.0;
 pub const NO_LABEL: u16 = 0;
+/// `part_freq` of a state that has joined nothing: no cap on the frequency.
+pub const NO_PART: i32 = i32::MAX;
 
 pub struct Workspace {
     pub node: Vec<u32>,
@@ -52,6 +54,14 @@ pub struct Workspace {
     pub extra: Vec<f32>,
     pub floor_cost: Vec<f32>,
     pub bound: Vec<f64>,
+    /// Compounds (#966): the least frequency among the parts this state has
+    /// already finished, `NO_PART` before any join; the length at which the
+    /// current part began; and how many joins the chain has made. Copied
+    /// from the parent on every push, so the walk only touches them where
+    /// it joins.
+    pub part_freq: Vec<i32>,
+    pub part_from: Vec<i32>,
+    pub joins: Vec<i32>,
     pub samples: usize,
     pub cols: Vec<f32>,
     heap: Vec<u32>,
@@ -132,6 +142,9 @@ impl Workspace {
             extra: Vec::new(),
             floor_cost: Vec::new(),
             bound: Vec::new(),
+            part_freq: Vec::new(),
+            part_from: Vec::new(),
+            joins: Vec::new(),
             samples: SHORT_SAMPLES,
             cols: Vec::new(),
             heap: Vec::new(),
@@ -197,6 +210,9 @@ impl Workspace {
         self.extra.clear();
         self.floor_cost.clear();
         self.bound.clear();
+        self.part_freq.clear();
+        self.part_from.clear();
+        self.joins.clear();
         self.heap.clear();
         self.saturated = false;
     }
@@ -258,6 +274,16 @@ impl Workspace {
         self.extra.push(extra);
         self.floor_cost.push(floor_cost);
         self.bound.push(bound);
+        if parent >= 0 {
+            let p = parent as usize;
+            self.part_freq.push(self.part_freq[p]);
+            self.part_from.push(self.part_from[p]);
+            self.joins.push(self.joins[p]);
+        } else {
+            self.part_freq.push(NO_PART);
+            self.part_from.push(0);
+            self.joins.push(0);
+        }
         let needed = (id + 1) * self.samples.max(1);
         if self.cols.len() < needed {
             self.cols.resize(needed.max(self.cols.len() * 2), 0.0);
