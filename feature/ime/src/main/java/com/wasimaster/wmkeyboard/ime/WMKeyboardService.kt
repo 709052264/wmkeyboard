@@ -5785,6 +5785,7 @@ open class WMKeyboardService : InputMethodService() {
                 glideOutcomes = this@WMKeyboardService.glideOutcomes
                 blacklist = _uiState.value.let { it.settings.suggestionSources.blacklistFor(it.language.id) }
                 rankOffsets = wordRanks.snapshot()
+                phoneticPicks = phoneticPickStore.snapshot()
                 applyOffensiveWords(offensiveSet)
                 blockOffensiveWords = _uiState.value.settings.suggestionStrip.blockOffensiveWords
                 skipAllCapsAutocorrect = _uiState.value.settings.correction.skipAllCaps
@@ -25048,10 +25049,43 @@ open class WMKeyboardService : InputMethodService() {
             WordContext.SENTENCE_START
     }
 
+    /**
+     * Avro's remembered picks (Telegram group): see [SuggestionEngine.phoneticPicks].
+     * Device-protected storage is not where learned words live, so before the
+     * first unlock the picks stay in memory.
+     */
+    private val phoneticPickStore by lazy {
+        com.wasimaster.wmkeyboard.core.prediction.PhoneticPickStore(
+            if (userUnlocked) File(filesDir, "learning/phonetic_picks.tsv") else null,
+        )
+    }
+
+    /**
+     * Remembers [suggestion] as the reading of the word being typed on a
+     * phonetic layout, when it was picked from the list by hand. Not an
+     * English chip, and not while learning is paused, the same rules every
+     * other learned thing keeps.
+     */
+    private fun notePhoneticPick(suggestion: String) {
+        val state = _uiState.value
+        val lang = state.composer.phoneticLanguage ?: return
+        val typed = composing.toString()
+        if (typed.isEmpty() || suggestion == typed || suggestion.all { it.code < 0x80 }) return
+        if (!state.settings.learnFromTyping || state.secureField ||
+            (state.incognitoOn && state.settings.incognitoPausesLearning)
+        ) {
+            return
+        }
+        if (!phoneticPickStore.put(lang, typed, suggestion)) return
+        suggestionEngine?.phoneticPicks = phoneticPickStore.snapshot()
+        serviceScope.launch(Dispatchers.IO) { phoneticPickStore.save() }
+    }
+
     fun onSuggestionTapped(suggestion: String) {
         replacedGlideShape = null
         stopVoiceForManualInput()
         vibrate()
+        notePhoneticPick(suggestion)
         val ic = currentInputConnection ?: return
         // Every path below edits by position: a delete counted back from the
         // caret, or a commit that means "here". Neither is measured from the

@@ -4570,6 +4570,7 @@ val LEARNED_DATA_FILES = listOf(
     "learning/cjk_history.json",
     "learning/language_mix.json",
     "learning/word_ranks.json",
+    "learning/phonetic_picks.tsv",
 )
 
 /**

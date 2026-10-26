@@ -3414,6 +3414,7 @@ class SuggestionEngine(
         previousWord: String? = null,
         previousWord2: String? = null,
     ): String? {
+        phoneticPick(languageId, composing)?.let { return it }
         val forms = phoneticBackend(languageId)?.spellings?.lookup(composing) ?: return null
         return inContext(forms, languageId, previousWord, previousWord2).firstOrNull { !suppressed(it) }
     }
@@ -3526,6 +3527,27 @@ class SuggestionEngine(
         return order.map { head[it] } + words.drop(PHONETIC_CONTEXT_POOL)
     }
 
+    /**
+     * The reading the user last picked from the list for [composing] typed on
+     * [languageId]'s phonetic layout, keyed `language\u0000typed`, as desktop
+     * Avro keeps its `candidate-selections.json`. Set by the IME from its
+     * store; see [phoneticPick].
+     */
+    @Volatile
+    var phoneticPicks: Map<String, String> = emptyMap()
+
+    /**
+     * The remembered pick for [composing] (Telegram group): it leads the list
+     * and is what a space commits, until another pick from the list replaces
+     * it. Never one the strip holds back.
+     */
+    fun phoneticPick(languageId: String, composing: String): String? =
+        if (composing.isEmpty() || phoneticPicks.isEmpty()) {
+            null
+        } else {
+            phoneticPicks[phoneticPickKey(languageId, composing)]?.takeIf { !suppressed(it) }
+        }
+
     private fun phoneticSuggestions(
         backend: PhoneticBackend,
         composing: String,
@@ -3538,6 +3560,9 @@ class SuggestionEngine(
         val phonetic = backend.scheme.transliterate(composing)
         val language = backend.scheme.languageId
         val ordered = LinkedHashSet<String>()
+        // A reading the user picked for this spelling before leads, ahead of
+        // even the spelling map: it is the one answer they gave by hand.
+        phoneticPick(language, composing)?.let(ordered::add)
         // Listed spellings win outright — loanwords like "keyboard" → কিবোর্ড,
         // and chat shorthand like "tmr" → তোমার whose vowels were never typed.
         // Neither is reachable from the rules, so the map goes first. Context
@@ -3585,7 +3610,9 @@ class SuggestionEngine(
      */
     fun phoneticCandidates(languageId: String, composing: String, limit: Int): List<String> {
         val backend = phoneticBackend(languageId) ?: return emptyList()
-        return PhoneticCandidates.build(backend, composing, limit, avroDesktop, ::suppressed)
+        val list = PhoneticCandidates.build(backend, composing, limit, avroDesktop, ::suppressed)
+        val pick = phoneticPick(languageId, composing) ?: return list
+        return (listOf(pick) + list).distinct().take(limit)
     }
 
     /**
@@ -5367,3 +5394,6 @@ class SuggestionEngine(
         else -> suggestion
     }
 }
+
+/** The key [SuggestionEngine.phoneticPicks] files a pick under. */
+fun phoneticPickKey(languageId: String, typed: String): String = "$languageId\u0000$typed"
