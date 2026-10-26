@@ -493,66 +493,70 @@ private fun MacroChip(
         app != null -> stringResource(R.string.ime_selection_macro_open_in_desc, app.name)
         else -> label
     }
-    Row(
-        modifier = Modifier
-            .clip(shape)
-            .frostGlass(kb, shape, FrostSurface.CHIPS)
-            .background(kb.chipActive)
-            .chipBorder(kb, shape)
-            .clickable(enabled = !busy, onClick = onClick)
-            // A bare icon stands as tall as a worded chip beside it.
-            .padding(horizontal = 10.dp, vertical = if (bare) 8.dp else 6.dp)
-            .semantics { contentDescription = description },
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        when {
-            busy && reduceMotion -> Icon(
-                Icons.Outlined.HourglassEmpty,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-                tint = kb.chipActiveText,
-            )
-            busy -> CircularProgressIndicator(
-                modifier = Modifier.size(16.dp),
-                strokeWidth = 2.dp,
-                color = kb.chipActiveText,
-            )
-            swatch != null -> Spacer(
-                Modifier
-                    .size(14.dp)
-                    .clip(CircleShape)
-                    .background(swatch)
-                    .border(1.dp, kb.chipActiveText.copy(alpha = 0.4f), CircleShape),
-            )
-            app != null -> Image(
-                bitmap = app.icon,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-            )
-            icon != null -> Icon(
-                icon,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp),
-                tint = kb.chipActiveText,
-            )
-        }
-        if (!bare) {
-            if (busy || swatch != null || app != null || icon != null) Spacer(Modifier.width(6.dp))
-            Text(
-                text = label,
-                fontSize = 14.sp,
-                color = kb.chipActiveText,
-                maxLines = 1,
-            )
-        }
-        if (app != null && !busy) {
-            Spacer(Modifier.width(3.dp))
-            Icon(
-                Icons.Outlined.ArrowOutward,
-                contentDescription = null,
-                modifier = Modifier.size(12.dp),
-                tint = kb.chipActiveText.copy(alpha = 0.7f),
-            )
+    // A bare icon is named by a hold, the way the toolbar's are (#970); a chip
+    // that wears its word has nothing to add.
+    IconHint(description.takeIf { bare }) {
+        Row(
+            modifier = Modifier
+                .clip(shape)
+                .frostGlass(kb, shape, FrostSurface.CHIPS)
+                .background(kb.chipActive)
+                .chipBorder(kb, shape)
+                .clickable(enabled = !busy, onClick = onClick)
+                // A bare icon stands as tall as a worded chip beside it.
+                .padding(horizontal = 10.dp, vertical = if (bare) 8.dp else 6.dp)
+                .semantics { contentDescription = description },
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            when {
+                busy && reduceMotion -> Icon(
+                    Icons.Outlined.HourglassEmpty,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = kb.chipActiveText,
+                )
+                busy -> CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    strokeWidth = 2.dp,
+                    color = kb.chipActiveText,
+                )
+                swatch != null -> Spacer(
+                    Modifier
+                        .size(14.dp)
+                        .clip(CircleShape)
+                        .background(swatch)
+                        .border(1.dp, kb.chipActiveText.copy(alpha = 0.4f), CircleShape),
+                )
+                app != null -> Image(
+                    bitmap = app.icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                )
+                icon != null -> Icon(
+                    icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = kb.chipActiveText,
+                )
+            }
+            if (!bare) {
+                if (busy || swatch != null || app != null || icon != null) Spacer(Modifier.width(6.dp))
+                Text(
+                    text = label,
+                    fontSize = 14.sp,
+                    color = kb.chipActiveText,
+                    maxLines = 1,
+                )
+            }
+            if (app != null && !busy) {
+                Spacer(Modifier.width(3.dp))
+                Icon(
+                    Icons.Outlined.ArrowOutward,
+                    contentDescription = null,
+                    modifier = Modifier.size(12.dp),
+                    tint = kb.chipActiveText.copy(alpha = 0.7f),
+                )
+            }
         }
     }
 }
