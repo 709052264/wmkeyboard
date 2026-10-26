@@ -1420,6 +1420,28 @@ internal fun AboutSettings(
                 uriHandler.openUri(SOURCE_URL)
             }
         }
+        // How much of the settings app shows, and whether what it leaves
+        // out is pointed at; see SettingsDepth.kt. Here, with the other rows
+        // about the app itself, rather than on every page.
+        item {
+            val depth = LocalSettingsDepth.current
+            ChoiceSetting(
+                title = R.string.settings_depth_title,
+                subtitle = stringResource(R.string.settings_depth_subtitle),
+                info = stringResource(R.string.settings_depth_info),
+                options = depthOptions(),
+                selected = depth.depth,
+                detail = { ChoiceDetail(depthDescription(it)) },
+            ) { depth.change(it) }
+        }
+        item {
+            ToggleSetting(
+                R.string.settings_hidden_rows_title,
+                stringResource(R.string.settings_hidden_rows_subtitle),
+                settings.watch { it.appUi.hiddenSettingsRows },
+                default = SettingsDefaults.appUi.hiddenSettingsRows,
+            ) { scope.launch { repository.setHiddenSettingsRows(it) } }
+        }
         item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.about_launcher_name_title,
@@ -1506,28 +1528,6 @@ internal fun AboutSettings(
                 stringResource(R.string.about_replay_onboarding_subtitle),
                 onClick = onReplayOnboarding,
             )
-        }
-        // How much of the settings app shows, and whether what it leaves
-        // out is pointed at; see SettingsDepth.kt. Here, with the other rows
-        // about the app itself, rather than on every page.
-        item {
-            val depth = LocalSettingsDepth.current
-            ChoiceSetting(
-                title = R.string.settings_depth_title,
-                subtitle = stringResource(R.string.settings_depth_subtitle),
-                info = stringResource(R.string.settings_depth_info),
-                options = depthOptions(),
-                selected = depth.depth,
-                detail = { ChoiceDetail(depthDescription(it)) },
-            ) { depth.change(it) }
-        }
-        item {
-            ToggleSetting(
-                R.string.settings_hidden_rows_title,
-                stringResource(R.string.settings_hidden_rows_subtitle),
-                settings.watch { it.appUi.hiddenSettingsRows },
-                default = SettingsDefaults.appUi.hiddenSettingsRows,
-            ) { scope.launch { repository.setHiddenSettingsRows(it) } }
         }
     }
 
