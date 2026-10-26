@@ -4277,8 +4277,8 @@ private fun TopBar(
             StripSlot {
                 // The tools kept beside the suggestions (#462), then the phonetic
                 // layouts' English-words switch. See [StripTools].
-                if (!state.settings.toolbarBehavior.stripShortcutsAtEnd) {
-                    StripTools(state, toolsRowVisible, drag, onToolTap)
+                if (!stripToolsAtEnd(state)) {
+                    StripTools(state, toolsRowVisible, drag, onToolTap) { onPanelChange(PanelMode.TOOLBOX) }
                 }
                 if (StripOfferChips(
                         state, suggestionsShowing, onStripOfferAction, onDismissInlineSuggestions,
@@ -4347,8 +4347,8 @@ private fun TopBar(
             }
             // The same buttons at the strip's far end instead, after the words,
             // when the user put them there.
-            if (state.settings.toolbarBehavior.stripShortcutsAtEnd) {
-                StripTools(state, toolsRowVisible, drag, onToolTap)
+            if (stripToolsAtEnd(state)) {
+                StripTools(state, toolsRowVisible, drag, onToolTap) { onPanelChange(PanelMode.TOOLBOX) }
             }
         }
     }
@@ -10480,19 +10480,63 @@ private fun StripTools(
     toolsRowVisible: Boolean,
     drag: ToolDragController,
     onToolTap: (ToolbarTool) -> Unit,
+    onToolbox: () -> Unit,
 ) {
     val onRow = if (toolsRowVisible) visibleToolbarTools(state) else emptyList()
     val tools = stripShortcutTools(state).filter { it !in onRow }
     val phonetic = ToolbarTool.PHONETIC_ENGLISH
     val autoPhonetic = phonetic !in tools && phonetic !in onRow && phoneticEnglishLanguage(state) != null
-    for (tool in tools) {
-        key(tool) { StripToolButton(state, tool, drag, compact = false, onToolTap) }
+    // Null is the toolbox button. Drawn in the order they read left to right,
+    // whichever way the strip runs, unless the toolbar mirrors for this script
+    // too (see [stripToolsAtEnd]).
+    val order = buildList {
+        if (state.settings.emojiToolbar && state.settings.toolbarBehavior.stripToolbox) add(null)
+        addAll(tools)
+        if (autoPhonetic) add(phonetic)
     }
-    if (autoPhonetic) {
-        key(phonetic) {
-            StripToolButton(state, phonetic, drag, compact = !state.settings.toolbarBehavior.stripOwnSize, onToolTap)
+    for (tool in if (stripToolsHeldLtr(state)) order.asReversed() else order) {
+        if (tool == null) {
+            key("§toolbox") { StripToolboxButton(state, onToolbox) }
+        } else {
+            // Only the switch added by itself is a step down in size.
+            val compact = autoPhonetic && tool == phonetic && !state.settings.toolbarBehavior.stripOwnSize
+            key(tool) { StripToolButton(state, tool, drag, compact = compact, onToolTap) }
         }
     }
+}
+
+/**
+ * Whether the strip runs right to left under its buttons while the toolbar
+ * does not mirror: an RTL script with [ToolbarBehaviorSettings.reverseForRtl]
+ * off. The buttons then keep the side and the order they have in every other
+ * language (#970), the way the toolbar's own tools do, rather than following
+ * the words to the other edge.
+ */
+private fun stripToolsHeldLtr(state: KeyboardUiState): Boolean =
+    state.script.direction == TextDirection.RTL && !toolbarReadsRtl(state)
+
+/**
+ * Whether [StripTools] goes after the words in the strip's own direction. A
+ * strip held LTR for its buttons ([stripToolsHeldLtr]) runs the other way, so
+ * the start the user picked is that row's end.
+ */
+private fun stripToolsAtEnd(state: KeyboardUiState): Boolean =
+    state.settings.toolbarBehavior.stripShortcutsAtEnd != stripToolsHeldLtr(state)
+
+/** The toolbox launcher among the buttons beside the suggestions (#970). */
+@Composable
+private fun StripToolboxButton(state: KeyboardUiState, onToolbox: () -> Unit) {
+    val behavior = state.settings.toolbarBehavior
+    val label = stringResource(R.string.ime_toolbox_desc)
+    ToolCircle(
+        slot = IconSlots.CHROME_TOOLBOX,
+        description = label,
+        active = false,
+        longPressLabel = label,
+        wide = true,
+        widthDp = behavior.stripToolWidthDp.takeIf { behavior.stripOwnSize },
+        iconSizeDp = behavior.stripIconSizeDp.takeIf { behavior.stripOwnSize },
+    ) { onToolbox() }
 }
 
 /** One of [StripTools]' buttons. */

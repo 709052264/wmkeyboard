@@ -142,6 +142,15 @@ internal fun EmojiSettings(
                 keepLast = false,
             )
         }
+        // The toolbox launcher among them (#970).
+        item(visible = emojiButtonOn, level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.langemoji_strip_toolbox_title,
+                stringResource(R.string.langemoji_strip_toolbox_subtitle),
+                settings.watch { it.toolbarBehavior.stripToolbox },
+                default = SettingsDefaults.toolbarBehavior.stripToolbox,
+            ) { scope.launch { repository.setStripToolbox(it) } }
+        }
         // Which end of the strip they sit at.
         item(visible = emojiButtonOn, level = SettingLevel.ADVANCED) {
             ToggleSetting(
@@ -166,7 +175,8 @@ internal fun EmojiSettings(
                 R.string.langemoji_strip_tool_width_title,
                 subtitle = stringResource(R.string.langemoji_strip_tool_width_subtitle),
                 value = settings.watch { it.toolbarBehavior.stripToolWidthDp }.toFloat(),
-                range = 30f..64f,
+                // Down to 20 dp, a button about as wide as its icon (#970).
+                range = 20f..64f,
                 display = { dpFormat.format(it.roundToInt()) },
                 default = SettingsDefaults.toolbarBehavior.stripToolWidthDp.toFloat(),
             ) { scope.launch { repository.setStripToolWidthDp(it.roundToInt()) } }

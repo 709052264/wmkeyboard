@@ -1278,6 +1278,7 @@ private fun SearchStrings.emojiRows(): List<SettingsSearchEntry> {
     return listOf(
         row(R.string.langemoji_emoji_toolbar_title, R.string.langemoji_emoji_toolbar_subtitle),
         row(R.string.langemoji_strip_shortcut_title, R.string.langemoji_strip_shortcut_subtitle),
+        row(R.string.langemoji_strip_toolbox_title, R.string.langemoji_strip_toolbox_subtitle),
         row(R.string.langemoji_strip_at_end_title, R.string.langemoji_strip_at_end_subtitle),
         row(R.string.langemoji_strip_own_size_title, R.string.langemoji_strip_own_size_subtitle),
         row(R.string.langemoji_strip_tool_width_title, R.string.langemoji_strip_tool_width_subtitle),

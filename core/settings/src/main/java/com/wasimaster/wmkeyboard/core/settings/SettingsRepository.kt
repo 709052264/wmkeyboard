@@ -1968,6 +1968,12 @@ data class ToolbarBehavior(
      */
     val stripShortcutsAtEnd: Boolean = false,
     /**
+     * A toolbox button with the buttons beside the suggestions (#970), so the
+     * toolbox is one tap away while the words show, without a row of pinned
+     * tools to reach it through.
+     */
+    val stripToolbox: Boolean = false,
+    /**
      * How long a pinned tool is held before the hold counts, in ms: the bound
      * hold action, the settings page, the pick-up for a reorder (#665). 0
      * follows the system's own touch-and-hold delay, which is what the bar
@@ -11086,6 +11092,7 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBAR_STRIP_TOOL_WIDTH = intPreferencesKey("toolbar_strip_tool_width")
         private val TOOLBAR_STRIP_ICON_SIZE = intPreferencesKey("toolbar_strip_icon_size")
         private val TOOLBAR_STRIP_AT_END = booleanPreferencesKey("toolbar_strip_at_end")
+        private val TOOLBAR_STRIP_TOOLBOX = booleanPreferencesKey("toolbar_strip_toolbox")
         private val TOOLBAR_DRAG_REARRANGE = booleanPreferencesKey("toolbar_drag_rearrange")
         private val THEMES_PANEL_BUILTINS = stringSetPreferencesKey("themes_panel_builtins")
         private val COMMA_AS_EMOJI = booleanPreferencesKey("comma_as_emoji")
@@ -13400,6 +13407,7 @@ class SettingsRepository(private val context: Context) {
             stripToolWidthDp = p[TOOLBAR_STRIP_TOOL_WIDTH] ?: defaults.toolbarBehavior.stripToolWidthDp,
             stripIconSizeDp = p[TOOLBAR_STRIP_ICON_SIZE] ?: defaults.toolbarBehavior.stripIconSizeDp,
             stripShortcutsAtEnd = p[TOOLBAR_STRIP_AT_END] ?: defaults.toolbarBehavior.stripShortcutsAtEnd,
+            stripToolbox = p[TOOLBAR_STRIP_TOOLBOX] ?: defaults.toolbarBehavior.stripToolbox,
             holdDelayMs = p[TOOLBAR_HOLD_DELAY] ?: defaults.toolbarBehavior.holdDelayMs,
         )
 
@@ -15753,13 +15761,16 @@ class SettingsRepository(private val context: Context) {
         editPrefs { it[TOOLBAR_STRIP_OWN_SIZE] = value }
 
     suspend fun setStripToolWidthDp(value: Int) =
-        editPrefs { it[TOOLBAR_STRIP_TOOL_WIDTH] = value.coerceIn(30, 64) }
+        editPrefs { it[TOOLBAR_STRIP_TOOL_WIDTH] = value.coerceIn(20, 64) }
 
     suspend fun setStripIconSizeDp(value: Int) =
         editPrefs { it[TOOLBAR_STRIP_ICON_SIZE] = value.coerceIn(14, 30) }
 
     suspend fun setStripShortcutsAtEnd(value: Boolean) =
         editPrefs { it[TOOLBAR_STRIP_AT_END] = value }
+
+    suspend fun setStripToolbox(value: Boolean) =
+        editPrefs { it[TOOLBAR_STRIP_TOOLBOX] = value }
 
     /**
      * Sets or clears one tool's press-and-hold action. Null puts that tool back
