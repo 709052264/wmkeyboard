@@ -46,6 +46,12 @@
     <string name="ime_speed_layout_minimal">Minimal</string>
 
     <string name="ime_speed_error">The speed test could not reach the server.</string>
+    <!-- %1$s is the server's name, such as Cloudflare. Shown after the server answered HTTP 429 to every request of a phase. -->
+    <string name="ime_speed_rate_limited"><xliff:g id="server" example="Cloudflare">%1$s</xliff:g> is limiting speed tests from this connection for now. Try again in a few minutes, or pick another server.</string>
+    <!-- %1$s is the server's name, %2$d an HTTP status such as 503, %3$s the phase (Download or Upload). -->
+    <string name="ime_speed_http_error"><xliff:g id="server" example="Cloudflare">%1$s</xliff:g> answered HTTP <xliff:g id="status" example="503">%2$d</xliff:g> during <xliff:g id="phase" example="Download">%3$s</xliff:g>.</string>
+    <!-- %1$s is the phase (Download or Upload): every request of it failed without an HTTP answer. -->
+    <string name="ime_speed_phase_failed"><xliff:g id="phase" example="Download">%1$s</xliff:g> moved nothing: the connection dropped every request.</string>
     <string name="ime_speed_no_server">No speed test server is on. Add one under Tools › Speed test.</string>
     <string name="ime_speed_card_error">The card could not be drawn.</string>
 </resources>

@@ -241,6 +241,24 @@ class ClockLogicTest {
         assertFalse(ZoneCatalog.isPlace("US/Pacific"))
     }
 
+    @Test
+    fun citiesWithoutAZoneOfTheirOwnAreFoundByName() {
+        val catalog = ZoneCatalog(object : ZoneNames {
+            override fun city(id: String): String? = null
+            override fun region(id: String): String? = null
+        })
+        val beijing = catalog.search("beijing").first()
+        assertEquals("Asia/Shanghai", beijing.id)
+        assertEquals("Beijing", beijing.toWorldZone().label)
+        assertEquals("Bengaluru", catalog.search("bangalore").first().city)
+        // The zone's own city still leads its own name, and keeps no label.
+        val shanghai = catalog.search("shanghai").first()
+        assertEquals("Shanghai", shanghai.city)
+        assertEquals("", shanghai.toWorldZone().label)
+        assertTrue(catalog.search("shanghai").none { it.extra })
+        assertEquals(catalog.entries.size, catalog.entries.map { it.key }.toSet().size)
+    }
+
     // ---- Planner and dates ----------------------------------------------
 
     @Test

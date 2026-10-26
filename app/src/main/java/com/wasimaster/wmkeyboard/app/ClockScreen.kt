@@ -65,6 +65,7 @@ import com.wasimaster.wmkeyboard.core.clock.RunningTimer
 import com.wasimaster.wmkeyboard.core.clock.Weekdays
 import com.wasimaster.wmkeyboard.core.clock.WorldZone
 import com.wasimaster.wmkeyboard.core.clock.ZoneCatalog
+import com.wasimaster.wmkeyboard.core.clock.ZoneEntry
 import com.wasimaster.wmkeyboard.core.clock.utcOffsetLabel
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
@@ -473,14 +474,14 @@ private fun ClocksSection(zones: List<WorldZone>, hour24: Boolean) {
     }
     if (zones.isEmpty()) CaptionText(stringResource(R.string.clock_no_zones))
     RegisterAddFab(stringResource(ImeR.string.ime_clock_add_city)) { adding = true }
-    if (adding) ZonePickerDialog(onDismiss = { adding = false }) { id ->
-        ClockPrefs.update(context) { c -> if (c.zones.any { it.zoneId == id }) c else c.copy(zones = c.zones + WorldZone(id)) }
+    if (adding) ZonePickerDialog(onDismiss = { adding = false }) { e ->
+        ClockPrefs.update(context) { c -> if (c.zones.any { it.zoneId == e.id }) c else c.copy(zones = c.zones + e.toWorldZone()) }
         adding = false
     }
 }
 
 @Composable
-private fun ZonePickerDialog(onDismiss: () -> Unit, onPick: (String) -> Unit) {
+private fun ZonePickerDialog(onDismiss: () -> Unit, onPick: (ZoneEntry) -> Unit) {
     var query by remember { mutableStateOf("") }
     val catalog = remember { ZoneCatalog(IcuZoneNames()) }
     val results = remember(query) { catalog.search(query) }
@@ -499,11 +500,11 @@ private fun ZonePickerDialog(onDismiss: () -> Unit, onPick: (String) -> Unit) {
                     modifier = Modifier.fillMaxWidth(),
                 )
                 LazyColumn(Modifier.heightIn(max = 360.dp)) {
-                    items(results, key = { it.id }) { e ->
+                    items(results, key = { it.key }) { e ->
                         Column(
                             Modifier
                                 .fillMaxWidth()
-                                .clickable { onPick(e.id) }
+                                .clickable { onPick(e) }
                                 .padding(vertical = 8.dp),
                         ) {
                             Text(e.city, style = MaterialTheme.typography.bodyLarge)

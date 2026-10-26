@@ -134,7 +134,7 @@ sealed interface ClockAction {
     // Clocks
     data object SearchOpen : ClockAction
     data object SearchClose : ClockAction
-    data class AddZone(val zoneId: String) : ClockAction
+    data class AddZone(val zone: ZoneEntry) : ClockAction
     data class RemoveZone(val zoneId: String) : ClockAction
     data class MoveZone(val zoneId: String, val by: Int) : ClockAction
     data class RenameZone(val zoneId: String) : ClockAction

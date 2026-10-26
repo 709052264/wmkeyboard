@@ -534,14 +534,14 @@ private fun SearchResults(results: List<ZoneEntry>, ui: ClockUi, act: (ClockActi
         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        items(results, key = { it.id }) { e ->
+        items(results, key = { it.key }) { e ->
             val tz = remember(e.id) { TimeZone.getTimeZone(e.id) }
             val isAdded = e.id in added
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(kb.chipShape())
-                    .clickable(enabled = !isAdded) { act(ClockAction.AddZone(e.id)) }
+                    .clickable(enabled = !isAdded) { act(ClockAction.AddZone(e)) }
                     .padding(horizontal = 8.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {

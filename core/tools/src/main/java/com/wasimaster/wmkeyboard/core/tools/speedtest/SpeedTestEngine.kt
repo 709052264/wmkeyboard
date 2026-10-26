@@ -7,7 +7,9 @@ import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.Collections
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.random.Random
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -40,6 +42,17 @@ class SpeedTestEngine(
     private val payload: ByteArray by lazy { ByteArray(CHUNK).also { Random(SEED).nextBytes(it) } }
 
     private class PhaseOutcome(val mbps: Double, val samples: List<Float>, val bytes: Long)
+
+    /** A request the server refused with [status]. */
+    class HttpStatusException(val status: Int) : IOException("HTTP $status")
+
+    /**
+     * A phase that moved nothing: every request failed, the last of them with
+     * [cause]. [status] is the HTTP status when that is what refused it, as
+     * Cloudflare does with 429 after several large runs from one address.
+     */
+    class PhaseFailedException(val phase: SpeedTestPhase, val status: Int?, cause: Throwable) :
+        IOException("${phase.name.lowercase()} moved no bytes: ${cause.message}", cause)
 
     /**
      * One run against [server]. [onProgress] is called on the caller's
@@ -191,6 +204,12 @@ class SpeedTestEngine(
         val start = now()
         val deadline = start + config.durationS * 1000L
         val lastRequestMs = AtomicLong()
+        val lastFailure = AtomicReference<Throwable?>()
+        // Megabytes per download request, shared by the workers: stepped down
+        // the ladder when the server answers 429, which Cloudflare does for
+        // large requests once an address has pulled a lot in a short time
+        // while still serving small ones.
+        val downMb = AtomicInteger(DOWN_LADDER_MB.first())
         val workers = (1..config.connections.coerceIn(1, MAX_CONNECTIONS)).map {
             launch(Dispatchers.IO) {
                 while (isActive && now() < deadline) {
@@ -199,17 +218,27 @@ class SpeedTestEngine(
                         if (upload) {
                             uploadOnce(server, counter, open, bodyBytes(lastRequestMs.get()))
                         } else {
-                            downloadOnce(server, counter, open)
+                            downloadOnce(server, counter, open, downMb.get())
                         }
                         lastRequestMs.set(now() - began)
                     } catch (e: CancellationException) {
                         throw e
-                    } catch (ignored: IOException) {
+                    } catch (e: HttpStatusException) {
+                        lastFailure.set(e)
+                        when {
+                            e.status == HTTP_TOO_MANY && !upload && stepDown(downMb) -> Unit
+                            // Refused outright: asking again only feeds the limit.
+                            e.status in 400..499 -> return@launch
+                            else -> if (now() < deadline) delay(RETRY_MS)
+                        }
+                    } catch (e: IOException) {
                         // A cut connection at the deadline lands here too; a
                         // real failure is retried after a pause, the deadline
                         // still bounding the phase.
+                        lastFailure.set(e)
                         if (now() < deadline) delay(RETRY_MS)
-                    } catch (ignored: RuntimeException) {
+                    } catch (e: RuntimeException) {
+                        lastFailure.set(e)
                         if (now() < deadline) delay(RETRY_MS)
                     }
                 }
@@ -222,6 +251,8 @@ class SpeedTestEngine(
         try {
             while (currentCoroutineContext().isActive && now() < deadline) {
                 delay(SAMPLE_MS)
+                // Every worker gave up (a 4xx each): nothing more will come.
+                if (workers.none { it.isActive }) break
                 val bytes = counter.get()
                 val at = now()
                 samples += SpeedTestMath.mbps(bytes - lastBytes, at - lastAt).toFloat()
@@ -234,7 +265,20 @@ class SpeedTestEngine(
             workers.forEach { it.cancel() }
         }
         workers.joinAll()
+        if (counter.get() == 0L) {
+            val cause = lastFailure.get() ?: IOException("no bytes moved")
+            throw PhaseFailedException(phase, (cause as? HttpStatusException)?.status, cause)
+        }
         PhaseOutcome(SpeedTestMath.trimmedThroughput(samples), samples, counter.get())
+    }
+
+    /** The next smaller download request; false when already at the smallest. */
+    private fun stepDown(downMb: AtomicInteger): Boolean {
+        while (true) {
+            val current = downMb.get()
+            val next = DOWN_LADDER_MB.firstOrNull { it < current } ?: return false
+            if (downMb.compareAndSet(current, next)) return true
+        }
     }
 
     /** The upload body grows while requests finish fast, so a quick line is not starved by small posts. */
@@ -246,12 +290,12 @@ class SpeedTestEngine(
         else -> CHUNK / 4
     }
 
-    private fun downloadOnce(server: SpeedTestServer, counter: AtomicLong, open: MutableSet<HttpURLConnection>) {
+    private fun downloadOnce(server: SpeedTestServer, counter: AtomicLong, open: MutableSet<HttpURLConnection>, megabytes: Int) {
         val (url, route) = when (server) {
-            is SpeedTestServer.Cloudflare -> server.base.trimEnd('/') + "/__down?bytes=$DOWN_REQUEST_BYTES" to "/__down"
+            is SpeedTestServer.Cloudflare -> server.base.trimEnd('/') + "/__down?bytes=${megabytes * 1_000_000}" to "/__down"
             is SpeedTestServer.LibreSpeed ->
                 server.url(server.dlPath) + (if ('?' in server.dlPath) "&" else "?") +
-                    "ckSize=$DOWN_REQUEST_CHUNKS&r=${Random.nextInt()}" to routeOf(server.dlPath)
+                    "ckSize=$megabytes&r=${Random.nextInt()}" to routeOf(server.dlPath)
         }
         val connection = URL(url).openConnection() as HttpURLConnection
         val call = NetLog.call(NetSource.SPEED_TEST, "GET", url, route = route)
@@ -262,7 +306,7 @@ class SpeedTestEngine(
             connection.setRequestProperty("User-Agent", ToolHttp.USER_AGENT)
             connection.setRequestProperty("Cache-Control", "no-cache")
             call.status = connection.responseCode
-            if (call.status !in 200..299) throw IOException("HTTP ${call.status}")
+            if (call.status !in 200..299) throw HttpStatusException(call.status)
             val buffer = ByteArray(READ_BUFFER)
             connection.inputStream.use { input ->
                 while (true) {
@@ -320,7 +364,7 @@ class SpeedTestEngine(
             call.status = connection.responseCode
             // Drain whatever the server answers so the connection can be reused.
             runCatching { connection.inputStream.use { it.readBytes() } }
-            if (call.status !in 200..299) throw IOException("HTTP ${call.status}")
+            if (call.status !in 200..299) throw HttpStatusException(call.status)
         } catch (t: Throwable) {
             call.fail(t)
             throw t
@@ -348,8 +392,14 @@ class SpeedTestEngine(
         const val PING_COUNT = 10
         const val MAX_CONNECTIONS = 8
 
-        /** One download request's size: big enough to stream for the whole phase on most lines, re-requested on a fast one. */
-        const val DOWN_REQUEST_BYTES = 25_000_000
-        const val DOWN_REQUEST_CHUNKS = 25
+        const val HTTP_TOO_MANY = 429
+
+        /**
+         * Download request sizes in megabytes, largest first: big enough to
+         * stream for the whole phase on most lines, re-requested on a fast
+         * one; each step down is what a 429 falls back to. Cloudflare's
+         * `bytes=` and LibreSpeed's `ckSize=` (1 MB chunks) both take these.
+         */
+        val DOWN_LADDER_MB = listOf(25, 10, 5, 2, 1)
     }
 }

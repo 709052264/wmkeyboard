@@ -19,6 +19,7 @@ import com.wasimaster.wmkeyboard.core.tools.speedtest.SpeedTestEngine
 import com.wasimaster.wmkeyboard.core.tools.speedtest.SpeedTestMath
 import com.wasimaster.wmkeyboard.core.tools.speedtest.SpeedTestPhase
 import com.wasimaster.wmkeyboard.core.tools.speedtest.SpeedTestResult
+import com.wasimaster.wmkeyboard.core.tools.speedtest.SpeedTestServer
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.ProviderPicks
 import com.wasimaster.wmkeyboard.ime.R
@@ -237,16 +238,25 @@ class SpeedTestController(
                 throw e
             } catch (t: Throwable) {
                 runJob = null
-                publish {
-                    it.copy(
-                        stage = SpeedTestStage.ERROR,
-                        phase = null,
-                        error = t.localizedMessage?.takeIf { m -> m.isNotBlank() && m.length < 120 }
-                            ?: context.getString(R.string.ime_speed_error),
-                    )
-                }
+                publish { it.copy(stage = SpeedTestStage.ERROR, phase = null, error = errorText(t, server)) }
             }
         }
+    }
+
+    /** What the error face says: the server's refusal in words when that is what stopped the run. */
+    private fun errorText(t: Throwable, server: SpeedTestServer): String {
+        if (t is SpeedTestEngine.PhaseFailedException) {
+            val phase = context.getString(
+                if (t.phase == SpeedTestPhase.UPLOAD) R.string.ime_speed_phase_upload else R.string.ime_speed_phase_download,
+            )
+            return when (val status = t.status) {
+                null -> context.getString(R.string.ime_speed_phase_failed, phase)
+                HTTP_TOO_MANY -> context.getString(R.string.ime_speed_rate_limited, server.label)
+                else -> context.getString(R.string.ime_speed_http_error, server.label, status, phase)
+            }
+        }
+        return t.localizedMessage?.takeIf { m -> m.isNotBlank() && m.length < 120 }
+            ?: context.getString(R.string.ime_speed_error)
     }
 
     // ---- the card ----
@@ -308,6 +318,7 @@ class SpeedTestController(
     }
 
     private companion object {
+        const val HTTP_TOO_MANY = 429
         const val PREVIEW_HEIGHT_DP = 200f
         const val WORDMARK = "WM Keyboard"
     }
