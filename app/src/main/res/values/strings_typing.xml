@@ -28,7 +28,7 @@
          that is not autocorrect, a page of its own reached from the Typing hub
          and from the Corrections page (SETTINGS_REDESIGN.md §4). -->
     <string name="typing_group_writing_title">Capitals, punctuation and spacing</string>
-    <string name="typing_group_writing_subtitle">Automatic capitals, double space, brackets and lists</string>
+    <string name="typing_group_writing_subtitle">Capitals, double space, brackets, lists</string>
     <string name="typing_group_capitals_title">Capitals</string>
     <string name="typing_group_punctuation_title">Punctuation and spacing</string>
     <string name="typing_group_brackets_title">Brackets and lists</string>
