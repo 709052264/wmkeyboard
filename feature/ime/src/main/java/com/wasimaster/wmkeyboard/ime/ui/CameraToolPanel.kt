@@ -1166,18 +1166,26 @@ private const val FLASH_FADE_MS = 220
 /** The confirm step's still and buttons coming in under the flash. */
 private const val STILL_FADE_MS = 180
 
-/** Retake/Send pill under the frozen capture. */
+/**
+ * Retake/Send pill under the frozen capture.
+ *
+ * The label keeps to one line and ellipsizes. Wrapping, a pill squeezed by a
+ * large font or display size stood its label up a letter per line, and the
+ * row it sat in grew tall enough to leave nothing for what was above it: the
+ * text scanner's words vanished behind a pillar of an Insert button (#945).
+ */
 @Composable
 internal fun CaptureActionButton(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     label: String,
     accent: Boolean,
     focused: Boolean = false,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
     val kb = LocalKbTheme.current
     Row(
-        modifier = Modifier
+        modifier = modifier
             .clip(RoundedCornerShape(22.dp))
             .background(if (accent) kb.accent else Color.Black.copy(alpha = 0.45f))
             .focusRing(focused, RoundedCornerShape(22.dp))
@@ -1187,7 +1195,15 @@ internal fun CaptureActionButton(
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp), tint = Color.White)
-        Text(label, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+        Text(
+            label,
+            color = Color.White,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+            // Measured after the icon, so it is the label that gives way.
+            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+        )
     }
 }
 
