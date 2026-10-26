@@ -356,12 +356,16 @@ private fun Modifier.leadingGapReveal(reveal: IconReveal): Modifier = layout { m
 internal val SettingsRouteColors: Map<String, Color> = mapOf(
     "typing" to Color(0xFF42A5F5),
     "typing/corrections" to Color(0xFF42A5F5),
+    "typing/writing" to Color(0xFF42A5F5),
     "typing/suggestions" to Color(0xFF42A5F5),
     "typing/autopilot" to Color(0xFF42A5F5),
     "typing/octopus" to Color(0xFF29B6F6),
     "typing/chips" to Color(0xFF42A5F5),
     "typing/codes" to Color(0xFF42A5F5),
     "typing/gestures" to Color(0xFF42A5F5),
+    "typing/gestures/glide" to Color(0xFF42A5F5),
+    "typing/gestures/spacebar" to Color(0xFF42A5F5),
+    "typing/gestures/flicks" to Color(0xFF42A5F5),
     "typing/hardware" to Color(0xFF42A5F5),
     "keypress" to Color(0xFF7E57C2),
     "keypress/haptics" to Color(0xFF7E57C2),
@@ -398,6 +402,9 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     "emoji/mixes" to Color(0xFFFFCA28),
     "voice" to Color(0xFF7E57C2),
     "clipboard" to Color(0xFF42A5F5),
+    "clipboard/history" to Color(0xFF42A5F5),
+    "clipboard/chips" to Color(0xFF42A5F5),
+    "clipboard/rules" to Color(0xFF42A5F5),
     // The Snippets tool's own teal: the screen and the tool page it is opened
     // from are the same feature.
     "expander" to Color(0xFF26A69A),

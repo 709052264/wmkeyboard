@@ -42,7 +42,7 @@ enum class Extension(
     /** The clipboard panel, its history, its search and the recent-copies row. */
     CLIPBOARD(
         tools = setOf(ToolbarTool.CLIPBOARD, ToolbarTool.CLIPBOARD_SEARCH, ToolbarTool.RECENT_COPIES),
-        routes = setOf("clipboard", "phoneformats", "cliprules"),
+        routes = setOf("clipboard", "clipboard/history", "clipboard/chips", "clipboard/rules", "phoneformats", "cliprules"),
     ),
 
     /** Snippets and their triggers. */

@@ -261,7 +261,23 @@ master switches moved with the bundle, `enabledTools` read with a switched-off
 bundle's tools taken out, the six choke points, the `extensions` screen and
 one page per bundle, docs and `ExtensionsTest`.
 
-**Phase 3:** the four page splits.
+**Phase 3 (done 2026-10-26, uncompiled):** the splits and the merges.
+Seven routes added, none renamed: `typing/gestures` is a hub of
+`typing/gestures/glide`, `typing/gestures/spacebar` and
+`typing/gestures/flicks`, with the glide master switch on the hub's row;
+`clipboard` keeps the history switch (as the door to `clipboard/history`),
+the doors to `clipboard/chips` and `clipboard/rules`, and the Panel fold;
+`typing/corrections` keeps autocorrect and `typing/writing` (Capitals,
+punctuation and spacing) takes the rest, reached from the Corrections page
+and the Typing hub. Suggestions stays one page. Of the merges, double
+space, the six hold shortcuts and the toolbar's spread/scroll were already
+one control each; this phase adds the trail style (Off / Thin / Normal /
+Bold over the three sliders, which sit at Everything) and drops the key
+popup's maximum duration row, whose stored value is read as it was. A
+stale row link or favourite that names a row's old screen now opens the
+screen the row is on. Every page has an icon, a colour and a section in
+the index; the docs pages for Typing, Key press and the Clipboard tool,
+the settings overview and `settings-links.json` follow the moves.
 
 **Phase 4:** pinned previews and the animated gesture demo.
 

@@ -382,14 +382,8 @@ private fun SearchStrings.typingRows(): List<SettingsSearchEntry> {
         // are indexed once, in sectionRows, pointing straight at that screen: a
         // second entry that lands on Typing and flashes the row would be a
         // near-identical result one line below the useful one.
-        // Every build: slide-to-select (#658) is there even without the ML
-        // Kit handwriting recognizer.
-        row(R.string.typing_letter_swipe_action_title, R.string.typing_letter_swipe_action_subtitle),
-        // "Extra time for a dot or a cross" is left out on purpose: it is drawn
-        // only while the letter swipe writes by hand, which is neither the
-        // default nor a state a search result can put the screen into.
         // The Backspace group moved to Key press (#136); its rows are indexed
-        // there.
+        // there, and the gesture rows on the three pages under Gestures.
         row(R.string.typing_shift_enter_title, R.string.typing_shift_enter_subtitle),
         row(R.string.typing_volume_cursor_title, R.string.typing_volume_cursor_subtitle),
         row(R.string.typing_volume_cursor_media_title, R.string.typing_volume_cursor_media_subtitle),
@@ -445,7 +439,20 @@ private fun SearchStrings.typingCorrectionsRows(): List<SettingsSearchEntry> {
             R.string.typing_number_row_corrections_subtitle,
         ),
         row(R.string.typing_auto_apostrophe_title, R.string.typing_auto_apostrophe_subtitle),
+    )
+}
+
+/** Rows on the typing/writing page (capitals, punctuation and spacing), in screen order. */
+private fun SearchStrings.typingWritingRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0, weight: EntryWeight = EntryWeight.NORMAL) = entry(
+        title, subtitle, R.string.typing_group_writing_title, "typing/writing", screenParent = R.string.home_typing_title,
+        weight = weight,
+    )
+    return listOf(
         row(R.string.typing_auto_capitalize_title, R.string.typing_auto_capitalize_subtitle, weight = EntryWeight.PRIMARY),
+        row(R.string.typing_shift_recase_title, R.string.typing_shift_recase_subtitle),
+        row(R.string.typing_shift_recase_caret_title, R.string.typing_shift_recase_caret_subtitle),
+        row(R.string.typing_shift_recase_inside_title, R.string.typing_shift_recase_inside_subtitle),
         row(R.string.typing_double_space_title, R.string.typing_double_space_subtitle, weight = EntryWeight.PRIMARY),
         row(R.string.typing_double_space_window_title, R.string.typing_double_space_window_subtitle),
         row(R.string.typing_auto_space_punctuation_title, R.string.typing_auto_space_punctuation_subtitle),
@@ -459,9 +466,6 @@ private fun SearchStrings.typingCorrectionsRows(): List<SettingsSearchEntry> {
         row(R.string.typing_wrap_selection_title, R.string.typing_wrap_selection_subtitle),
         row(R.string.typing_auto_close_brackets_title, R.string.typing_auto_close_brackets_subtitle),
         row(R.string.typing_continue_lists_title, R.string.typing_continue_lists_subtitle),
-        row(R.string.typing_shift_recase_title, R.string.typing_shift_recase_subtitle),
-        row(R.string.typing_shift_recase_caret_title, R.string.typing_shift_recase_caret_subtitle),
-        row(R.string.typing_shift_recase_inside_title, R.string.typing_shift_recase_inside_subtitle),
     )
 }
 
@@ -535,7 +539,8 @@ private fun SearchStrings.typingAutopilotRows(): List<SettingsSearchEntry> {
  */
 private fun SearchStrings.clipRulesRows(): List<SettingsSearchEntry> {
     fun row(@StringRes title: Int, @StringRes subtitle: Int = 0, keywords: Int = 0) = entry(
-        title, subtitle, R.string.clipboard_copy_rules_title, "cliprules", screenParent = R.string.home_clipboard_title,
+        title, subtitle, R.string.clipboard_copy_rules_title, "cliprules",
+        screenParent = R.string.clipboard_page_rules_title, screenRoot = R.string.home_clipboard_title,
         keywords = keywords,
     )
     return listOf(
@@ -622,21 +627,31 @@ private fun SearchStrings.typingCodesRows(): List<SettingsSearchEntry> {
     )
 }
 
-/** Rows on the typing/gestures page, in screen order. */
-private fun SearchStrings.typingGesturesRows(): List<SettingsSearchEntry> {
-    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0, weight: EntryWeight = EntryWeight.NORMAL) = entry(
-        title, subtitle, R.string.typing_group_gestures_title, "typing/gestures", screenParent = R.string.home_typing_title,
-        weight = weight,
-    )
+/**
+ * Rows on the three pages under Gestures (SETTINGS_REDESIGN.md §4), each in
+ * its page's screen order. The path is three steps, Typing › Gestures › the
+ * page, which is what the strip is seeded with when a result is opened.
+ */
+private fun SearchStrings.gesturePageRow(
+    @StringRes screen: Int,
+    route: String,
+    @StringRes title: Int,
+    @StringRes subtitle: Int = 0,
+    weight: EntryWeight = EntryWeight.NORMAL,
+) = entry(
+    title, subtitle, screen, route,
+    screenParent = R.string.typing_group_gestures_title, screenRoot = R.string.home_typing_title, weight = weight,
+)
+
+/** Rows on the typing/gestures/glide page, in screen order. */
+private fun SearchStrings.typingGlideRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0, weight: EntryWeight = EntryWeight.NORMAL) =
+        gesturePageRow(R.string.typing_group_glide_title, "typing/gestures/glide", title, subtitle, weight)
     return listOf(
         row(R.string.typing_glide_typing_title, R.string.typing_glide_typing_subtitle, weight = EntryWeight.PRIMARY),
-        row(R.string.typing_glide_picker_title, R.string.typing_glide_picker_subtitle),
-        row(R.string.typing_glide_picker_sensitivity_title, R.string.typing_glide_picker_sensitivity_subtitle),
-        row(R.string.typing_glide_picker_dwell_title, R.string.typing_glide_picker_dwell_subtitle),
-        row(R.string.typing_glide_picker_hold_title, R.string.typing_glide_picker_hold_subtitle),
-        row(R.string.typing_glide_picker_choices_title, R.string.typing_glide_picker_choices_subtitle),
-        row(R.string.typing_glide_swipe_style_title, R.string.typing_glide_swipe_style_subtitle),
-        row(R.string.typing_glide_swipe_style_forget),
+        // Every build: slide-to-select (#658) is there even without the ML
+        // Kit handwriting recognizer.
+        row(R.string.typing_letter_swipe_action_title, R.string.typing_letter_swipe_action_subtitle),
         row(R.string.typing_space_glide_multiword_title, R.string.typing_space_glide_multiword_subtitle),
         row(R.string.typing_two_thumb_title, R.string.typing_two_thumb_subtitle),
         row(R.string.typing_two_thumb_word_end_title, R.string.typing_two_thumb_word_end_subtitle),
@@ -648,11 +663,21 @@ private fun SearchStrings.typingGesturesRows(): List<SettingsSearchEntry> {
         row(R.string.typing_swipe_continues_typed_title, R.string.typing_swipe_continues_typed_subtitle),
         row(R.string.typing_shift_glide_capitals_title, R.string.typing_shift_glide_capitals_subtitle),
         row(R.string.typing_shift_glide_mode_title, R.string.typing_shift_glide_mode_subtitle),
+        row(R.string.typing_glide_picker_title, R.string.typing_glide_picker_subtitle),
+        row(R.string.typing_glide_picker_sensitivity_title, R.string.typing_glide_picker_sensitivity_subtitle),
+        row(R.string.typing_glide_picker_dwell_title, R.string.typing_glide_picker_dwell_subtitle),
+        row(R.string.typing_glide_picker_hold_title, R.string.typing_glide_picker_hold_subtitle),
+        row(R.string.typing_glide_picker_choices_title, R.string.typing_glide_picker_choices_subtitle),
+        row(R.string.typing_glide_swipe_style_title, R.string.typing_glide_swipe_style_subtitle),
+        row(R.string.typing_glide_swipe_style_forget),
         row(R.string.typing_space_after_glide_title, R.string.typing_space_after_glide_subtitle),
         row(R.string.typing_glide_backspace_undo_title, R.string.typing_glide_backspace_undo_subtitle),
         row(R.string.typing_glide_apostrophe_title, R.string.typing_glide_apostrophe_subtitle),
         row(R.string.typing_swipe_start_distance_title, R.string.typing_swipe_start_distance_subtitle),
         row(R.string.typing_gesture_cooldown_title, R.string.typing_gesture_cooldown_subtitle),
+        // "Extra time for a dot or a cross" is left out on purpose: it is drawn
+        // only while the letter swipe writes by hand, which is neither the
+        // default nor a state a search result can put the screen into.
         // The "Advanced tuning" fold, in the order it draws its rows.
         row(R.string.typing_glide_start_radius_title, R.string.typing_glide_start_radius_subtitle),
         row(R.string.typing_glide_end_radius_title, R.string.typing_glide_end_radius_subtitle),
@@ -669,6 +694,8 @@ private fun SearchStrings.typingGesturesRows(): List<SettingsSearchEntry> {
         ),
         row(R.string.typing_glide_wiggle_extent_title, R.string.typing_glide_wiggle_extent_subtitle),
         row(R.string.typing_glide_shapes_per_word_title, R.string.typing_glide_shapes_per_word_subtitle),
+        // The trail and the preview.
+        row(R.string.typing_trail_style_title, R.string.typing_trail_style_subtitle),
         row(R.string.typing_trail_width_title, R.string.typing_trail_width_subtitle),
         row(R.string.typing_trail_length_title, R.string.typing_trail_length_subtitle),
         row(R.string.typing_trail_opacity_title),
@@ -694,20 +721,43 @@ private fun SearchStrings.typingGesturesRows(): List<SettingsSearchEntry> {
             R.string.typing_glide_strip_preview_title,
             R.string.typing_glide_strip_preview_subtitle,
         ),
-        row(R.string.typing_space_short_swipe_title, R.string.typing_space_short_swipe_subtitle),
+    )
+}
+
+/** Rows on the typing/gestures/spacebar page, in screen order. */
+private fun SearchStrings.typingSpacebarRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0, weight: EntryWeight = EntryWeight.NORMAL) =
+        gesturePageRow(R.string.typing_page_spacebar_title, "typing/gestures/spacebar", title, subtitle, weight)
+    return listOf(
+        row(R.string.typing_space_short_swipe_title, R.string.typing_space_short_swipe_subtitle, weight = EntryWeight.PRIMARY),
         row(R.string.typing_space_long_swipe_title, R.string.typing_space_long_swipe_subtitle),
+        row(R.string.typing_space_swipe_up_touchpad_title, R.string.typing_space_swipe_up_touchpad_subtitle),
+        row(R.string.typing_space_cursor_2d_title, R.string.typing_space_cursor_2d_subtitle),
         row(R.string.typing_space_cursor_step_title, R.string.typing_space_cursor_step_subtitle),
         row(R.string.typing_space_cursor_accelerate_title, R.string.typing_space_cursor_accelerate_subtitle),
         row(R.string.typing_space_cursor_direct_title, R.string.typing_space_cursor_direct_subtitle),
         row(R.string.typing_space_cursor_edge_repeat_title, R.string.typing_space_cursor_edge_repeat_subtitle),
         row(R.string.typing_space_cursor_whole_keyboard_title, R.string.typing_space_cursor_whole_keyboard_subtitle),
-        row(R.string.typing_space_swipe_up_touchpad_title, R.string.typing_space_swipe_up_touchpad_subtitle),
         row(R.string.typing_space_cursor_top_speed_title, R.string.typing_space_cursor_top_speed_subtitle),
         row(R.string.typing_space_cursor_magnifier_title, R.string.typing_space_cursor_magnifier_subtitle),
-        row(R.string.typing_space_cursor_2d_title, R.string.typing_space_cursor_2d_subtitle),
         row(R.string.typing_space_swipe_down_hide_title, R.string.typing_space_swipe_down_hide_subtitle),
-        row(R.string.typing_edge_swipe_back_title, R.string.typing_edge_swipe_back_subtitle),
-        row(R.string.typing_hint_flick_title, R.string.typing_hint_flick_subtitle),
+        row(R.string.typing_spacebar_language_arrows_title, R.string.typing_spacebar_language_arrows_subtitle),
+        row(R.string.typing_language_echo_title, R.string.typing_language_echo_subtitle),
+        row(R.string.typing_space_hold_keys_label),
+        row(R.string.typing_language_picker_style_title, R.string.typing_language_picker_style_subtitle),
+        row(R.string.typing_space_hold_picker_long_ring_title, R.string.typing_space_hold_picker_long_ring_subtitle),
+        row(R.string.typing_spacebar_display_title, R.string.typing_spacebar_display_subtitle),
+        row(R.string.typing_spacebar_text_label),
+        row(R.string.typing_spacebar_live_wpm_title, R.string.typing_spacebar_live_wpm_subtitle),
+    )
+}
+
+/** Rows on the typing/gestures/flicks page, in screen order. */
+private fun SearchStrings.typingFlicksRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0, weight: EntryWeight = EntryWeight.NORMAL) =
+        gesturePageRow(R.string.typing_page_flicks_title, "typing/gestures/flicks", title, subtitle, weight)
+    return listOf(
+        row(R.string.typing_hint_flick_title, R.string.typing_hint_flick_subtitle, weight = EntryWeight.PRIMARY),
         row(R.string.typing_capital_flick_title, R.string.typing_capital_flick_subtitle),
         row(R.string.typing_flick_hints_title, R.string.typing_flick_hints_subtitle),
         row(R.string.typing_flick_popup_title, R.string.typing_flick_popup_subtitle),
@@ -716,14 +766,7 @@ private fun SearchStrings.typingGesturesRows(): List<SettingsSearchEntry> {
         row(R.string.typing_flick_reach_title, R.string.typing_flick_reach_subtitle),
         row(R.string.typing_flick_onto_letter_title, R.string.typing_flick_onto_letter_subtitle),
         row(R.string.typing_possessive_swipe_title, R.string.typing_possessive_swipe_subtitle),
-        row(R.string.typing_space_hold_keys_label),
-        row(R.string.typing_spacebar_language_arrows_title, R.string.typing_spacebar_language_arrows_subtitle),
-        row(R.string.typing_language_echo_title, R.string.typing_language_echo_subtitle),
-        row(R.string.typing_spacebar_display_title, R.string.typing_spacebar_display_subtitle),
-        row(R.string.typing_language_picker_style_title, R.string.typing_language_picker_style_subtitle),
-        row(R.string.typing_space_hold_picker_long_ring_title, R.string.typing_space_hold_picker_long_ring_subtitle),
-        row(R.string.typing_spacebar_text_label),
-        row(R.string.typing_spacebar_live_wpm_title, R.string.typing_spacebar_live_wpm_subtitle),
+        row(R.string.typing_edge_swipe_back_title, R.string.typing_edge_swipe_back_subtitle),
         row(R.string.typing_finger_swipes_title, R.string.typing_finger_swipes_subtitle),
         row(R.string.typing_finger_swipes_reset_title, R.string.typing_finger_swipes_reset_subtitle),
         row(R.string.typing_symbol_chords_title, R.string.typing_symbol_chords_subtitle),
@@ -840,7 +883,6 @@ private fun SearchStrings.keypressPopupRows(): List<SettingsSearchEntry> {
         row(R.string.keypress_popup_numeric_title, R.string.keypress_popup_numeric_subtitle),
         row(R.string.keypress_popup_window_band_title, R.string.keypress_popup_window_band_subtitle),
         row(R.string.keypress_popup_min_duration_title, R.string.keypress_popup_min_duration_subtitle),
-        row(R.string.keypress_popup_max_duration_title, R.string.keypress_popup_max_duration_subtitle),
         row(R.string.keypress_popup_on_key_title, R.string.keypress_popup_on_key_subtitle),
         row(R.string.keypress_popup_font_size_title, R.string.keypress_popup_font_size_subtitle),
         row(R.string.keypress_popup_height_title, R.string.keypress_popup_height_subtitle),
@@ -1348,20 +1390,16 @@ private fun SearchStrings.voiceRows(): List<SettingsSearchEntry> {
     )
 }
 
-/** Rows on the Clipboard screen. */
+/**
+ * Rows on the Clipboard hub: the history switch, which is also the door to
+ * the history page, and the Panel fold (SETTINGS_REDESIGN.md §4). The rest of
+ * the old screen is on the three pages below.
+ */
 private fun SearchStrings.clipboardRows(): List<SettingsSearchEntry> {
     fun row(@StringRes title: Int, @StringRes subtitle: Int = 0, weight: EntryWeight = EntryWeight.NORMAL) =
         entry(title, subtitle, R.string.home_clipboard_title, "clipboard", weight = weight)
-    return listOfNotNull(
+    return listOf(
         row(R.string.clipboard_history_title, R.string.clipboard_history_subtitle, weight = EntryWeight.PRIMARY),
-        row(R.string.clipboard_suggest_recent_title, R.string.clipboard_suggest_recent_subtitle),
-        row(R.string.clipboard_chip_life_title, R.string.clipboard_chip_life_subtitle),
-        row(R.string.clipboard_recent_chips_title, R.string.clipboard_recent_chips_subtitle),
-        row(R.string.clipboard_suggest_codes_title, R.string.clipboard_suggest_codes_subtitle),
-        row(R.string.clipboard_toast_title, R.string.clipboard_toast_subtitle),
-        row(R.string.clipboard_expiry_title, R.string.clipboard_expiry_subtitle),
-        row(R.string.clipboard_max_chars_title, R.string.clipboard_max_chars_subtitle),
-        row(R.string.clipboard_max_title, R.string.clipboard_max_subtitle),
         row(R.string.panel_layout_row_title, R.string.panel_layout_row_subtitle),
         row(R.string.clipboard_full_bleed_title, R.string.clipboard_full_bleed_subtitle),
         row(R.string.clipboard_panel_height_title, R.string.clipboard_panel_height_subtitle),
@@ -1370,6 +1408,7 @@ private fun SearchStrings.clipboardRows(): List<SettingsSearchEntry> {
         row(R.string.clipboard_view_title, R.string.clipboard_view_subtitle),
         row(R.string.clipboard_columns_title, R.string.clipboard_columns_subtitle),
         row(R.string.clipboard_lines_title, R.string.clipboard_lines_subtitle),
+        row(R.string.clipboard_line_spacing_title, R.string.clipboard_line_spacing_subtitle),
         row(R.string.clipboard_time_title, R.string.clipboard_time_subtitle),
         row(R.string.clipboard_numbers_title, R.string.clipboard_numbers_subtitle),
         row(R.string.clipboard_pinned_tabs_title, R.string.clipboard_pinned_tabs_subtitle),
@@ -1379,27 +1418,67 @@ private fun SearchStrings.clipboardRows(): List<SettingsSearchEntry> {
         row(R.string.clipboard_type_out_title, R.string.clipboard_type_out_subtitle),
         row(R.string.clipboard_type_tags_title, R.string.clipboard_type_tags_subtitle),
         row(R.string.clipboard_keep_rich_text_title, R.string.clipboard_keep_rich_text_subtitle),
-        row(R.string.clipboard_swipe_pin_title, R.string.clipboard_swipe_pin_subtitle),
-        row(R.string.clipboard_line_spacing_title, R.string.clipboard_line_spacing_subtitle),
-        row(R.string.clipboard_private_copies_title, R.string.clipboard_private_copies_subtitle),
         row(R.string.clipboard_swipe_delete_title, R.string.clipboard_swipe_delete_subtitle),
+        row(R.string.clipboard_swipe_pin_title, R.string.clipboard_swipe_pin_subtitle),
         row(R.string.clipboard_undo_delete_title, R.string.clipboard_undo_delete_subtitle),
         row(R.string.clipboard_confirm_pinned_delete_title, R.string.clipboard_confirm_pinned_delete_subtitle),
-        row(R.string.clipboard_pinned_last_title, R.string.clipboard_pinned_last_subtitle),
-        row(R.string.clipboard_pinned_in_place_title, R.string.clipboard_pinned_in_place_subtitle),
-        row(R.string.clipboard_pinned_folders_title, R.string.clipboard_pinned_folders_subtitle),
         row(R.string.clipboard_search_title, R.string.clipboard_search_subtitle),
         row(R.string.clipboard_search_regex_title, R.string.clipboard_search_regex_subtitle),
         row(R.string.clipboard_clear_button_title, R.string.clipboard_clear_button_subtitle),
+        row(R.string.clipboard_link_previews_title, R.string.clipboard_link_previews_subtitle),
+        row(R.string.clipboard_toast_title, R.string.clipboard_toast_subtitle),
+    )
+}
+
+/** Rows on the clipboard/history page, in screen order. */
+private fun SearchStrings.clipboardHistoryRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0, weight: EntryWeight = EntryWeight.NORMAL) = entry(
+        title, subtitle, R.string.clipboard_history_title, "clipboard/history", screenParent = R.string.home_clipboard_title,
+        weight = weight,
+    )
+    return listOfNotNull(
+        row(R.string.clipboard_max_title, R.string.clipboard_max_subtitle),
+        row(R.string.clipboard_expiry_title, R.string.clipboard_expiry_subtitle),
+        row(R.string.clipboard_max_chars_title, R.string.clipboard_max_chars_subtitle),
+        row(R.string.clipboard_pinned_last_title, R.string.clipboard_pinned_last_subtitle),
+        row(R.string.clipboard_pinned_in_place_title, R.string.clipboard_pinned_in_place_subtitle),
+        row(R.string.clipboard_pinned_folders_title, R.string.clipboard_pinned_folders_subtitle),
+        row(R.string.clipboard_screenshots_title, R.string.clipboard_screenshots_subtitle)
+            .takeIf { ChannelFeatures.SCREENSHOT_CLIPS },
+        row(R.string.clipboard_track_source_title, R.string.clipboard_track_source_subtitle),
+    )
+}
+
+/** Rows on the clipboard/chips page, in screen order. */
+private fun SearchStrings.clipboardChipsRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0, weight: EntryWeight = EntryWeight.NORMAL) = entry(
+        title, subtitle, R.string.clipboard_page_chips_title, "clipboard/chips", screenParent = R.string.home_clipboard_title,
+        weight = weight,
+    )
+    return listOf(
+        row(R.string.clipboard_suggest_recent_title, R.string.clipboard_suggest_recent_subtitle, weight = EntryWeight.PRIMARY),
+        row(R.string.clipboard_chip_life_title, R.string.clipboard_chip_life_subtitle),
+        row(R.string.clipboard_recent_chips_title, R.string.clipboard_recent_chips_subtitle),
+        row(R.string.clipboard_suggest_codes_title, R.string.clipboard_suggest_codes_subtitle),
         row(R.string.clipboard_entities_title, R.string.clipboard_entities_subtitle),
         row(R.string.clipboard_entity_icons_title, R.string.clipboard_entity_icons_subtitle),
         row(R.string.clipboard_entity_to_clipboard_title, R.string.clipboard_entity_to_clipboard_subtitle),
         row(R.string.clipboard_fragments_on_strip_title, R.string.clipboard_fragments_on_strip_subtitle),
+    )
+}
+
+/**
+ * Rows on the clipboard/rules page, in screen order. Copy rules and Phone
+ * number formats are screens of their own and are indexed in sectionRows.
+ */
+private fun SearchStrings.clipboardRulesRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0, weight: EntryWeight = EntryWeight.NORMAL) = entry(
+        title, subtitle, R.string.clipboard_page_rules_title, "clipboard/rules", screenParent = R.string.home_clipboard_title,
+        weight = weight,
+    )
+    return listOf(
+        row(R.string.clipboard_private_copies_title, R.string.clipboard_private_copies_subtitle),
         row(R.string.clipboard_password_paste_title, R.string.clipboard_password_paste_subtitle),
-        row(R.string.clipboard_link_previews_title, R.string.clipboard_link_previews_subtitle),
-        row(R.string.clipboard_screenshots_title, R.string.clipboard_screenshots_subtitle)
-            .takeIf { ChannelFeatures.SCREENSHOT_CLIPS },
-        row(R.string.clipboard_track_source_title, R.string.clipboard_track_source_subtitle),
         row(R.string.clipboard_sensitive_title, R.string.clipboard_sensitive_subtitle),
         row(R.string.clipboard_detect_sensitive_title, R.string.clipboard_detect_sensitive_subtitle),
         row(R.string.clipboard_sensitive_expiry_title, R.string.clipboard_sensitive_expiry_subtitle),
@@ -2644,6 +2723,10 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
             R.string.home_typing_title, "typing/corrections",
         ),
         under(
+            R.string.typing_group_writing_title, R.string.typing_group_writing_subtitle,
+            R.string.home_typing_title, "typing/writing",
+        ),
+        under(
             R.string.typing_group_suggestions_title, R.string.typing_group_suggestions_subtitle,
             R.string.home_typing_title, "typing/suggestions",
         ),
@@ -2666,6 +2749,36 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
         under(
             R.string.typing_group_gestures_title, R.string.typing_group_gestures_subtitle,
             R.string.home_typing_title, "typing/gestures",
+        ),
+        // The three pages under Gestures (SETTINGS_REDESIGN.md §4).
+        under(
+            R.string.typing_group_glide_title, R.string.typing_page_glide_subtitle,
+            R.string.typing_group_gestures_title, "typing/gestures/glide",
+            parent = R.string.home_typing_title,
+        ),
+        under(
+            R.string.typing_page_spacebar_title, R.string.typing_page_spacebar_subtitle,
+            R.string.typing_group_gestures_title, "typing/gestures/spacebar",
+            parent = R.string.home_typing_title,
+        ),
+        under(
+            R.string.typing_page_flicks_title, R.string.typing_page_flicks_subtitle,
+            R.string.typing_group_gestures_title, "typing/gestures/flicks",
+            parent = R.string.home_typing_title,
+        ),
+        // The three pages under Clipboard. The history page is named by the
+        // switch on the hub that is also its door.
+        under(
+            R.string.clipboard_history_title, R.string.clipboard_page_history_subtitle,
+            R.string.home_clipboard_title, "clipboard/history",
+        ),
+        under(
+            R.string.clipboard_page_chips_title, R.string.clipboard_page_chips_subtitle,
+            R.string.home_clipboard_title, "clipboard/chips",
+        ),
+        under(
+            R.string.clipboard_page_rules_title, R.string.clipboard_page_rules_subtitle,
+            R.string.home_clipboard_title, "clipboard/rules",
         ),
         under(
             R.string.typing_group_hardware_title, R.string.typing_group_hardware_subtitle,
@@ -2901,17 +3014,19 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
         under(
             R.string.home_screen_phoneformats_title,
             R.string.clipboard_phone_formats_subtitle,
-            R.string.home_clipboard_title,
+            R.string.clipboard_page_rules_title,
             "phoneformats",
             R.string.search_kw_phoneformats,
+            parent = R.string.home_clipboard_title,
         ),
-        // The same: one row on the Clipboard screen that only opens this (#612).
+        // The same: one row on the Rules and privacy page that only opens this (#612).
         under(
             R.string.clipboard_copy_rules_title,
             R.string.clipboard_copy_rules_subtitle,
-            R.string.home_clipboard_title,
+            R.string.clipboard_page_rules_title,
             "cliprules",
             R.string.search_kw_cliprules,
+            parent = R.string.home_clipboard_title,
         ),
         under(
             R.string.typing_hw_shortcuts_list_title,
@@ -3082,6 +3197,7 @@ internal fun settingsSearchIndex(strings: SearchStrings): List<SettingsSearchEnt
         sectionChildRows() +
         typingRows() +
         typingCorrectionsRows() +
+        typingWritingRows() +
         typingSuggestionsRows() +
         typingAutopilotRows() +
         clipRulesRows() +
@@ -3089,7 +3205,9 @@ internal fun settingsSearchIndex(strings: SearchStrings): List<SettingsSearchEnt
         blacklistRows() +
         typingChipsRows() +
         typingCodesRows() +
-        typingGesturesRows() +
+        typingGlideRows() +
+        typingSpacebarRows() +
+        typingFlicksRows() +
         typingHardwareRows() +
         keyPressRows() +
         keypressHapticsRows() +
@@ -3101,7 +3219,7 @@ internal fun settingsSearchIndex(strings: SearchStrings): List<SettingsSearchEnt
         layoutSizeRows() +
         layoutOnehandedRows() + floatingButtonRows() + languageRows() + emojiRows() +
         emojiPanelRows() + emojiMixRows() + kaomojiRows() +
-        voiceRows() + clipboardRows() + expanderRows() + toolPageRowsA() + toolPageRowsB() + galleryRows() + sendRows() + vocabRows() + notesRows() + todoRows() + storageRows() + otherRows()
+        voiceRows() + clipboardRows() + clipboardHistoryRows() + clipboardChipsRows() + clipboardRulesRows() + expanderRows() + toolPageRowsA() + toolPageRowsB() + galleryRows() + sendRows() + vocabRows() + notesRows() + todoRows() + storageRows() + otherRows()
     // A provider's screen goes with the tool page its list is on.
     all.filterNot { it.route in unsupported || it.tool?.let { tool -> "tool/${tool.name}" in unsupported } == true }
         .distinctBy { it.key }

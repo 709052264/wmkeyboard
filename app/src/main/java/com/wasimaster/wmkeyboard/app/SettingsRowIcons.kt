@@ -584,7 +584,6 @@ internal object SettingsRowIcons {
         put(R.string.keypress_popup_window_band_title) { Icons.Outlined.VerticalAlignTop }
         put(R.string.keypress_popup_on_key_title) { Icons.Outlined.KeyboardCapslock }
         put(R.string.keypress_popup_min_duration_title) { Icons.Outlined.Timer }
-        put(R.string.keypress_popup_max_duration_title) { Icons.Outlined.Timer }
         put(R.string.keypress_popup_font_size_title) { Icons.Outlined.FormatSize }
         put(R.string.keypress_popup_height_title) { Icons.Outlined.Height }
         put(R.string.keypress_popup_offset_y_title) { Icons.Outlined.VerticalAlignTop }
@@ -1135,6 +1134,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_glide_wiggle_extent_title) { Icons.Outlined.Straighten }
         put(R.string.typing_glide_shapes_per_word_title) { Icons.Outlined.Layers }
         put(R.string.typing_swipe_start_distance_title) { Icons.Outlined.Straighten }
+        put(R.string.typing_trail_style_title) { Icons.Outlined.LineWeight }
         put(R.string.typing_trail_width_title) { Icons.Outlined.LineWeight }
         put(R.string.typing_trail_length_title) { Icons.Outlined.Timeline }
         put(R.string.typing_trail_opacity_title) { Icons.Outlined.Opacity }
@@ -1690,6 +1690,12 @@ internal object SettingsRowIcons {
         put(R.string.layout_size_position_title) { Icons.Outlined.FormatSize }
         put(R.string.typing_group_corrections_title) { Icons.Outlined.Spellcheck }
         put(R.string.typing_group_gestures_title) { Icons.Outlined.Gesture }
+        put(R.string.typing_group_glide_title) { Icons.Outlined.Gesture }
+        put(R.string.typing_page_spacebar_title) { Icons.Outlined.SpaceBar }
+        put(R.string.typing_page_flicks_title) { Icons.Outlined.Swipe }
+        put(R.string.typing_group_writing_title) { Icons.Outlined.Abc }
+        put(R.string.clipboard_page_chips_title) { Icons.Outlined.ContentPaste }
+        put(R.string.clipboard_page_rules_title) { Icons.Outlined.Shield }
         put(R.string.typing_group_hardware_title) { SymbolIcons.KeyboardExternalInput }
         put(R.string.typing_group_otp_title) { Icons.Outlined.Password }
         put(R.string.typing_group_smart_chips_title) { Icons.Outlined.AutoAwesome }
