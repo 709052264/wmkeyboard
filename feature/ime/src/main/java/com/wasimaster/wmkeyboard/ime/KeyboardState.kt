@@ -1302,7 +1302,7 @@ fun VoiceBarSettings.armed(): Boolean = enabled && mode == VoiceBarSettings.MODE
  * keeps the row, since it is the session's status and its way out.
  */
 fun KeyboardUiState.voiceStripShown(): Boolean =
-    voice.strip && !(voice.status == VoiceStatus.IDLE && composingPreview.isNotEmpty())
+    voice.strip && !(voice.status == VoiceStatus.IDLE && (composingPreview.isNotEmpty() || wordComposing))
 
 fun KeyboardUiState.voiceChipOnly(): Boolean =
     settings.voiceBar.interactiveTyping() &&
@@ -3434,6 +3434,14 @@ data class KeyboardUiState(
      */
     val sentenceOpeners: List<String> = emptyList(),
     val composingPreview: String = "",
+    /**
+     * A word is being typed into the service's own buffer: the Latin path,
+     * which composes in the field and so leaves [composingPreview] empty.
+     * Read by [voiceStripShown], which hands the strip back from the compact
+     * dictation bar while a word is being typed (#910); a reading being
+     * converted shows up in [composingPreview] instead.
+     */
+    val wordComposing: Boolean = false,
     /**
      * The roman buffer [composingPreview] was transliterated from, mirrored
      * here for the key hints on a transliterating layout: what a key writes

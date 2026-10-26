@@ -23992,6 +23992,12 @@ open class WMKeyboardService : InputMethodService() {
     private fun refreshSuggestions() = trace(ImeTrace.REFRESH_SUGGESTIONS) { refreshStrip() }
 
     private fun refreshStrip() {
+        // Whether a word is being typed, for the compact dictation bar, which
+        // gives the strip back while one is (#910). Here because every
+        // keystroke and every commit rebuilds the strip, ahead of the early
+        // returns below so none of them leaves it stale.
+        val typing = composing.isNotEmpty()
+        if (_uiState.value.wordComposing != typing) _uiState.update { it.copy(wordComposing = typing) }
         val state = _uiState.value
         if (emailFieldForceActive(state)) {
             refreshEmailFieldSuggestions()
