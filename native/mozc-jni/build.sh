@@ -108,6 +108,7 @@ bootstrap_bazel() {
     (cd "$BAZEL_SRC" && env JAVA_HOME="$JDK" PATH="$JDK/bin:$PATH" \
         EXTRA_BAZEL_ARGS="--tool_java_runtime_version=local_jdk --java_runtime_version=local_jdk" \
         BAZEL_DIR_STARTUP_OPTIONS="--output_user_root=$ROOT" \
+        EMBED_LABEL="$BAZEL_VERSION" \
         bash ./compile.sh > "$WORK/bazel-bootstrap.log" 2>&1) \
         || { echo "compile.sh failed; its last lines:" >&2; tail -60 "$WORK/bazel-bootstrap.log" >&2; exit 1; }
     [ -x "$BAZEL_SRC/output/bazel" ] || { echo "compile.sh left no output/bazel" >&2; exit 1; }
@@ -160,10 +161,11 @@ else
 fi
 # `--version` alone: the client answers it itself only when it is the
 # whole command line; with startup options in front it is an unknown option.
-# A bootstrapped Bazel labels itself "9.0.2 (@non-git)", so match the front.
+# The bootstrap is given EMBED_LABEL so its binary says "bazel 9.0.2" like a
+# release; left alone it says "bazel 9.0.2- (@non-git)", so match the front.
 got=$("$BAZEL" --version 2>&1) || { echo "$BAZEL --version failed: $got" >&2; exit 1; }
 case "$got" in
-    "bazel $BAZEL_VERSION"|"bazel $BAZEL_VERSION "*) echo "using $got from $BAZEL" ;;
+    "bazel $BAZEL_VERSION"*) echo "using $got from $BAZEL" ;;
     *) echo "$BAZEL is '$got', expected bazel $BAZEL_VERSION" >&2; exit 1 ;;
 esac
 
