@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -18,6 +19,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.addons.AddonType
 import com.wasimaster.wmkeyboard.core.settings.AlternateGroup
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
+import com.wasimaster.wmkeyboard.core.settings.SwiftKeyHoldSymbols
 import com.wasimaster.wmkeyboard.core.settings.BackspaceSwipeUnit
 import com.wasimaster.wmkeyboard.core.settings.TopRowHolds
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
@@ -1618,6 +1620,27 @@ internal fun KeyPressShortcutsSettings(
                 },
             ) { scope.launch { repository.setTopRowHolds(it) } }
         }
+        item(level = SettingLevel.STANDARD) {
+            // Telegram group: the symbols SwiftKey or Samsung put on the
+            // letters, without editing every layout.
+            var editing by remember { mutableStateOf(false) }
+            val symbols = settings.watch { it.layoutBehavior.holdSymbols }
+            WmRow(
+                title = stringResource(R.string.keypress_hold_symbols_title),
+                subtitle = if (symbols.isEmpty()) {
+                    stringResource(R.string.keypress_hold_symbols_subtitle)
+                } else {
+                    symbols.entries.sortedBy { it.key }.joinToString("  ") { "${it.key} ${it.value}" }
+                },
+                onClick = { editing = true },
+            )
+            if (editing) {
+                HoldSymbolsDialog(symbols, onDismiss = { editing = false }) { chosen ->
+                    editing = false
+                    scope.launch { repository.setHoldSymbols(chosen) }
+                }
+            }
+        }
         item(level = SettingLevel.ADVANCED) {
             // Discussion #382: ü ahead of 7 on German's u.
             ToggleSetting(
@@ -1888,3 +1911,56 @@ private enum class HoldAction(
 
 private val DefaultHoldActions: Set<HoldAction> =
     HoldAction.entries.filterTo(mutableSetOf()) { it.isOn(SettingsDefaults.longPressLetterActions) }
+
+/** The letter rows of the hold-symbol editor, in QWERTY order. */
+private val HoldSymbolRows = listOf("qwertyuiop", "asdfghjkl", "zxcvbnm")
+
+/**
+ * One box per letter for [LayoutBehaviorSettings.holdSymbols], with SwiftKey's
+ * set as a starting point and a way back to every layout's own. A box left
+ * empty keeps the layout's symbol for that letter.
+ */
+@Composable
+private fun HoldSymbolsDialog(
+    initial: Map<String, String>,
+    onDismiss: () -> Unit,
+    onSave: (Map<String, String>) -> Unit,
+) {
+    var symbols by remember { mutableStateOf(initial) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.keypress_hold_symbols_title)) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                Text(stringResource(R.string.keypress_hold_symbols_info))
+                for (row in HoldSymbolRows) {
+                    FlowRow(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                        for (letter in row) {
+                            val key = letter.toString()
+                            OutlinedTextField(
+                                value = symbols[key].orEmpty(),
+                                onValueChange = { text ->
+                                    val symbol = text.trim().take(4)
+                                    symbols = if (symbol.isEmpty()) symbols - key else symbols + (key to symbol)
+                                },
+                                label = { Text(key) },
+                                singleLine = true,
+                                modifier = Modifier.width(64.dp).padding(end = 4.dp),
+                            )
+                        }
+                    }
+                }
+                Row(Modifier.padding(top = 8.dp)) {
+                    TextButton(onClick = { symbols = SwiftKeyHoldSymbols }) {
+                        Text(stringResource(R.string.keypress_hold_symbols_swiftkey))
+                    }
+                    TextButton(onClick = { symbols = emptyMap() }) {
+                        Text(stringResource(R.string.keypress_hold_symbols_clear))
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = { onSave(symbols) }) { Text(stringResource(android.R.string.ok)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) } },
+    )
+}

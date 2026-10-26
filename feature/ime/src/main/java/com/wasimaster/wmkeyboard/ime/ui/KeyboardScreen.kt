@@ -21985,6 +21985,9 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     }
     val stripDigits = topRowHolds == TopRowHolds.NONE
     val digitSymbols = topRowHolds == TopRowHolds.SYMBOLS
+    // The user's own symbol per letter, on the letters only: the symbols pages
+    // are where a symbol is typed outright.
+    val holdSymbols = if (lettersLayer) state.settings.layoutBehavior.holdSymbols else emptyMap()
     // A44: user-chosen currency glyphs replace the $ key's built-in popup.
     val currencyKeys = state.settings.layoutBehavior.currencyKeys
     // Issue #57: the spacebar's long press, for a user who has no use for the
@@ -22083,7 +22086,7 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     val modeNames = state.settings.keyboardModes.associate { it.id to it.name }
     // Fancy Text: every digit key holds the digit's styled forms.
     val fancyDigits = fancyStyleFor(state) != null
-    if (!commaAsEmoji && !globeAsEmoji && !stripDigits && !digitSymbols &&
+    if (!commaAsEmoji && !globeAsEmoji && !stripDigits && !digitSymbols && holdSymbols.isEmpty() &&
         clipboardKeys.isEmpty() && fieldKey == null && domainAlternates.isEmpty() &&
         currencyKeys.isEmpty() && !allAccents && !noAccents && !shiftedKeys && fullStop == null &&
         !newlineAlternate && !emojiAlternate && spaceHoldKeys.isEmpty() &&
@@ -22189,6 +22192,17 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
                 !(mapped.output ?: mapped.label).isSingleDigit()
             ) {
                 mapped = mapped.copy(longPress = mapped.longPress.map { it.asNumberRowSymbol() }.distinct())
+            }
+            // The user's symbol takes the lead in the place of the layout's
+            // digit or symbol, after the top-row passes above so it wins over
+            // them; the letter's accents stay behind it.
+            if (holdSymbols.isNotEmpty() && mapped.action == KeyAction.Text) {
+                holdSymbols[(mapped.output ?: mapped.label).lowercase()]?.let { symbol ->
+                    val leadIsSymbol = mapped.longPress.firstOrNull()
+                        ?.let { it.length == 1 && !it[0].isLetter() } == true
+                    val rest = if (leadIsSymbol) mapped.longPress.drop(1) else mapped.longPress
+                    mapped = mapped.copy(longPress = listOf(symbol) + rest.filter { it != symbol })
+                }
             }
             if (fancyDigits) mapped = mapped.withFancyDigitForms()
             // A44: the $ key takes the user's currency glyphs as its popup. On

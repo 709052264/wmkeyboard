@@ -8836,6 +8836,13 @@ data class LayoutBehaviorSettings(
     /** What the digit holds on the letters become. See [TopRowHolds]. */
     val topRowHolds: TopRowHolds = TopRowHolds.AUTO,
     /**
+     * The user's own symbol for a letter's hold, by lower-case letter
+     * (Telegram group): it leads that letter's popup on every layout, in the
+     * place of the digit or symbol the layout put first, and shows in the
+     * corner hint. Empty, the default, leaves every layout's own.
+     */
+    val holdSymbols: Map<String, String> = emptyMap(),
+    /**
      * Lift the letters of the typing language ahead of the digit or symbol that
      * leads a key's long-press popup: on German QWERTZ a hold on `u` gives `ü`
      * rather than `7`, and `ü` is the corner hint (discussion #382). Which
@@ -10574,6 +10581,7 @@ class SettingsRepository(private val context: Context) {
         private val SHOW_ALL_POPUP_KEYS = booleanPreferencesKey("show_all_popup_keys")
         private val NO_LETTER_ACCENTS = booleanPreferencesKey("no_letter_accents")
         private val TOP_ROW_HOLDS = stringPreferencesKey("top_row_holds")
+        private val HOLD_SYMBOLS = stringPreferencesKey("hold_symbols")
         private val NATIVE_LETTERS_FIRST = booleanPreferencesKey("native_letters_first")
         private val SHIFTED_POPUP_KEYS = booleanPreferencesKey("shifted_popup_keys")
         private val CURRENCY_KEYS = stringPreferencesKey("currency_keys")
@@ -13203,6 +13211,7 @@ class SettingsRepository(private val context: Context) {
             topRowHolds = p[TOP_ROW_HOLDS]
                 ?.let { runCatching { TopRowHolds.valueOf(it) }.getOrNull() }
                 ?: defaults.layoutBehavior.topRowHolds,
+            holdSymbols = p[HOLD_SYMBOLS]?.let(::decodeHoldSymbols) ?: defaults.layoutBehavior.holdSymbols,
             nativeLettersFirst = p[NATIVE_LETTERS_FIRST]
                 ?: defaults.layoutBehavior.nativeLettersFirst,
             shiftedPopupKeys = p[SHIFTED_POPUP_KEYS]
@@ -19103,6 +19112,12 @@ class SettingsRepository(private val context: Context) {
     suspend fun setTopRowHolds(value: TopRowHolds) =
         editPrefs { it[TOP_ROW_HOLDS] = value.name }
 
+    suspend fun setHoldSymbols(value: Map<String, String>) =
+        editPrefs { prefs ->
+            val kept = value.filter { (letter, symbol) -> letter.length == 1 && symbol.isNotBlank() }
+            if (kept.isEmpty()) prefs.remove(HOLD_SYMBOLS) else prefs[HOLD_SYMBOLS] = encodeHoldSymbols(kept)
+        }
+
     suspend fun setNativeLettersFirst(value: Boolean) =
         editPrefs { it[NATIVE_LETTERS_FIRST] = value }
 
@@ -22243,3 +22258,29 @@ private object DecodedPrefs {
         return decode(raw).also { last[name] = raw to it }
     }
 }
+
+/** [LayoutBehaviorSettings.holdSymbols] on disk: `letter<TAB>symbol` lines. */
+fun encodeHoldSymbols(map: Map<String, String>): String =
+    map.entries.sortedBy { it.key }.joinToString("\n") { (letter, symbol) -> "$letter\t${symbol.trim()}" }
+
+fun decodeHoldSymbols(text: String): Map<String, String> = text.lineSequence()
+    .mapNotNull { line ->
+        val tab = line.indexOf('\t')
+        if (tab != 1) return@mapNotNull null
+        val symbol = line.substring(tab + 1).trim()
+        if (symbol.isEmpty()) null else line.substring(0, 1).lowercase() to symbol
+    }
+    .toMap()
+
+/**
+ * The hold symbols SwiftKey's English QWERTY puts on its letters, offered as
+ * a starting point in [LayoutBehaviorSettings.holdSymbols]' editor.
+ */
+val SwiftKeyHoldSymbols: Map<String, String> = mapOf(
+    "q" to "1", "w" to "2", "e" to "3", "r" to "4", "t" to "5",
+    "y" to "6", "u" to "7", "i" to "8", "o" to "9", "p" to "0",
+    "a" to "@", "s" to "#", "d" to "&", "f" to "*", "g" to "-",
+    "h" to "+", "j" to "=", "k" to "(", "l" to ")",
+    "z" to "_", "x" to "$", "c" to "\"", "v" to "'", "b" to ":",
+    "n" to ";", "m" to "/",
+)
