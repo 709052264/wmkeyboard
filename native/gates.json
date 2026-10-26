@@ -234,11 +234,11 @@
     {
       "id": "googlehome",
       "property": "googleHome",
-      "doc": "`:feature:googlehome`: the Google Home APIs SDK, Play builds only. Every other build either compiles it in or has no Google Home at all.",
+      "doc": "`:feature:googlehome`: the Google Home APIs SDK, Play builds only. Every other build either compiles it in or has no Google Home at all. No flag: the SDK unpacked under feature/ime/libs/googlehome is the decision.",
       "play": "module",
       "google": true,
       "enabledBy": {
-        "flag": "wmkb.enableGoogleHome", "env": "WMKB_ENABLE_GOOGLE_HOME", "default": false, "buildConfig": "ENABLE_GOOGLE_HOME",
+        "buildConfig": "ENABLE_GOOGLE_HOME",
         "requiresDir": "feature/ime/libs/googlehome/m2/com/google/android/gms/play-services-home"
       }
     },
