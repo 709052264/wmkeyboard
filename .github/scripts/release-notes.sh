@@ -290,6 +290,12 @@ row "${prefix}-full-intl-mapping.txt.gz" 'R8 mapping, **all-languages build**, w
 row "${prefix}-full-en-nointernet-mapping.txt.gz" 'R8 mapping, **offline build**. Only attached when it differs from the standard build'"'"'s, which otherwise serves both'
 row "${prefix}-full-intl-nointernet-mapping.txt.gz" 'R8 mapping, **offline all-languages build**. Only attached when it differs from the all-languages one, which otherwise serves both'
 row "${prefix}-play-mapping.txt.gz" 'R8 mapping, **Play build**. The Play channel flags change what R8 renames, so this is the only one that reads a crash from a Play install'
+fdroid_map_row() { # <abi> <digit>
+  row "wmkeyboard-${version}-vc$((code * 10 + $2))-fdroid-mapping.txt.gz" "R8 mapping, **F-Droid build for $1**. F-Droid serves that same APK, so this reads a crash from an F-Droid install"
+}
+fdroid_map_row arm64-v8a 2
+fdroid_map_row armeabi-v7a 1
+fdroid_map_row x86_64 3
 row "${prefix}-full-intl-native-symbols.zip" 'Native debug symbols, **all-languages build**'
 row "${prefix}-full-en-native-symbols.zip" 'Native debug symbols, **standard build**'
 
@@ -335,7 +341,8 @@ retrace ${prefix}-full-intl-mapping.txt stacktrace.txt
 
 A crash from the Play build takes \`${prefix}-play-mapping.txt.gz\` instead:
 that build is compiled with different flags, so R8 renames it differently and
-none of the four above fit it.
+none of the four above fit it. A crash from an F-Droid install takes the
+\`-fdroid-mapping.txt.gz\` named like the F-Droid APK for its processor.
 
 Or paste the crash into a bug report and let the
 [retrace workflow](https://github.com/${repo}/blob/main/.github/workflows/retrace.yml) do all
