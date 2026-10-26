@@ -4048,6 +4048,18 @@ fun ThemeEditorScreen(
                 checked = frost.windowBlur,
             ) { on -> updateFrost { it.copy(windowBlur = on) } }
         }
+        // A phone with its blur off, or none to offer (some skins dropped the
+        // switch), never blurs the app: the glass shows the wallpaper instead,
+        // which does not change from app to app. Said here, where the switch
+        // that cannot work is (Telegram group).
+        item(visible = frost.windowBlur && !phoneBlursWindows(), level = SettingLevel.STANDARD) {
+            Text(
+                stringResource(R.string.theme_glass_window_blur_unavailable),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+            )
+        }
         item(level = SettingLevel.STANDARD) {
             SliderRow(
                 R.string.theme_glass_blur_strength_title,
@@ -6877,3 +6889,17 @@ private fun BackgroundSourceDialog(
 
 /** The photo providers a key of the user's own makes a theme's Photo services worth showing. */
 private val PHOTO_KEY_TYPES = setOf(ProviderTypes.UNSPLASH.id, ProviderTypes.PEXELS.id)
+
+/**
+ * Whether this phone blurs another window behind ours right now: Android 12 or
+ * later, with the system's cross-window blur on (battery saver and some
+ * manufacturers' builds turn it off).
+ */
+@Composable
+private fun phoneBlursWindows(): Boolean {
+    if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.S) return false
+    val context = androidx.compose.ui.platform.LocalContext.current
+    return remember(context) {
+        context.getSystemService(android.view.WindowManager::class.java)?.isCrossWindowBlurEnabled == true
+    }
+}
