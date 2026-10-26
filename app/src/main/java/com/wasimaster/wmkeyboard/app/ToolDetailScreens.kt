@@ -966,6 +966,14 @@ internal fun ToolDetailSettings(
                     default = isSouthernHemisphere(repository.deviceRegion),
                 ) { scope.launch { repository.setMoonSouthernHemisphere(it) } }
             }
+            item {
+                ToggleSetting(
+                    R.string.tooldetail_moon_arabic_title,
+                    stringResource(R.string.tooldetail_moon_arabic_subtitle),
+                    settings.watch { it.sensorTools.moonArabicNames },
+                    default = SettingsDefaults.sensorTools.moonArabicNames,
+                ) { scope.launch { repository.setMoonArabicNames(it) } }
+            }
         }
         ToolbarTool.WEATHER -> {
             SettingsGroup(

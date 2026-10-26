@@ -262,6 +262,7 @@
     <string name="ime_moon_detail_info" tools:ignore="PluralsCandidate">%1$d%% illuminated · day %2$d of 30</string>
     <!-- %1$s is a date. -->
     <string name="ime_moon_full_info">Full moon: %1$s</string>
+    <string name="ime_moon_phase_at">%1$s: %2$s</string>
     <!-- %1$s is a date. -->
     <string name="ime_moon_new_info">New moon: %1$s</string>
 

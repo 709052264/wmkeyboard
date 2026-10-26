@@ -1578,6 +1578,7 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
     toolEntry(ToolbarTool.UNDO, R.string.tooldetail_redo_ctrl_y_title, R.string.tooldetail_redo_ctrl_y_subtitle),
     toolEntry(ToolbarTool.REDO, R.string.tooldetail_redo_ctrl_y_title, R.string.tooldetail_redo_ctrl_y_subtitle),
     toolEntry(ToolbarTool.MOON_PHASE, R.string.tooldetail_moon_southern_title, R.string.tooldetail_moon_southern_subtitle),
+    toolEntry(ToolbarTool.MOON_PHASE, R.string.tooldetail_moon_arabic_title, R.string.tooldetail_moon_arabic_subtitle),
     toolEntry(ToolbarTool.WEATHER, R.string.tooldetail_weather_fahrenheit_title, R.string.tooldetail_weather_fahrenheit_subtitle),
     toolEntry(ToolbarTool.WEATHER, R.string.tooldetail_weather_auto_fetch_title, R.string.tooldetail_weather_auto_fetch_subtitle),
     // The Clock tool.

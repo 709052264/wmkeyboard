@@ -109,6 +109,8 @@
     <!-- Moon phase tool. -->
     <string name="tooldetail_moon_southern_title">Southern hemisphere</string>
     <string name="tooldetail_moon_southern_subtitle">Show the moon the way it looks south of the equator</string>
+    <string name="tooldetail_moon_arabic_title">Arabic names too</string>
+    <string name="tooldetail_moon_arabic_subtitle">Show the name of each phase in Arabic as well, under the name in your language</string>
 
     <!-- Weather tool. -->
     <string name="tooldetail_weather_fahrenheit_title">Fahrenheit</string>

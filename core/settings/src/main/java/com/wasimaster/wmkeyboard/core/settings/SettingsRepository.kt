@@ -2997,6 +2997,8 @@ data class SensorToolSettings(
      * left as it was, half the world is shown the wrong moon until it notices.
      */
     val moonSouthern: Boolean = false,
+    /** The moon panel shows each phase's Arabic name as well (#970). */
+    val moonArabicNames: Boolean = false,
 )
 
 /**
@@ -11227,6 +11229,7 @@ class SettingsRepository(private val context: Context) {
         private val LEVEL_SHOW_ANGLES = booleanPreferencesKey("level_show_angles")
         private val REDO_USES_CTRL_Y = booleanPreferencesKey("redo_uses_ctrl_y")
         private val MOON_SOUTHERN = booleanPreferencesKey("moon_southern_hemisphere")
+        private val MOON_ARABIC_NAMES = booleanPreferencesKey("moon_arabic_names")
         private val NETWORK_LOG_KEEP = booleanPreferencesKey("network_log_keep")
         private val NETWORK_LOG_ON_KEYBOARD = booleanPreferencesKey("network_log_on_keyboard")
         private val VERIFY_CHECKSUMS = booleanPreferencesKey("verify_checksums")
@@ -13593,6 +13596,7 @@ class SettingsRepository(private val context: Context) {
             compassQibla = p[COMPASS_SHOW_QIBLA] ?: defaults.sensorTools.compassQibla,
             levelAngles = p[LEVEL_SHOW_ANGLES] ?: defaults.sensorTools.levelAngles,
             moonSouthern = p[MOON_SOUTHERN] ?: isSouthernHemisphere(deviceRegion),
+            moonArabicNames = p[MOON_ARABIC_NAMES] ?: defaults.sensorTools.moonArabicNames,
         )
 
     private fun readNetworkLog(p: Preferences, defaults: KeyboardSettings) =
@@ -14881,6 +14885,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setMoonSouthernHemisphere(value: Boolean) =
         editPrefs { it[MOON_SOUTHERN] = value }
+
+    suspend fun setMoonArabicNames(value: Boolean) =
+        editPrefs { it[MOON_ARABIC_NAMES] = value }
 
     suspend fun setNetworkLogKeep(value: Boolean) =
         editPrefs { it[NETWORK_LOG_KEEP] = value }
