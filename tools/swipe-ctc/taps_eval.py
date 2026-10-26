@@ -82,7 +82,7 @@ def decode(lp, trie, beam):
                 if c == last:
                     # Repeating the same letter needs a blank between.
                     add(prefix + c, -math.inf, pb + pc, child)
-                    add(prefix, pb, pnb + pc, node)
+                    add(prefix, -math.inf, pnb + pc, node)
                 else:
                     add(prefix + c, -math.inf, total + pc, child)
         beams = dict(sorted(nxt.items(), key=lambda kv: -lse(kv[1][0], kv[1][1]))[:beam])
