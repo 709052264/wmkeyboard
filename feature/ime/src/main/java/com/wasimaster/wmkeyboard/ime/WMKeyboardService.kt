@@ -45855,7 +45855,10 @@ open class WMKeyboardService : InputMethodService() {
             TextEditAction.SELECT_ALL -> selectAllInField(ic)
             TextEditAction.COPY -> {
                 flushLearningBuffer(verifyCorrections = false)
-                if (!privateCopy(ic, cut = false)) ic.performContextMenuAction(android.R.id.copy)
+                // With nothing selected, the whole field, the way holding C
+                // does it (#970): a copy key that copies nothing is a dead key.
+                val whole = if (ic.getSelectedText(0).isNullOrEmpty()) selectWholeField(ic) else null
+                if (!privateCopy(ic, cut = false, whole)) ic.performContextMenuAction(android.R.id.copy)
                 maybeToastCopied()
                 _uiState.update { it.copy(textEditSelecting = false) }
             }
