@@ -29,14 +29,13 @@ import com.wasimaster.wmkeyboard.core.settings.Extension
 import com.wasimaster.wmkeyboard.core.settings.PersonaDepth
 import com.wasimaster.wmkeyboard.core.settings.settingsDepth
 import com.wasimaster.wmkeyboard.core.settings.PersonaLanguages
-import com.wasimaster.wmkeyboard.core.settings.PersonaPrivacy
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.util.PlayServices
 import kotlinx.coroutines.launch
 
 /**
- * The persona quiz. Three questions whose answers trim the rest of the wizard
+ * The persona quiz. Two questions whose answers trim the rest of the wizard
  * and, on a fresh run, apply a matching batch of defaults on the spot (the
  * option subtitles say exactly what). On a replay only the stored answers
  * change: re-gating pages is fine, silently rewriting settings is not.
@@ -50,9 +49,7 @@ internal fun PersonaPage(
 ) {
     val scope = rememberCoroutineScope()
     val persona = settings.watch { it.onboarding }
-    // Recomputed from the answers as a whole after each one, since the depth
-    // answer picks the set and the privacy answer adds to it — see
-    // [starterTools]. Held here so both call sites read the same device facts.
+    // Held here so every answer reads the same device facts.
     val playServices = remember { PlayServices.available }
     val applyTools: suspend (OnboardingSettings) -> Unit = { next ->
         starterTools(next, playServices, ::isSupportedTool)?.let { repository.setEnabledTools(it) }
@@ -132,34 +129,6 @@ internal fun PersonaPage(
         }
     }
 
-    OnboardingSectionTitle(stringResource(R.string.onboarding_persona_q_privacy))
-    PersonaOption(
-        title = stringResource(R.string.onboarding_persona_privacy_standard_title),
-        subtitle = stringResource(R.string.onboarding_persona_privacy_standard_subtitle),
-        selected = persona.personaPrivacy == PersonaPrivacy.STANDARD,
-    ) {
-        val answered = settings.value.onboarding
-        scope.launch {
-            repository.setPersonaPrivacy(PersonaPrivacy.STANDARD)
-            // Answered after "extra strict" and then changed back: the set
-            // still has incognito in it, so recompute rather than leave it.
-            if (!replay) applyTools(answered.copy(personaPrivacy = PersonaPrivacy.STANDARD))
-        }
-    }
-    PersonaOption(
-        title = stringResource(R.string.onboarding_persona_privacy_strict_title),
-        subtitle = stringResource(R.string.onboarding_persona_privacy_strict_subtitle),
-        selected = persona.personaPrivacy == PersonaPrivacy.STRICT,
-    ) {
-        val answered = settings.value.onboarding
-        scope.launch {
-            repository.setPersonaPrivacy(PersonaPrivacy.STRICT)
-            if (!replay) {
-                applyPresets(repository, presetsFor(PersonaPrivacy.STRICT))
-                applyTools(answered.copy(personaPrivacy = PersonaPrivacy.STRICT))
-            }
-        }
-    }
     Spacer(Modifier.height(8.dp))
 }
 
@@ -171,9 +140,6 @@ private suspend fun applyPresets(repository: SettingsRepository, writes: List<Pr
             repository.setSpaceLongSwipe(write.long)
         }
         is PresetWrite.GlobeAsEmoji -> repository.setGlobeAsEmoji(write.value)
-        is PresetWrite.LearnFromTyping -> repository.setLearnFromTyping(write.value)
-        is PresetWrite.ClipboardHistory -> repository.setClipboardHistory(write.value)
-        is PresetWrite.TypingStats -> repository.setTypingStatsEnabled(write.value)
     }
 }
 

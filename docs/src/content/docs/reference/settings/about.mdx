@@ -96,7 +96,7 @@ This only changes the words the app shows you. The languages you type in are a s
 - **The standard GitHub build** carries English and fetches every other language as a small download (about 2 MB) on Android 11 and later. It fetches your phone's language by itself a few seconds after the app first starts, and any open settings screen restarts in it, so most people never visit this row. A language you pick here, or under the phone's own per-app setting, is fetched the same way. It needs the internet once; if the download fails the app shows English and tries again the next time it starts. On Android 10 and older the standard build is English only: take the offline all-languages build, which has every language built in.
 - **The offline build** can't download a language. Picking one whose file isn't on the phone names the file to get from the release page, `wmkeyboard-<version>-vc<code>-lang-<code>.apk`, and the app stays in English until you import it under Storage, below. Android 7 to 10 can't load such a file, so there the list is English only; the offline all-languages build has every language built in. See [The offline build](/privacy/offline/#interface-languages).
 
-The setup wizard asks the same question as its very first page when your phone is somewhere English isn't the first language. See [Running the setup wizard](/start/setup/#running-the-setup-wizard).
+The setup wizard doesn't ask about this. The app starts in your phone's language, so this row is only for showing it in a different one.
 
 ## Updating the app
 
