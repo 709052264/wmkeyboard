@@ -133,7 +133,7 @@ internal class ClockController(
             ClockTextField.ALARM_LABEL ->
                 _state.update { s -> s.copy(alarmEdit = s.alarmEdit?.copy(label = entry.text.take(LABEL_MAX))) }
             ClockTextField.TIMER_LABEL -> _state.update { it.copy(timerLabel = entry.text.take(LABEL_MAX)) }
-            ClockTextField.COUNTDOWN_TITLE, ClockTextField.ZONE_LABEL -> Unit
+            ClockTextField.COUNTDOWN_TITLE, ClockTextField.ZONE_LABEL, ClockTextField.DATE -> Unit
         }
     }
 
@@ -148,9 +148,22 @@ internal class ClockController(
             ClockTextField.ALARM_LABEL, ClockTextField.TIMER_LABEL -> onText(entry)
             ClockTextField.COUNTDOWN_TITLE -> saveCountdown(entry.text)
             ClockTextField.ZONE_LABEL -> renameZone(entry.ref, entry.text)
+            ClockTextField.DATE -> typedDate(entry)
         }
         endTextIfAny()
         if (entry.field == ClockTextField.SEARCH) _state.update { it.copy(search = null) }
+    }
+
+    /**
+     * A date typed into the box (Telegram group): a birthday twenty years
+     * back was a long run of taps on the steppers. A text that is no date
+     * leaves the date as it was.
+     */
+    private fun typedDate(entry: ClockTextEntry) {
+        val field = runCatching { DateField.valueOf(entry.ref) }.getOrNull() ?: return
+        val monthFirst = java.util.Locale.getDefault().country in MONTH_FIRST_COUNTRIES
+        val day = LocalDay.parse(entry.text, monthFirst) ?: return
+        _state.update { s -> s.copy(dates = setDate(s.dates, field, day)) }
     }
 
     // ---- Actions -------------------------------------------------------
@@ -356,6 +369,7 @@ internal class ClockController(
             }
             is ClockAction.DateStep -> _state.update { s -> s.copy(dates = stepDate(s.dates, action, today(now))) }
             is ClockAction.DateToday -> _state.update { s -> s.copy(dates = setDate(s.dates, action.field, null)) }
+            is ClockAction.DateType -> startText(ClockTextEntry(ClockTextField.DATE, "", action.field.name))
             ClockAction.DatesSwap -> _state.update { s ->
                 s.copy(dates = s.dates.copy(from = s.dates.to ?: today(now), to = s.dates.from ?: today(now)))
             }
@@ -620,6 +634,9 @@ internal class ClockController(
             } ?: today
             return setDate(d, step.field, current.plusMonths(step.months).plusDays(step.days))
         }
+
+        /** Where a date is written month first: the US and the places that follow it. */
+        private val MONTH_FIRST_COUNTRIES = setOf("US", "PH", "FM", "MH", "PW", "BZ")
 
         private fun setDate(d: DatesUi, field: DateField, day: LocalDay?): DatesUi = when (field) {
             DateField.FROM -> d.copy(from = day)
