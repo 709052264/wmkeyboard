@@ -171,22 +171,17 @@ enum class Extension(
         /** Every bundle, as a set. The answer for an install that never chose. */
         val All: Set<Extension> = entries.toSet()
 
-        /**
-         * What "keep it simple" starts with: GIFs and stickers, which every
-         * keyboard has an answer to, and nothing else. Nothing here changes a
-         * keyboard default: the bundle's tools are on or off as the starter
-         * tool set left them.
-         */
-        val SimpleDefaults: Set<Extension> = setOf(STICKERS)
+        /** What "keep it simple" starts with: nothing. Every extension is a switch away. */
+        val SimpleDefaults: Set<Extension> = emptySet()
 
         /**
-         * What "a good middle" starts with: Simple plus the bundles that work
-         * the moment they are on, with no pairing, account, sensor or grant
-         * behind them. Left off: the ones that reach another device, a server
-         * or the phone's hardware, and modes, which are a system of their own.
+         * What "a good middle" starts with: the bundles that work the moment
+         * they are on, with no pairing, account, sensor or grant behind them.
+         * Left off: the ones that reach another device, a server or the
+         * phone's hardware, and modes, which are a system of their own.
          */
-        val StandardDefaults: Set<Extension> = SimpleDefaults + setOf(
-            SCANNERS, HANDWRITING, NOTES, VOCABULARY, CALCULATORS, WEB_SEARCH, CAMERA_AND_GALLERY,
+        val StandardDefaults: Set<Extension> = setOf(
+            STICKERS, SCANNERS, HANDWRITING, NOTES, VOCABULARY, CALCULATORS, WEB_SEARCH, CAMERA_AND_GALLERY,
             CALENDAR_AND_CLOCK, GENERATORS, TYPING_TEST, READ_BACK, LEARN_FROM_TEXT, FIND_REPLACE,
         )
 

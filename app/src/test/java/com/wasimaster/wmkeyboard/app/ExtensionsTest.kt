@@ -27,8 +27,8 @@ class ExtensionsTest {
     // ---- the defaults per depth ----------------------------------------------
 
     @Test
-    fun `simple starts with stickers alone and everything with all`() {
-        assertEquals(setOf(Extension.STICKERS), Extension.defaultsFor(SettingsDepth.SIMPLE))
+    fun `simple starts with nothing and everything with all`() {
+        assertEquals(emptySet<Extension>(), Extension.defaultsFor(SettingsDepth.SIMPLE))
         assertEquals(Extension.All, Extension.defaultsFor(SettingsDepth.EVERYTHING))
     }
 

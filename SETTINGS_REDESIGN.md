@@ -153,8 +153,8 @@ Smart home.
 Mechanically it is one `Extension` enum carrying the tools and routes it owns,
 and a check at the choke points: `ToolGroups` (and every picker reading it),
 `SettingsSearch`, the keyboard's toolbox and toolbar, the Advanced rows, and
-the deep-link allowlist. Depth sets the defaults: Simple starts with stickers
-alone, Standard with the bundles that work the moment they are on, Everything
+the deep-link allowlist. Depth sets the defaults: Simple starts with none,
+Standard with the bundles that work the moment they are on, Everything
 with all.
 
 ### 4. Splits and merges
