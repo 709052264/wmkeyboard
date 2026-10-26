@@ -185,7 +185,7 @@ max duration into one slider with the max as a constant.
 - Slider rows draw the slider on the title line's right when the name is
   short, which takes a 110 dp row down to 72.
 
-### 6. Previews
+### 6. Previews (withdrawn; see phase 4)
 
 A row that changes how the keyboard looks should show the change, not describe
 it. `MiniKeyboardPreview` is already live-driven; pin it under the bar on
@@ -279,7 +279,12 @@ screen the row is on. Every page has an icon, a colour and a section in
 the index; the docs pages for Typing, Key press and the Clipboard tool,
 the settings overview and `settings-links.json` follow the moves.
 
-**Phase 4:** pinned previews and the animated gesture demo.
+**Phase 4 (dropped 2026-10-26):** the pinned keyboard miniature, the looping
+gesture demo and the row glyphs were built, merged and then reverted (revert
+of merge cce4d9cd1): the owner judged them useless for the goal. A panel
+pinned under the bar spends the space phase 5 reclaimed, and an animation is
+decoration, not navigation. Section 6 above stands only as a record of what
+was tried; the keyboard test button remains the way to try a change.
 
 **Phase 5 (done 2026-10-26, uncompiled):** chrome. The path strip draws from
 the third level (`MinCrumbDepth` 2), so a second-level page is its back arrow
