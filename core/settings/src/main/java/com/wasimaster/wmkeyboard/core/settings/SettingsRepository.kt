@@ -3830,6 +3830,12 @@ data class KeyboardSettings(
      */
     val autoIncognito: Boolean = true,
     /**
+     * Apps the user has decided about, by package (#970): true, every field
+     * there is incognito; false, none is, whatever a field asks for. An app
+     * missing from the map follows [autoIncognito].
+     */
+    val incognitoApps: Map<String, Boolean> = emptyMap(),
+    /**
      * Whether Android's own backup is allowed to carry this app's data off the
      * device — to Google's servers, or to a new phone during a device-to-device
      * transfer. Off by default, and honoured by the app's backup agent rather
@@ -11424,6 +11430,7 @@ class SettingsRepository(private val context: Context) {
         private val INCOGNITO_PRIVATE_CLIPBOARD = booleanPreferencesKey("incognito_private_clipboard")
         private val INCOGNITO_PAUSES_LEARNING = booleanPreferencesKey("incognito_pauses_learning")
         private val AUTO_INCOGNITO = booleanPreferencesKey("auto_incognito")
+        private val INCOGNITO_APPS = stringSetPreferencesKey("incognito_apps")
         private val OCR_AUTO_SELECT_WORDS = booleanPreferencesKey("ocr_auto_select_words")
         private val OCR_ENGINE = stringPreferencesKey("ocr_engine")
         private val OCR_ONLINE_URL = stringPreferencesKey("ocr_online_url")
@@ -12245,6 +12252,11 @@ class SettingsRepository(private val context: Context) {
             incognitoPrivateClipboard = p[INCOGNITO_PRIVATE_CLIPBOARD] ?: defaults.incognitoPrivateClipboard,
             incognitoPausesLearning = p[INCOGNITO_PAUSES_LEARNING] ?: defaults.incognitoPausesLearning,
             autoIncognito = p[AUTO_INCOGNITO] ?: defaults.autoIncognito,
+            // "1:com.example" is always incognito, "0:com.example" never.
+            incognitoApps = p[INCOGNITO_APPS]?.mapNotNull { entry ->
+                val pkg = entry.substringAfter(':', "")
+                if (pkg.isEmpty()) null else pkg to entry.startsWith("1:")
+            }?.toMap() ?: defaults.incognitoApps,
             cloudBackup = p[CloudBackup.KEY] ?: defaults.cloudBackup,
             currencyDecimals = p[CURRENCY_DECIMALS] ?: defaults.currencyDecimals,
             currencyLabel = p[CURRENCY_LABEL]
@@ -15521,6 +15533,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAutoIncognito(value: Boolean) =
         editPrefs { it[AUTO_INCOGNITO] = value }
+
+    /** Decides incognito for every field of [pkg]: on, off, or null to follow the fields again. */
+    suspend fun setIncognitoApp(pkg: String, incognito: Boolean?) = editPrefs { prefs ->
+        val kept = prefs[INCOGNITO_APPS].orEmpty().filterNot { it.substringAfter(':', "") == pkg }.toSet()
+        prefs[INCOGNITO_APPS] = if (incognito == null) kept else kept + "${if (incognito) 1 else 0}:$pkg"
+    }
 
     suspend fun setCloudBackup(value: Boolean) =
         editPrefs { it[CloudBackup.KEY] = value }

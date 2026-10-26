@@ -192,6 +192,7 @@ internal fun PrivacySettings(
             ) { scope.launch { repository.setAutoIncognito(it) } }
         }
     }
+    IncognitoAppsGroup(repository, settings)
     SettingsGroup(stringResource(R.string.privacy_backup_group_title)) {
         item(level = SettingLevel.STANDARD) {
             ToggleSetting(

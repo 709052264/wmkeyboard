@@ -3772,8 +3772,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun clipCapturePaused(state: KeyboardUiState): Boolean {
         val field = currentInputEditorInfo?.takeIf { currentInputStarted }
-        val incognito = state.settings.incognito ||
-            (state.settings.autoIncognito && field.requestsNoPersonalizedLearning())
+        val incognito = state.settings.incognito || fieldWantsIncognito(state.settings, field)
         return (incognito && state.settings.incognitoPausesClipboard) || field.isSecureField()
     }
 
@@ -3790,8 +3789,7 @@ open class WMKeyboardService : InputMethodService() {
         if (state.settings.clipboard.sensitiveHandling != SensitiveClipHandling.SHORT_LIVED) return false
         val field = currentInputEditorInfo?.takeIf { currentInputStarted }
         if (!field.isSecureField()) return false
-        val incognito = state.settings.incognito ||
-            (state.settings.autoIncognito && field.requestsNoPersonalizedLearning())
+        val incognito = state.settings.incognito || fieldWantsIncognito(state.settings, field)
         return !(incognito && state.settings.incognitoPausesClipboard)
     }
 
@@ -7511,8 +7509,7 @@ open class WMKeyboardService : InputMethodService() {
         // summoned keyboard, the round trip through another keyboard) left
         // the last private tab's badge standing on the bar until some other
         // field brought the keys up (#665). Same answer startInputView gives.
-        val fieldIncognito = (baseSettings ?: _uiState.value.settings).autoIncognito &&
-            attribute.requestsNoPersonalizedLearning()
+        val fieldIncognito = fieldWantsIncognito(baseSettings ?: _uiState.value.settings, attribute)
         if (_uiState.value.fieldIncognito != fieldIncognito) {
             // Which app and flag turned the badge on, for the next report
             // of one nobody asked for (#665).
@@ -7841,8 +7838,7 @@ open class WMKeyboardService : InputMethodService() {
         // can't quietly switch either of them off.
         val fieldSettings = base ?: _uiState.value.settings
         // Incognito the field asked for, e.g. a Chrome incognito tab.
-        val fieldIncognito = fieldSettings.autoIncognito &&
-            info.requestsNoPersonalizedLearning()
+        val fieldIncognito = fieldWantsIncognito(fieldSettings, info)
         val fieldNoSuggestions =
             info.suppressesSuggestions(fieldSettings.suggestionSources.inAllFields)
         val activeMode = base?.let {
@@ -8706,8 +8702,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun incognitoForAutofillRequest(): Boolean {
         val settings = _uiState.value.settings
-        return settings.incognito ||
-            (settings.autoIncognito && currentInputEditorInfo.requestsNoPersonalizedLearning())
+        return settings.incognito || fieldWantsIncognito(settings, currentInputEditorInfo)
     }
 
     /**
@@ -45033,7 +45028,7 @@ open class WMKeyboardService : InputMethodService() {
     private fun findHistoryPaused(): Boolean {
         val field = currentInputEditorInfo?.takeIf { currentInputStarted }
         val settings = _uiState.value.settings
-        return settings.incognito || (settings.autoIncognito && field.requestsNoPersonalizedLearning()) ||
+        return settings.incognito || fieldWantsIncognito(settings, field) ||
             field.isSecureField()
     }
 
@@ -53489,6 +53484,17 @@ open class WMKeyboardService : InputMethodService() {
                 "right" -> KeyboardAlignment.RIGHT
                 else -> null
             }
+        }
+
+        /**
+         * Whether the field [info] makes incognito by itself: the user's word
+         * for its app first (#970), else the field's own request while Follow
+         * private browsing is on. The Incognito switch itself is not part of
+         * this; callers add it.
+         */
+        private fun fieldWantsIncognito(settings: KeyboardSettings, info: EditorInfo?): Boolean {
+            info?.packageName?.let { pkg -> settings.incognitoApps[pkg]?.let { return it } }
+            return settings.autoIncognito && info.requestsNoPersonalizedLearning()
         }
 
         private fun EditorInfo?.requestsNoPersonalizedLearning(): Boolean {

@@ -2370,9 +2370,9 @@ internal fun ModeIconPickerDialog(
         },
     )
 }
-/** Picks one installed app (launcher activities) for a mode binding. */
+/** Picks one installed app (launcher activities): a mode binding, an incognito app. */
 @Composable
-private fun AppPickerDialog(
+internal fun AppPickerDialog(
     exclude: List<String>,
     onPick: (String) -> Unit,
     onDismiss: () -> Unit,
