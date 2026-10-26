@@ -1223,7 +1223,18 @@ enum class SpaceSwipeAction {
  * mode, when the active language has more than one enabled layout the layout
  * name is appended anyway, so those layouts stay distinguishable.
  */
-enum class SpacebarDisplay { LANGUAGE, LAYOUT, BOTH }
+enum class SpacebarDisplay {
+    LANGUAGE,
+    LAYOUT,
+    BOTH,
+
+    /**
+     * A blank spacebar (Telegram group). Only the spacebar's own text: the
+     * language picker and the switch overlay, which read this same setting,
+     * still name each language.
+     */
+    NONE,
+}
 
 /**
  * The shape of the language picker: the tappable chooser a spacebar hold or a

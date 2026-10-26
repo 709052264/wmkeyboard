@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.app
 
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AccountTree
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SpaceBar
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CenterFocusStrong
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckCircle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Flag
@@ -361,6 +362,7 @@ internal object ChoiceOptionIcons {
         put(SpacebarDisplay.LANGUAGE) { Icons.Outlined.Language }
         put(SpacebarDisplay.LAYOUT) { Icons.Outlined.Keyboard }
         put(SpacebarDisplay.BOTH) { Icons.Outlined.AllInclusive }
+        put(SpacebarDisplay.NONE) { Icons.Outlined.SpaceBar }
 
         put(LanguagePickerStyle.LIST) { Icons.AutoMirrored.Outlined.ViewList }
         put(LanguagePickerStyle.CAROUSEL) { Icons.Outlined.ViewCarousel }

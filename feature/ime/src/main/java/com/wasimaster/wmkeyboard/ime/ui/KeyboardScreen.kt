@@ -16867,6 +16867,7 @@ private fun spacebarArrowsShown(state: KeyboardUiState): Boolean {
     val swipeSwitchesLanguage = state.settings.spaceShortSwipe == SpaceSwipeAction.LANGUAGE ||
         state.settings.spaceLongSwipe == SpaceSwipeAction.LANGUAGE
     return state.settings.spacebarLanguageArrows &&
+        state.settings.layoutBehavior.spacebarDisplay != SpacebarDisplay.NONE &&
         swipeSwitchesLanguage &&
         state.settings.switchLayoutIds().size > 1
 }
@@ -26811,6 +26812,9 @@ private val NoFontPadding = TextStyle(
  * both read the same.
  */
 internal fun spacebarText(state: KeyboardUiState): String {
+    if (state.settings.layoutBehavior.spacebarDisplay == SpacebarDisplay.NONE) {
+        return state.settings.spacebarLabel.replace("%s", "").trim()
+    }
     val name = layoutSwitchLabel(
         state.layoutId,
         state.settings.enabledLayoutIds,

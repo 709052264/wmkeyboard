@@ -2830,6 +2830,8 @@ internal fun TypingSpacebarSettings(
                         stringResource(R.string.typing_spacebar_display_layout_label),
                     SpacebarDisplay.BOTH to
                         stringResource(R.string.typing_spacebar_display_both_label),
+                    SpacebarDisplay.NONE to
+                        stringResource(R.string.typing_spacebar_display_none_label),
                 ),
                 selected = settings.watch { it.layoutBehavior.spacebarDisplay },
                 default = SettingsDefaults.layoutBehavior.spacebarDisplay,
