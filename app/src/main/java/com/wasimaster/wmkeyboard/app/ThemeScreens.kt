@@ -1363,7 +1363,7 @@ fun ThemesScreen(
                 selected = settings.watch { it.themeMode },
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 label = stringResource(R.string.theme_mode_choice_label),
-                detail = { mode -> ChoiceDetail(stringResource(themeModeDescRes(mode)), ChoiceOptionIcons[mode]) },
+                detail = { mode -> ChoiceDetail(stringResource(themeModeDescRes(mode))) },
             ) { mode -> scope.launch { repository.setThemeMode(mode) } }
         }
         item {

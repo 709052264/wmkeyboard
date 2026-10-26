@@ -119,9 +119,6 @@ internal fun AppearanceSettings(
     onNavigate: (String) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    // The live keyboard under the bar (SETTINGS_REDESIGN.md §6): the rows
-    // below move it, so a change is seen rather than read.
-    RegisterPinned { PinnedKeyboardPreview(settings, PreviewFocus.KEYS) }
     // Slider readouts are plain lambdas, so their format strings are resolved
     // here and captured. The format also puts the number through the locale,
     // which is what gives Bengali or Arabic digits.
@@ -153,7 +150,6 @@ internal fun AppearanceSettings(
                     com.wasimaster.wmkeyboard.core.theme.themeName(selected)
                 },
                 route = "themes",
-                trailing = { ThemeSwatchStrip(settings) },
                 onClick = onOpenThemes,
             )
         }
@@ -167,7 +163,6 @@ internal fun AppearanceSettings(
                     settings.watch { it.customFontName },
                 ),
                 route = "fonts",
-                trailing = { FontSample(settings) },
                 onClick = onOpenFonts,
             )
         }
@@ -376,7 +371,7 @@ internal fun AppearanceToolbarSettings(
                             stringResource(R.string.appearance_toolbar_placement_always_label),
                     ),
                     selected = placement,
-                    detail = { placement -> ChoiceDetail(stringResource(toolbarPlacementDescRes(placement)), ChoiceOptionIcons[placement]) },
+                    detail = { placement -> ChoiceDetail(stringResource(toolbarPlacementDescRes(placement))) },
                     onChange = { scope.launch { repository.setToolbarPlacement(it) } },
                     default = SettingsDefaults.toolbarBehavior.placement,
                 )
@@ -687,7 +682,6 @@ internal fun AppearanceToolboxSettings(
                 ),
                 selected = toolboxLayout,
                 info = stringResource(R.string.appearance_toolbox_layout_info),
-                detail = { layout -> ChoiceDetail(icon = ChoiceOptionIcons[layout]) },
                 default = SettingsDefaults.toolbox.layout,
             ) { scope.launch { repository.setToolboxLayout(it) } }
         }
@@ -1038,7 +1032,7 @@ internal fun LayoutSettings(
                 options = NumeralCommitScope.entries.map { it to stringResource(it.labelRes) },
                 selected = settings.watch { it.layoutBehavior.numeralCommitScope },
                 default = SettingsDefaults.layoutBehavior.numeralCommitScope,
-                detail = { numeralScope -> ChoiceDetail(stringResource(numeralScopeDescRes(numeralScope)), ChoiceOptionIcons[numeralScope]) },
+                detail = { numeralScope -> ChoiceDetail(stringResource(numeralScopeDescRes(numeralScope))) },
             ) { scope.launch { repository.setNumeralCommitScope(it) } }
         }
     }
@@ -1224,9 +1218,6 @@ internal fun LayoutSizeSettings(
     settings: LiveSettings,
 ) {
     val scope = rememberCoroutineScope()
-    // The live keyboard under the bar (SETTINGS_REDESIGN.md §6): the rows
-    // below move it, so a change is seen rather than read.
-    RegisterPinned { PinnedKeyboardPreview(settings, PreviewFocus.SIZE) }
     val dpFormat = stringResource(R.string.typing_value_dp)
     val percentFormat = stringResource(R.string.typing_value_percent)
     val multiplierFormat = stringResource(R.string.keypress_value_multiplier)
@@ -1775,7 +1766,6 @@ internal fun LayoutOneHandedSettings(
                     },
                     selected = settings.watch { it.oneHanded.forLandscape(landscape).side },
                     default = SettingsDefaults.oneHanded.forLandscape(landscape).side,
-                    detail = { side -> ChoiceDetail(icon = ChoiceOptionIcons[side]) },
                 ) { scope.launch { repository.setOneHandedSide(landscape, it) } }
             }
         }
