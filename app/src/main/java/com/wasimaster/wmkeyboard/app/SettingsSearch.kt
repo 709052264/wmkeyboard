@@ -2022,6 +2022,7 @@ private fun SearchStrings.galleryRows(): List<SettingsSearchEntry> {
         row(R.string.gallery_start_expanded_title, R.string.gallery_start_expanded_subtitle, gridOnly = true),
         row(R.string.gallery_remember_album_title, R.string.gallery_remember_album_subtitle, gridOnly = true),
         row(R.string.gallery_haptics_title, R.string.gallery_haptics_subtitle, gridOnly = true),
+        row(R.string.gallery_folders_title, R.string.gallery_folders_subtitle, gridOnly = true),
         row(R.string.gallery_quality_title, R.string.gallery_quality_subtitle),
         row(R.string.gallery_max_selection_title, R.string.gallery_max_selection_subtitle),
         row(R.string.gallery_caption_title, R.string.gallery_caption_subtitle, gridOnly = true),

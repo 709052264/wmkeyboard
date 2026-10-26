@@ -274,7 +274,10 @@ internal class GalleryController(
         }
         indexJob = scope.launch {
             val photos = withContext(Dispatchers.IO) {
-                GalleryStore.page(app, GalleryAlbum.Recents, GalleryFilter.PHOTOS, 0, INDEX_LIMIT, false, emptyList())
+                GalleryStore.page(
+                    app, GalleryAlbum.Recents, GalleryFilter.PHOTOS, 0, INDEX_LIMIT, false, emptyList(),
+                    host.settings.hiddenFolders,
+                )
             }
             host.indexPhotos(photos)
         }
@@ -358,7 +361,8 @@ internal class GalleryController(
         albumsJob = scope.launch {
             val videos = host.settings.showVideos
             val sent = withContext(Dispatchers.IO) { sentIds() }
-            val albums = withContext(Dispatchers.IO) { GalleryStore.albums(app, videos, sent) }
+            val hidden = host.settings.hiddenFolders
+            val albums = withContext(Dispatchers.IO) { GalleryStore.albums(app, videos, sent, hidden) }
             val remembered = host.settings.lastAlbum
             _state.update { s ->
                 val current = if (restore && host.settings.rememberAlbum && remembered.isNotEmpty()) {
@@ -388,7 +392,7 @@ internal class GalleryController(
             val videos = host.settings.showVideos
             val sent = if (album.kind == AlbumKind.SENT) withContext(Dispatchers.IO) { sentIds() } else emptyList()
             val page = withContext(Dispatchers.IO) {
-                GalleryStore.page(app, album, filter, offset, limit, videos, sent)
+                GalleryStore.page(app, album, filter, offset, limit, videos, sent, host.settings.hiddenFolders)
             }
             _state.update {
                 if (it.album.key != album.key || it.filter != filter || it.search?.showing == true) return@update it
