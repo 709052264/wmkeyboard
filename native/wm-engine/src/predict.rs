@@ -121,7 +121,7 @@ pub enum SlipFixes {
 /// A tap per typed character, in key widths, `None` where unknown.
 pub type Taps = Vec<Option<(f32, f32)>>;
 
-pub use crate::rerank::{LM_CAP, LM_WEIGHT};
+pub use crate::rerank::{LM_BLEND, LM_BLEND_CAP, LM_CAP, LM_WEIGHT};
 /// The least likely a next word may be, in log-probability, for the model
 /// to offer it on an empty buffer.
 pub const LM_NEXT_WORD_FLOOR: f32 = -8.0;
@@ -734,11 +734,16 @@ impl Default for Predictor {
             slip_fixes: SlipFixes::Careful,
             lm: None,
             lm_prefix: LmPrefix::default(),
-            lm_weight: LM_WEIGHT,
+            // The rank-unit term is off: measured 2026-10-26 (typing harness,
+            // 1,200 careful/fast/sloppy words), the score-space blend below at
+            // 0.2 / 1.0 beat it on every profile (+0.8, +0.4, +1.8 points of
+            // strip top-1 over the rank term at 0.25 / 1.5) and the two
+            // together lost to the blend alone.
+            lm_weight: 0.0,
             lm_cap: LM_CAP,
             lm_next_words: true,
-            lm_blend: 0.0,
-            lm_blend_cap: 1.0,
+            lm_blend: LM_BLEND,
+            lm_blend_cap: LM_BLEND_CAP,
             confidence: None,
             last_case: RefCell::new(None),
             taps: RefCell::new(Vec::new()),

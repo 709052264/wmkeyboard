@@ -371,6 +371,14 @@ class SuggestionEngine(
     private var contextField: ContextField = ContextField.OTHER
 
     /**
+     * This user's record with the model ([ContextAdapter]), which scales the
+     * model's say in [suggest] and is told where it disagreed with the engine.
+     * Null keeps the shipped weight and records nothing.
+     */
+    @Volatile
+    var contextAdapter: ContextAdapter? = null
+
+    /**
      * Whether [decideCorrection] judges a fix by the learned gate
      * ([Confidence]) rather than the margin rule. From the user's setting.
      */
@@ -2577,6 +2585,17 @@ class SuggestionEngine(
         const val PHRASE_WORDS = 3
 
         /**
+         * The context model's weight in [blendContextModel], engine nats per
+         * nat of its preference over the leader, and the most it may move a
+         * candidate: `rerank.rs`'s `LM_BLEND` and `LM_BLEND_CAP`, number for
+         * number. The engine's unit is the compressed frequency scale, so one
+         * of its nats is worth several of the model's; 0.2 and 1.0 won the
+         * 2026-10-26 sweep on the typing harness.
+         */
+        const val LM_BLEND = 0.2
+        const val LM_BLEND_CAP = 1.0
+
+        /**
          * How deep a glide decodes before reranking. Deeper than the four
          * candidates the strip shows, so context has something to reorder —
          * a swipe's right answer is regularly the decoder's second or third
@@ -2843,6 +2862,16 @@ class SuggestionEngine(
             }
         }
 
+        // The context model, in score space: every candidate it knows moves
+        // by its preference over the engine's current leader, [LM_BLEND]
+        // engine nats per nat and at most [LM_BLEND_CAP], so a "by" the keys
+        // explain as well as "buy" gives way after "want to" while a
+        // far-fetched word the model likes cannot climb over the keys'
+        // evidence. Silent when the leader is a word the model does not know.
+        // Measured against the rank-unit term the reranker could carry
+        // instead, this won on every typing profile (rerank.rs, LM_BLEND).
+        if (!ambiguous) blendContextModel(merged)
+
         // Context re-rank: a candidate the user has typed after [previousWord]
         // before (or that the seed pairs know as a follower) gets a bounded
         // log-space boost. Completions historically ignored context entirely;
@@ -2943,6 +2972,32 @@ class SuggestionEngine(
             // re-cased to follow what they have typed so far — the typed
             // pattern still wins, so a deliberate "BOSTON" is not undone.
             .map { if (it.contains('@')) it else matchCase(composing, displayForm(it)) }
+    }
+
+    /** The context model's score-space shift on [merged]; see [suggest]. */
+    private fun blendContextModel(merged: HashMap<String, Double>) {
+        val model = contextModel ?: return
+        if (merged.size < 2) return
+        val words = merged.keys.toList()
+        val leader = words.maxByOrNull { merged.getValue(it) } ?: return
+        val scores = model.scores(words.map { it.lowercase() })
+        val reference = scores[words.indexOf(leader)]
+        if (reference.isNaN()) return
+        var best = -1
+        for (i in scores.indices) {
+            if (!scores[i].isNaN() && (best < 0 || scores[i] > scores[best])) best = i
+        }
+        val adapter = contextAdapter
+        if (adapter != null) {
+            adapter.disagreement = if (best >= 0 && words[best] != leader) words[best] to leader else null
+        }
+        val weight = LM_BLEND * (adapter?.weightFactor() ?: 1.0)
+        for (i in words.indices) {
+            val lp = scores[i]
+            if (lp.isNaN()) continue
+            val shift = (weight * (lp - reference)).coerceIn(-LM_BLEND_CAP, LM_BLEND_CAP)
+            if (shift != 0.0) merged[words[i]] = merged.getValue(words[i]) + shift
+        }
     }
 
     /** Adds each candidate's [rankOffsets] shift to its score in place. */

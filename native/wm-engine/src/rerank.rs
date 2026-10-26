@@ -45,6 +45,14 @@ const CAP_SKIP_PACK: f64 = 0.8;
 /// model earns more.
 pub const LM_WEIGHT: f64 = 0.25;
 pub const LM_CAP: f64 = 1.5;
+/// The model's say in score space instead, before ranking (the engine's
+/// `suggest`): engine nats per nat of its preference over the leader, and
+/// the most it may move a candidate. The engine's unit is the compressed
+/// frequency scale, so one of its nats is worth several of the model's; 0.2
+/// and 1.0 won the 2026-10-26 sweep (0.05, 0.1, 0.2; caps 0.5, 1.0) on the
+/// typing harness, and the rank-unit term above stays off beside it.
+pub const LM_BLEND: f64 = 0.2;
+pub const LM_BLEND_CAP: f64 = 1.0;
 
 /// A word as both stores look it up: its key for the lexicon, and the
 /// UTF-8 bytes of that key as the packs compare them (Kotlin's

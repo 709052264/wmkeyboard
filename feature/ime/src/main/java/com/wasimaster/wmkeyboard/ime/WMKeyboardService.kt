@@ -5437,6 +5437,7 @@ open class WMKeyboardService : InputMethodService() {
         sandboxOfferPolicy = null
         correctionStats = CorrectionStats(store("learning/correction_stats.json"))
         contextAdapter = ContextAdapter(store(ContextAdapter.FILE_NAME))
+        suggestionEngine?.contextAdapter = contextAdapter
         // The swapped-in store starts on the default level; carry the user's
         // setting across, or it stays at NORMAL until the next settings emit.
         correctionStats.memory = _uiState.value.settings.correction.undoMemory
@@ -5762,8 +5763,6 @@ open class WMKeyboardService : InputMethodService() {
                         suggestionEngine?.dictionary?.frequencyOf(word) ?: 0
                     },
                     ngramPack = { suggestionEngine?.ngramPack ?: NgramPack.EMPTY },
-                    contextModel = { suggestionEngine?.contextModel },
-                    adapter = { contextAdapter },
                 )
                 revisionAdvisor = RevisionAdvisor(
                     userLexicon,
@@ -5771,6 +5770,7 @@ open class WMKeyboardService : InputMethodService() {
                     ngramPack = { suggestionEngine?.ngramPack ?: NgramPack.EMPTY },
                 )
                 learnedGate = _uiState.value.settings.correction.learnedGate
+                contextAdapter = this@WMKeyboardService.contextAdapter
                 reranker = resolveReranker(_uiState.value.settings)
             }
             refreshContextModel()
