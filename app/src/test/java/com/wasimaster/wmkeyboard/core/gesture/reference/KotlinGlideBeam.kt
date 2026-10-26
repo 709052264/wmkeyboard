@@ -779,12 +779,9 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
             totalPx += distance(path[i - 1], path[i])
         }
         if (totalPx / keyWidth < MIN_STROKE_LENGTH) return false
-        // A long stroke gets finer samples; see KotlinGlideWorkspace.SAMPLE_POINTS.
-        val n = if (totalPx / keyWidth >= KotlinGlideWorkspace.LONG_STROKE) {
-            KotlinGlideWorkspace.SAMPLE_POINTS
-        } else {
-            KotlinGlideWorkspace.SHORT_SAMPLES
-        }
+        // A long stroke gets finer samples, the longer the finer; see
+        // KotlinGlideWorkspace.samplesFor.
+        val n = KotlinGlideWorkspace.samplesFor(totalPx / keyWidth)
         ws.samples = n
 
         val step = totalPx / (n - 1)
@@ -1643,7 +1640,12 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
          * a reading of a gesture.
          */
         private const val MIN_LOOKAHEAD_PREFIX = 3
-        private const val MAX_WORD_LENGTH = 24
+
+        /**
+         * Letters the walk spells at most. 24 until issue #966, which left a
+         * 26-letter compound unreadable; `wm-engine`'s `MAX_WORD_LENGTH`.
+         */
+        private const val MAX_WORD_LENGTH = 32
 
         /** Below this spread a path is a dot, and dividing by its size is noise. */
         private const val MIN_SHAPE_SPREAD = 1e-4f

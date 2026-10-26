@@ -1,13 +1,43 @@
 //! `GlideWorkspace`: the decoder's pooled state, per thread. The heap is
 //! the Kotlin one's, so states of equal bound pop in the same order.
 
-pub const SAMPLE_POINTS: usize = 64;
+/// The most samples a stroke is resampled to, and what every per-sample
+/// array holds. See [`samples_for`].
+pub const SAMPLE_POINTS: usize = 96;
 pub const SHORT_SAMPLES: usize = 48;
 /// Strokes at least this long, in key widths, get the finer sampling.
 pub const LONG_STROKE: f32 = 40.0;
+/// Samples a stroke of exactly `LONG_STROKE` gets.
+pub const LONG_SAMPLES: usize = 64;
+/// A letter's worth of stroke, in key widths: the mean key-to-key step over
+/// the English list, drawn centre to centre, is 2.95.
+pub const LETTER_ARC: f32 = 3.0;
+/// Samples each `LETTER_ARC` past `LONG_STROKE` adds.
+pub const SAMPLES_PER_LETTER: usize = 2;
 pub const SHAPE_POINTS: usize = 48;
+
+/// `KotlinGlideWorkspace.samplesFor`: how many samples a stroke of `arc`
+/// key widths is resampled to. `SHORT_SAMPLES` under `LONG_STROKE`,
+/// `LONG_SAMPLES` at it, and `SAMPLES_PER_LETTER` more for every
+/// `LETTER_ARC` beyond, up to `SAMPLE_POINTS` (issue #966 §5.3). The
+/// letter count is read off the arc because the stroke is resampled before
+/// any word is known; the arc predicts it well (r = 0.93 on the issue's
+/// real strokes). Every stroke under `LONG_STROKE` is sampled exactly as it
+/// was before the scaling, and so is one at it, so the eval floors on
+/// strokes of up to fourteen letters stand.
+pub fn samples_for(arc: f32) -> usize {
+    if arc < LONG_STROKE {
+        SHORT_SAMPLES
+    } else {
+        let letters = ((arc - LONG_STROKE) / LETTER_ARC) as usize;
+        (LONG_SAMPLES + SAMPLES_PER_LETTER * letters).min(SAMPLE_POINTS)
+    }
+}
 pub const MAX_STATES: usize = 8192;
-pub const MAX_IDEAL_POINTS: usize = 32;
+/// Longest key sequence a candidate's ideal path can have: a word of
+/// `MAX_WORD_LENGTH` letters visits at most that many keys, plus the two
+/// anchor leads the shape channel adds.
+pub const MAX_IDEAL_POINTS: usize = 34;
 pub const UNREACHABLE: f32 = f32::MAX / 4.0;
 pub const NO_LABEL: u16 = 0;
 

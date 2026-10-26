@@ -23,7 +23,7 @@ use crate::strict_math;
 use keymap::KeyMap;
 use loops::{is_joiner, is_non_word, LoopScan};
 use std::collections::HashMap;
-use workspace::{Workspace, MAX_IDEAL_POINTS, NO_LABEL, SAMPLE_POINTS, SHAPE_POINTS, SHORT_SAMPLES, UNREACHABLE};
+use workspace::{Workspace, MAX_IDEAL_POINTS, NO_LABEL, SAMPLE_POINTS, SHAPE_POINTS, UNREACHABLE};
 
 /// A touch point in pixels, with its time in milliseconds.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -210,7 +210,10 @@ const MIN_STROKE_LENGTH: f32 = 0.5;
 const MIN_SAMPLES: usize = 3;
 const MIN_WORD_LENGTH: i32 = 2;
 const MIN_LOOKAHEAD_PREFIX: i32 = 3;
-const MAX_WORD_LENGTH: i32 = 24;
+/// Letters the walk spells at most. 24 until issue #966: a 26-letter
+/// compound ("Qualitätsmanagementsystem") could not be read at all.
+/// `MAX_IDEAL_POINTS` follows it.
+pub const MAX_WORD_LENGTH: i32 = 32;
 const MIN_SHAPE_SPREAD: f32 = 1e-4;
 const SHAPE_BYTE_LIMIT: i32 = 127;
 const DWELL_RADIUS: f32 = 0.8;
@@ -978,7 +981,7 @@ impl Decoder {
         if total_px / key_width < MIN_STROKE_LENGTH {
             return false;
         }
-        let n = if total_px / key_width >= workspace::LONG_STROKE { SAMPLE_POINTS } else { SHORT_SAMPLES };
+        let n = workspace::samples_for(total_px / key_width);
         self.ws.samples = n;
         let step = total_px / (n - 1) as f32;
         self.ws.arc_step = step / key_width;
