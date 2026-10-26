@@ -1211,6 +1211,19 @@ internal fun BackupSettings(
                                     ),
                                 )
                             }
+                            // What the file leaves out, so a restore that
+                            // brings back no clipboard says so before it runs:
+                            // each kind of backup keeps its own list of parts.
+                            val missing = ConfigBackup.Section.entries.filter { it !in counts.keys }
+                            if (missing.isNotEmpty()) {
+                                append("\n\n")
+                                append(
+                                    context.getString(
+                                        R.string.backup_import_missing,
+                                        missing.joinToString { sectionLabelLowercase(context, it) },
+                                    ),
+                                )
+                            }
                             append("\n\n")
                             append(context.getString(R.string.backup_import_merge_note))
                             if (hasSecrets) {
