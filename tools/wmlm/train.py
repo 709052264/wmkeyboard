@@ -135,7 +135,8 @@ def main():
     data_dir, out = sys.argv[1:3]
     o = opts(sys.argv[3:])
     os.makedirs(out, exist_ok=True)
-    dev = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+    dev = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
+    print("device", dev, flush=True)
     torch.manual_seed(o["seed"])
     gen = torch.Generator().manual_seed(o["seed"])
     vocab = sum(1 for _ in open(os.path.join(data_dir, "vocab.txt"), encoding="utf-8"))

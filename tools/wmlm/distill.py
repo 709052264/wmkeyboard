@@ -70,7 +70,7 @@ def main():
 
     dev = o["device"]
     if dev == "auto":
-        dev = "mps" if torch.backends.mps.is_available() else "cpu"
+        dev = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
     dev = torch.device(dev)
     vocab = [line.rstrip("\n") for line in open(os.path.join(data_dir, "vocab.txt"), encoding="utf-8")]
     z = np.load(os.path.join(data_dir, "train.npz"))

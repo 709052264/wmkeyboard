@@ -18,7 +18,7 @@ and `smart/autocorrect.mdx` under "The learned gate".
 | `corpus.py` | sentences out of Tatoeba and Leipzig archives, labelled with register and field |
 | `banglish.py` | romanised Bengali sentences out of a Leipzig Bengali corpus, with chat spellings from the spelling map |
 | `prep.py` | vocabulary and token arrays, plus the held-out sentences as text; `pieces=N` reserves N slots for subword pieces so words outside the vocabulary are spelled rather than `<unk>` |
-| `model.py`, `train.py` | the model and its training loop (MPS or CPU); `distill=` adds a teacher's soft targets to the loss |
+| `model.py`, `train.py` | the model and its training loop (CUDA, MPS or CPU); `distill=` adds a teacher's soft targets to the loss |
 | `distill.py` | runs a large causal LM (Qwen2.5-0.5B by default, through `transformers`) over a sample of the training sentences and writes its top-k next-word distribution mapped onto the student's vocabulary |
 | `export.py` | a checkpoint as a `.wmlm` |
 | `check.py` | PyTorch's answers for one context, to compare with `cargo run --example lm_probe` |
