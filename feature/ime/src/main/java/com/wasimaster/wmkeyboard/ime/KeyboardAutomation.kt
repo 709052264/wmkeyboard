@@ -119,6 +119,9 @@ object KeyboardAutomation {
     /** Keep the keyboard on screen ([EXTRA_ENABLED] true) or stop. */
     const val ACTION_SET_PINNED = PREFIX + "SET_PINNED"
 
+    /** The floating button on ([EXTRA_ENABLED] true) or off; toggles without it. */
+    const val ACTION_SET_FLOATING_BUTTON = PREFIX + "SET_FLOATING_BUTTON"
+
     /** Key sound on or off. */
     const val ACTION_SET_KEY_SOUND = PREFIX + "SET_KEY_SOUND"
 
@@ -208,6 +211,7 @@ object KeyboardAutomation {
         ACTION_SET_THEME to AutomationPermission.THEME,
         ACTION_SHOW_KEYBOARD to AutomationPermission.SHOW_PIN,
         ACTION_SET_PINNED to AutomationPermission.SHOW_PIN,
+        ACTION_SET_FLOATING_BUTTON to AutomationPermission.SHOW_PIN,
         ACTION_SET_KEY_SOUND to AutomationPermission.FEEDBACK,
         ACTION_SET_HAPTICS to AutomationPermission.FEEDBACK,
         ACTION_SET_POWER_SAVING to AutomationPermission.SAVERS,
@@ -536,6 +540,14 @@ class KeyboardAutomationReceiver : BroadcastReceiver() {
             KeyboardAutomation.ACTION_SET_PINNED -> {
                 val on = switchTo(intent, settings.persistentKeyboard)
                 if (host != null) host.setPinned(on) else repository.setPersistentKeyboard(on)
+                ok(onOff(on))
+            }
+            KeyboardAutomation.ACTION_SET_FLOATING_BUTTON -> {
+                // Telegram group: the floating button from another app. The
+                // overlay grant is still the user's to give; without it the
+                // switch is set and the button waits for it.
+                val on = switchTo(intent, settings.summonButton.enabled)
+                repository.setSummonButton(on)
                 ok(onOff(on))
             }
             KeyboardAutomation.ACTION_SET_KEY_SOUND -> {
