@@ -637,6 +637,7 @@ internal fun EmojiPanelSettings(
                     EmojiTabMode.RECENTS to stringResource(R.string.langemoji_emoji_recent_label),
                     EmojiTabMode.MOST_USED to
                         stringResource(R.string.langemoji_emoji_most_used_label),
+                    EmojiTabMode.BOTH to stringResource(R.string.langemoji_emoji_both_label),
                     EmojiTabMode.OFF to stringResource(R.string.langemoji_emoji_tab_off_label),
                 ),
                 selected = tabMode,
@@ -646,7 +647,7 @@ internal fun EmojiPanelSettings(
         }
         // The button is drawn on the recents tab only: the most-used tab is
         // counted rather than remembered, so there is nothing there to clear.
-        if (tabMode == EmojiTabMode.RECENTS) item {
+        if (tabMode == EmojiTabMode.RECENTS || tabMode == EmojiTabMode.BOTH) item {
             ToggleSetting(
                 R.string.langemoji_emoji_clear_recents_title,
                 stringResource(R.string.langemoji_emoji_clear_recents_subtitle),
@@ -874,6 +875,7 @@ private fun emojiFontDescRes(choice: EmojiFontChoice): Int = when (choice) {
 private fun emojiTabModeDescRes(mode: EmojiTabMode): Int = when (mode) {
     EmojiTabMode.RECENTS -> R.string.langemoji_emoji_recent_desc
     EmojiTabMode.MOST_USED -> R.string.langemoji_emoji_most_used_desc
+    EmojiTabMode.BOTH -> R.string.langemoji_emoji_both_desc
     EmojiTabMode.OFF -> R.string.langemoji_emoji_tab_off_desc
 }
 

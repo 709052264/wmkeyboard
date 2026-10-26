@@ -414,6 +414,7 @@ internal object ChoiceOptionIcons {
 
         put(EmojiTabMode.RECENTS) { Icons.Outlined.History }
         put(EmojiTabMode.MOST_USED) { Icons.Outlined.TrendingUp }
+        put(EmojiTabMode.BOTH) { Icons.Outlined.ViewAgenda }
         put(EmojiTabMode.OFF) { Icons.Outlined.Block }
 
         put(EmojiInsertMode.REPLACE) { Icons.Outlined.FindReplace }

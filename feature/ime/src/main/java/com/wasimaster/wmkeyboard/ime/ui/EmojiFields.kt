@@ -332,6 +332,20 @@ private val EmojiTabMinWidth = 40.dp
 /** How long the tab bar takes to slide to a tapped tab. */
 private const val EmojiTabSlideMs = 220
 
+/** How many most-used emoji head the history tab in [EmojiTabMode.BOTH]: about two rows. */
+private const val BothMostUsedCount = 16
+
+/** A section's name on the history tab, in the kaomoji heading's small muted type. */
+@Composable
+private fun HistoryHeading(text: String) {
+    Text(
+        text,
+        modifier = Modifier.padding(start = 4.dp, top = 6.dp, bottom = 2.dp),
+        fontSize = 11.sp,
+        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+    )
+}
+
 /**
  * A tapped tab's own bar slide, which the bar draws instead of the pager's
  * position while it runs. Snapshot state, read only in the draw phase, so the
@@ -512,7 +526,7 @@ internal fun EmojiGridField(
         } else if (tab == RECENT_TAB) {
             Column(modifier = Modifier.fillMaxSize()) {
                 // Inside the page so the pager height stays fixed across a swipe.
-                if (state.settings.emojiClearRecentsButton && session.historyMode == EmojiTabMode.RECENTS) {
+                if (state.settings.emojiClearRecentsButton && session.historyMode != EmojiTabMode.MOST_USED) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -532,15 +546,27 @@ internal fun EmojiGridField(
                     }
                 }
                 val historyGrid = rememberLazyGridState()
+                // Both views at once (#970): the most used first, a short run of
+                // them under its own heading, then the recents under theirs.
+                val both = session.historyMode == EmojiTabMode.BOTH
+                val mostUsed = remember(both, state.emojiFrequents, state.hiddenEmoji) {
+                    if (!both) {
+                        emptyList()
+                    } else {
+                        state.emojiFrequents.filterNot { it in state.hiddenEmoji }.take(BothMostUsedCount)
+                    }
+                }
+                // What the focus ring walks: the cells in the order they are drawn.
+                val cells = if (both) mostUsed + history else history
                 // Only the page in front owns the ring; two pages publishing
                 // would race over one region.
                 val focusedHistory = state.focusedIndex().takeIf { page == pagerState.currentPage }
                 if (page == pagerState.currentPage) {
                     PanelFocusTarget(
                         panel = PanelMode.EMOJI,
-                        count = history.size,
+                        count = cells.size,
                         columns = adaptiveColumns(historyGrid),
-                        onActivate = { index -> history.getOrNull(index)?.let(callbacks.onEmoji) },
+                        onActivate = { index -> cells.getOrNull(index)?.let(callbacks.onEmoji) },
                     )
                 }
                 ScrollFocusIntoView(focusedHistory) { historyGrid.animateScrollToItem(it) }
@@ -550,9 +576,36 @@ internal fun EmojiGridField(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(8.dp),
                 ) {
+                    if (both && mostUsed.isNotEmpty()) {
+                        item(key = "§most", span = { GridItemSpan(maxLineSpan) }) {
+                            HistoryHeading(stringResource(R.string.ime_emoji_tab_most_used))
+                        }
+                        itemsIndexed(mostUsed, key = { _, emoji -> "m:$emoji" }) { index, emoji ->
+                            EmojiCell(
+                                base = emoji,
+                                display = emoji,
+                                state = state,
+                                genderVariants = emptyList(),
+                                onTap = callbacks.onEmoji,
+                                onPick = callbacks.onEmoji,
+                                onFavourite = callbacks.onEmojiFavourite,
+                                onReorderFavourites = onReorderFavourite,
+                                onLongPress = callbacks.onLongPress,
+                                onLongPressEnd = callbacks.onLongPressEnd,
+                                onAnimatedSend = callbacks.onAnimatedSend,
+                                onStickerSend = callbacks.onStickerSend,
+                                focused = index == focusedHistory,
+                            )
+                        }
+                        item(key = "§recent", span = { GridItemSpan(maxLineSpan) }) {
+                            HistoryHeading(stringResource(R.string.ime_emoji_tab_recent))
+                        }
+                    }
+                    val recentStart = if (both) mostUsed.size else 0
                     // Keyed by emoji: this list reorders under the grid, and on a
                     // positional key a cell's open popup stayed with the slot.
-                    itemsIndexed(history, key = { _, emoji -> emoji }) { index, emoji ->
+                    itemsIndexed(history, key = { _, emoji -> emoji }) { at, emoji ->
+                        val index = recentStart + at
                         // History cells are exact sequences: no variant pref to
                         // remember, taps in the popup commit directly.
                         EmojiCell(

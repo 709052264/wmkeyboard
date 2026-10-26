@@ -1663,8 +1663,11 @@ enum class GlideCommitColorScope(@StringRes val labelRes: Int) {
     EVERYWHERE(R.string.core_settings_glide_commit_scope_keys_label),
 }
 
-/** What the history tab of the emoji panel shows; [OFF] drops the tab altogether. */
-enum class EmojiTabMode { RECENTS, MOST_USED, OFF }
+/**
+ * What the history tab of the emoji panel shows; [OFF] drops the tab
+ * altogether. [BOTH] heads the recents with a short most-used section (#970).
+ */
+enum class EmojiTabMode { RECENTS, MOST_USED, BOTH, OFF }
 
 /**
  * The dedicated emoji row (Gboard style): [ALWAYS] keeps it as its own row
