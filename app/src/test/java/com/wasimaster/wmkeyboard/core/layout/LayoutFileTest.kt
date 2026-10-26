@@ -145,6 +145,15 @@ class LayoutFileTest {
     }
 
     @Test
+    fun `an export names the time after the layout and is indented`() {
+        val name = LayoutFile.fileName(usable(), stampMs = 0L)
+        assertTrue(name, Regex("Mine-19(69|70)\\d{4}-\\d{4}\\.wmlayout\\.json").matches(name))
+        val text = encode(usable())
+        assertTrue(text.contains("\n  \"format\": \"wmkeyboard-layout\""))
+        assertNotNull(LayoutFile.decode(text))
+    }
+
+    @Test
     fun `the import picker accepts the types providers actually report`() {
         assertTrue("application/json" in LayoutFile.IMPORT_MIME_TYPES)
         assertTrue(

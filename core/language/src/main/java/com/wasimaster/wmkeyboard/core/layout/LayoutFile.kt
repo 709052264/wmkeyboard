@@ -1,6 +1,9 @@
 package com.wasimaster.wmkeyboard.core.layout
 
 import com.wasimaster.wmkeyboard.core.util.firstJsonDocument
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -59,18 +62,35 @@ object LayoutFile {
      */
     val IMPORT_MIME_TYPES = arrayOf("application/json", "text/plain", "application/octet-stream")
 
-    fun fileName(layout: LayoutSpec): String {
+    /**
+     * The name an export suggests. With [stampMs], the time goes after the
+     * layout's name (#970), so exporting the same layout twice gives two files
+     * that sort by date instead of a "Mine (1)" the picker made up. [Locale.US]
+     * for the same reason the backups use it: a Thai-Buddhist locale would
+     * stamp 2569.
+     */
+    fun fileName(layout: LayoutSpec, stampMs: Long? = null): String {
         val stem = layout.name.ifBlank { "layout" }
             .replace(Regex("[^\\p{L}\\p{N} _-]"), "")
             .trim()
             .ifBlank { "layout" }
-        return "$stem.$FILE_EXTENSION"
+        val stamp = stampMs?.let { "-" + SimpleDateFormat("yyyyMMdd-HHmm", Locale.US).format(Date(it)) }.orEmpty()
+        return "$stem$stamp.$FILE_EXTENSION"
     }
 
+    /**
+     * An export: every field of every key, indented two spaces (#970), so the
+     * file reads and diffs as text. The import does not care either way.
+     */
     fun encode(layout: LayoutSpec, appVersion: Int, appVersionName: String): String =
-        LayoutCodec.json.encodeToString(
+        exportJson.encodeToString(
             LayoutEnvelope(FORMAT, VERSION, appVersion, appVersionName, layout),
         )
+
+    private val exportJson = Json(LayoutCodec.json) {
+        prettyPrint = true
+        prettyPrintIndent = "  "
+    }
 
     /**
      * Encodes a layout the way the shipped assets under `assets/layouts` are

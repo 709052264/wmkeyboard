@@ -928,7 +928,7 @@ internal fun KeyLayoutsScreen(
                         onEdit = { openEditor(layout.id) },
                         onExport = {
                             pendingExport = layout
-                            exportLauncher.launch(LayoutFile.fileName(layout))
+                            exportLauncher.launch(LayoutFile.fileName(layout, System.currentTimeMillis()))
                         },
                         onDuplicate = { duplicateAndEdit(layout) },
                         onDelete = { confirmDelete = layout },
@@ -960,7 +960,7 @@ internal fun KeyLayoutsScreen(
                         onEdit = { openEditor(layout.id) },
                         onExport = {
                             pendingExport = layout
-                            exportLauncher.launch(LayoutFile.fileName(layout))
+                            exportLauncher.launch(LayoutFile.fileName(layout, System.currentTimeMillis()))
                         },
                         onDuplicate = { duplicateAndEdit(layout) },
                         onDelete = { confirmDelete = layout },
@@ -1021,7 +1021,7 @@ internal fun KeyLayoutsScreen(
                             onEdit = { openEditor(layout.id) },
                             onExport = {
                                 pendingExport = layout
-                                exportLauncher.launch(LayoutFile.fileName(layout))
+                                exportLauncher.launch(LayoutFile.fileName(layout, System.currentTimeMillis()))
                             },
                             onDuplicate = { duplicateAndEdit(layout) },
                             // An edited built-in is stored as an override under the same
