@@ -735,14 +735,42 @@ object SmartSuggest {
 
     private val UNIT_TAIL = Regex("""(?<![\w.,])($UNIT_AMOUNT)(\s?)([\p{L}°²³/]{1,9})$""")
 
+    /**
+     * "1 mile in cm", "5 kg to lb", "30c as f" (#970): the amount and unit,
+     * then the unit to answer in. The second unit may be any spelling the
+     * converter knows, the one-letter ones included, since nobody types
+     * "to c" meaning anything but the unit.
+     */
+    private val UNIT_TO_TAIL = Regex(
+        """(?<![\w.,])($UNIT_AMOUNT)(\s?)([\p{L}°²³/]{1,9})\s+(?i:to|in|into|as)\s+([\p{L}°²³/]{1,12})$""",
+    )
+
     private fun detectUnit(tail: String, ctx: Context): SmartHit? {
+        UNIT_TO_TAIL.find(tail)?.let { asked ->
+            unitHit(asked, ctx, asked.groupValues[4])?.let { return it }
+        }
         val match = UNIT_TAIL.find(tail) ?: return null
+        return unitHit(match, ctx, target = null)
+    }
+
+    /**
+     * The chip for a [match] of [UNIT_TAIL] or [UNIT_TO_TAIL]: in [target]
+     * when the text named one and it measures the same thing, else in the
+     * unit [targetUnit] picks.
+     */
+    private fun unitHit(match: MatchResult, ctx: Context, target: String?): SmartHit? {
         val amount = parseAmount(match.groupValues[1]) ?: return null
         val spaced = match.groupValues[2].isNotEmpty()
         val token = match.groupValues[3]
         val from = resolveUnit(token, spaced) ?: return null
         val category = UnitConvert.categories.first { cat -> cat.units.any { it.symbol == from.symbol } }
-        val to = targetUnit(category, from, ctx.unitLast) ?: return null
+        val to = if (target != null) {
+            resolveUnit(target, spaced = false)
+                ?.takeIf { asked -> asked.symbol != from.symbol && category.units.any { it.symbol == asked.symbol } }
+                ?: return null
+        } else {
+            targetUnit(category, from, ctx.unitLast) ?: return null
+        }
 
         val converted = UnitConvert.convert(amount.value, from, to)
         if (converted.isNaN() || converted.isInfinite()) return null
