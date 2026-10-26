@@ -230,7 +230,9 @@ internal fun EmojiField(
 
 /**
  * The category strip: every tab shares the cell's width evenly, or, when that
- * would make a tab narrower than [EmojiTabMinWidth], every tab takes that much
+ * would make a tab narrower than the user's narrowest tab
+ * ([com.wasimaster.wmkeyboard.core.settings.EmojiSettings.tabMinWidth], 40 dp
+ * by default, a 20 dp icon with room either side), every tab takes that much
  * and the strip scrolls sideways under the finger (#539), keeping the tab in
  * front in view. Tab (the key) reaches it through the CHIPS region; activating
  * a chip moves the pager or the list, which is the selection, so there is no
@@ -298,12 +300,15 @@ private fun EmojiTabsField(state: KeyboardUiState, session: EmojiPanelSession) {
             }
         }
     }
+    // The user's own narrowest tab (#970), so a strip that scrolled at the
+    // default fits on a 1080p screen at a few dp less.
+    val minWidth = state.settings.emoji.tabMinWidth.dp
     BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(horizontal = 2.dp)) {
-        if (maxWidth / tabs.size >= EmojiTabMinWidth) {
+        if (maxWidth / tabs.size >= minWidth) {
             row(Modifier.fillMaxSize())
         } else {
             val scroll = rememberScrollState()
-            val tabPx = with(LocalDensity.current) { EmojiTabMinWidth.toPx() }
+            val tabPx = with(LocalDensity.current) { minWidth.toPx() }
             val viewport = with(LocalDensity.current) { maxWidth.toPx() }
             // The tab in front stays in view, centred where the strip allows,
             // as a swipe or the list's scroll moves it on.
@@ -314,20 +319,13 @@ private fun EmojiTabsField(state: KeyboardUiState, session: EmojiPanelSession) {
             Box(modifier = Modifier.fillMaxSize().horizontalScroll(scroll)) {
                 row(
                     Modifier
-                        .width(EmojiTabMinWidth * tabs.size)
+                        .width(minWidth * tabs.size)
                         .fillMaxHeight(),
                 )
             }
         }
     }
 }
-
-/**
- * The narrowest a category tab gets before the strip scrolls instead (#539):
- * a 20 dp icon with room either side to hit it, about what the other
- * keyboards give a tab.
- */
-private val EmojiTabMinWidth = 40.dp
 
 /** How long the tab bar takes to slide to a tapped tab. */
 private const val EmojiTabSlideMs = 220

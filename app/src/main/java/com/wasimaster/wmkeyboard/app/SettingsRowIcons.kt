@@ -639,6 +639,7 @@ internal object SettingsRowIcons {
         put(R.string.langemoji_emoji_prediction_title) { Icons.Outlined.AutoAwesome }
         put(R.string.langemoji_emoji_insert_mode_title) { Icons.Outlined.TouchApp }
         put(R.string.langemoji_emoji_grid_size_title) { Icons.Outlined.GridOn }
+        put(R.string.langemoji_emoji_tab_width_title) { Icons.Outlined.Straighten }
         put(R.string.langemoji_emoji_size_title) { Icons.Outlined.FormatSize }
         put(R.string.langemoji_emoji_grid_columns_title) { Icons.Outlined.ViewColumn }
         put(R.string.langemoji_emoji_grid_row_height_title) { Icons.Outlined.Height }

@@ -153,6 +153,8 @@
     <!-- One line under each option in the emoji history tab picker. -->
     <string name="langemoji_emoji_recent_desc">In the order that you used them last</string>
     <string name="langemoji_emoji_most_used_desc">The emoji that you use most often come first</string>
+    <string name="langemoji_emoji_tab_width_title">Narrowest tab</string>
+    <string name="langemoji_emoji_tab_width_subtitle">How narrow a category tab may get before the tabs scroll sideways. Less fits every tab on the screen</string>
     <string name="langemoji_emoji_both_label">Both</string>
     <string name="langemoji_emoji_both_desc">Your most used emoji at the top, then your recent ones, each under its own heading</string>
     <string name="langemoji_emoji_tab_off_label">Off</string>

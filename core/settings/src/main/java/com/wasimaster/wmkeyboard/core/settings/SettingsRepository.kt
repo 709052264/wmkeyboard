@@ -7568,6 +7568,12 @@ data class EmojiSettings(
      */
     val gridCellSize: Int = 44,
     /**
+     * The narrowest an emoji panel tab may be before the tab strip scrolls
+     * sideways instead, in dp (#970). 40 fits ten tabs to a small phone;
+     * less fits every category on a typical one. See [EmojiTabWidthRange].
+     */
+    val tabMinWidth: Int = 40,
+    /**
      * A fixed number of columns for the emoji panel's grids, or 0 (the
      * default) to fit as many as [gridCellSize] allows. Fixed columns are what
      * another keyboard's arrangement needs (`EmojiOrderPreset`): the same
@@ -7824,6 +7830,9 @@ val EmojiBarCountRange = 3..16
 
 /** Bounds for [EmojiSettings.gridCellSize]; the settings slider shares them. */
 val EmojiGridCellSizeRange = 36..64
+
+/** What [EmojiSettings.tabMinWidth] can be set to: a 20 dp icon fits at the narrow end. */
+val EmojiTabWidthRange = 24..48
 
 /** Bounds for a fixed [EmojiSettings.gridColumns]; 0, outside them, means "fit". */
 val EmojiGridColumnsRange = 5..14
@@ -11167,6 +11176,7 @@ class SettingsRepository(private val context: Context) {
         private val EMOJI_BAR_SCROLLABLE = booleanPreferencesKey("emoji_bar_scrollable")
         private val EMOJI_BAR_COUNT = intPreferencesKey("emoji_bar_count")
         private val EMOJI_GRID_CELL_SIZE = intPreferencesKey("emoji_grid_cell_size")
+        private val EMOJI_TAB_MIN_WIDTH = intPreferencesKey("emoji_tab_min_width")
         private val EMOJI_GRID_EMOJI_SIZE = intPreferencesKey("emoji_grid_emoji_size")
         private val EMOJI_GRID_COLUMNS = intPreferencesKey("emoji_grid_columns")
         private val EMOJI_GRID_ROW_HEIGHT = intPreferencesKey("emoji_grid_row_height")
@@ -13494,6 +13504,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.emoji.barCount,
             gridCellSize = p[EMOJI_GRID_CELL_SIZE]?.coerceIn(EmojiGridCellSizeRange)
                 ?: defaults.emoji.gridCellSize,
+            tabMinWidth = p[EMOJI_TAB_MIN_WIDTH]?.coerceIn(EmojiTabWidthRange) ?: defaults.emoji.tabMinWidth,
             gridEmojiSize = p[EMOJI_GRID_EMOJI_SIZE]?.coerceIn(EmojiGridEmojiSizeRange)
                 ?: defaults.emoji.gridEmojiSize,
             gridColumns = p[EMOJI_GRID_COLUMNS]?.let(::emojiGridColumns)
@@ -21473,6 +21484,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setEmojiGridCellSize(value: Int) =
         editPrefs { it[EMOJI_GRID_CELL_SIZE] = value.coerceIn(EmojiGridCellSizeRange) }
+
+    suspend fun setEmojiTabMinWidth(value: Int) =
+        editPrefs { it[EMOJI_TAB_MIN_WIDTH] = value.coerceIn(EmojiTabWidthRange) }
 
     suspend fun setEmojiGridEmojiSize(value: Int) =
         editPrefs { it[EMOJI_GRID_EMOJI_SIZE] = value.coerceIn(EmojiGridEmojiSizeRange) }

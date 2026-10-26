@@ -39,6 +39,7 @@ import com.wasimaster.wmkeyboard.core.settings.EmojiBarContent
 import com.wasimaster.wmkeyboard.core.settings.Extension
 import com.wasimaster.wmkeyboard.core.settings.EmojiBarCountRange
 import com.wasimaster.wmkeyboard.core.settings.EmojiGridCellSizeRange
+import com.wasimaster.wmkeyboard.core.settings.EmojiTabWidthRange
 import com.wasimaster.wmkeyboard.core.settings.EmojiGridColumnsRange
 import com.wasimaster.wmkeyboard.core.settings.EmojiGridEmojiSizeRange
 import com.wasimaster.wmkeyboard.core.settings.EmojiGridRowHeightRange
@@ -518,6 +519,16 @@ internal fun EmojiPanelSettings(
                 info = stringResource(R.string.langemoji_emoji_grid_size_info),
                 default = SettingsDefaults.emoji.gridCellSize.toFloat(),
             ) { scope.launch { repository.setEmojiGridCellSize(it.roundToInt()) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                title = R.string.langemoji_emoji_tab_width_title,
+                subtitle = stringResource(R.string.langemoji_emoji_tab_width_subtitle),
+                value = settings.watch { it.emoji.tabMinWidth }.toFloat(),
+                range = EmojiTabWidthRange.first.toFloat()..EmojiTabWidthRange.last.toFloat(),
+                display = { numberFormat.format(it.roundToInt()) },
+                default = SettingsDefaults.emoji.tabMinWidth.toFloat(),
+            ) { scope.launch { repository.setEmojiTabMinWidth(it.roundToInt()) } }
         }
         item(level = SettingLevel.STANDARD) {
             SliderSetting(

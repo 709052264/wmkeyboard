@@ -82,6 +82,7 @@ This group is a page of its own, opened from the Emoji panel row in the Access g
 | Setting | Control | Options / range | Default |
 |---|---|---|---|
 | Grid size | Slider | 36–64 | 44 |
+| Narrowest tab | Slider | 24–48 dp | 40 dp |
 | Emoji size | Slider | 20–36 | 28 |
 | Columns | Slider | Auto, 5–14 | Auto |
 | Row height | Slider | Auto, 36–72 | Auto |
@@ -109,6 +110,8 @@ This group is a page of its own, opened from the Emoji panel row in the Access g
 **Grid size** is the least each cell of the emoji grid may be. A smaller size fits more columns. When **Emoji size** needs more room than that, the cells grow to fit it.
 
 **Emoji size** is how large each emoji is drawn, on every tab and in search results. The long-press popup keeps its own size regardless.
+
+**Narrowest tab** is how narrow a category tab may get before the tab strip stops sharing out the width and scrolls sideways instead. At 40 dp a 1080p phone holds about ten tabs; at 32 it fits the history tab, every category and the kaomoji tab without scrolling.
 
 **Columns** fixes how many emoji go across a row. On **Auto** the grid fits as many as **Grid size** allows, so a wider screen shows more; a number keeps every emoji in the same column on any screen. **Row height** fixes how tall each row is, in dp; on **Auto** a row is as tall as the emoji size needs. With both fixed, a swipe of a given length always scrolls to the same emoji. [Arrange like](#emoji-categories) sets them, with the emoji size, to match the keyboard you copy, and a fixed grid centres each emoji in its cell.
 
