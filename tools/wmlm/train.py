@@ -2,7 +2,8 @@
 
 usage: train.py <data dir> <out dir> [steps=20000 batch=256 lr=1e-3 d=192 layers=4 heads=4 ff=512
                                      seed=0 eval_every=1000 drop_prefix=0.3 ctx=32
-                                     distill=soft.npz distill_alpha=0.5 distill_share=0.5]
+                                     distill=soft.npz distill_alpha=0.5 distill_share=0.5
+                                     resume=out/last.pt]
 
 Sentences are packed one per row, padded to the longest in the batch; the
 loss ignores padding. `drop_prefix` is the share of rows whose register and
@@ -14,6 +15,8 @@ held-out loss) with the config inside.
 batches are drawn from the sentences the teacher has read, and on those the
 loss is `(1 - alpha) * cross-entropy + alpha * KL(teacher top-k || student)`
 per word position; rows the teacher left empty keep the plain target.
+`resume=` continues from a saved checkpoint's weights and step (the
+optimiser's moments start afresh; the schedule picks up where it was).
 """
 import math
 import os
@@ -34,7 +37,7 @@ OTHER_FIELD = SPECIALS.index(FIELDS[0])
 
 def opts(argv):
     o = dict(steps=20000, batch=256, lr=1e-3, d=192, layers=4, heads=4, ff=512, seed=0, eval_every=1000, drop_prefix=0.3, ctx=32,
-             distill="", distill_alpha=0.5, distill_share=0.5)
+             distill="", distill_alpha=0.5, distill_share=0.5, resume="")
     for a in argv:
         k, v = a.split("=", 1)
         o[k] = type(o[k])(v)
@@ -73,13 +76,17 @@ class Soft:
 
 
 def distill_loss(logits, ids, probs):
-    """-sum_k p_k log q(id_k), averaged over the positions the teacher filled."""
-    logq = torch.log_softmax(logits, dim=-1)
-    picked = torch.gather(logq, -1, ids)
-    per_pos = -(probs * picked).sum(-1)
+    """-sum_k p_k log q(id_k), averaged over the positions the teacher filled.
+
+    log q(id) = logit[id] - logsumexp(logits): the reduction keeps only a
+    [B, T] tensor live, where a materialised log-softmax over the whole
+    vocabulary ([B, T, V], a gigabyte at batch 256) sent MPS into swap."""
     filled = probs.sum(-1) > 0
-    if filled.sum() == 0:
+    if not bool(filled.any()):
         return logits.new_zeros(())
+    lse = torch.logsumexp(logits, dim=-1)
+    picked = torch.gather(logits, -1, ids)
+    per_pos = -(probs * (picked - lse.unsqueeze(-1))).sum(-1)
     return per_pos[filled].mean()
 
 
@@ -142,8 +149,15 @@ def main():
     opt = torch.optim.AdamW(model.parameters(), lr=o["lr"], weight_decay=0.1, betas=(0.9, 0.95))
     warm = 500
     sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda s: min(1, (s + 1) / warm) * 0.5 * (1 + math.cos(math.pi * min(1, s / o["steps"]))))
-    t0, run, best = time.time(), 0.0, 1e9
-    for step in range(1, o["steps"] + 1):
+    t0, run, best, start = time.time(), 0.0, 1e9, 0
+    if o["resume"]:
+        saved = torch.load(o["resume"], map_location=dev)
+        model.load_state_dict(saved["model"])
+        start, best = saved["step"], saved.get("heldout", 1e9)
+        for _ in range(start):
+            sched.step()
+        print("resumed from", o["resume"], "at step", start, flush=True)
+    for step in range(start + 1, o["steps"] + 1):
         from_teacher = soft is not None and torch.rand((), generator=gen).item() < o["distill_share"]
         if from_teacher:
             idx = soft.sentences[torch.randint(0, len(soft.sentences), (o["batch"],), generator=gen).numpy()].tolist()
@@ -162,7 +176,7 @@ def main():
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         opt.step()
         sched.step()
-        run = 0.98 * run + 0.02 * loss.item() if step > 1 else loss.item()
+        run = 0.98 * run + 0.02 * loss.item() if step > start + 1 else loss.item()
         if step % 100 == 0:
             print(f"step {step} loss {run:.3f} ppl {math.exp(run):.1f} lr {sched.get_last_lr()[0]:.2e} {time.time() - t0:.0f}s", flush=True)
         if step % o["eval_every"] == 0 or step == o["steps"]:
