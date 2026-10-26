@@ -1254,6 +1254,7 @@ internal object SettingsRowIcons {
         put(R.string.clipboard_card_buttons_title) { Icons.Outlined.PushPin }
         put(R.string.clipboard_card_shortcut_title) { Icons.Outlined.TouchApp }
         put(R.string.clipboard_type_out_title) { Icons.Outlined.Keyboard }
+        put(R.string.clipboard_bump_on_paste_title) { Icons.Outlined.VerticalAlignTop }
         put(R.string.clipboard_type_tags_title) { Icons.AutoMirrored.Outlined.Label }
         put(R.string.clipboard_keep_rich_text_title) { Icons.Outlined.FormatBold }
         put(R.string.clipboard_swipe_pin_title) { Icons.Outlined.SwipeRight }

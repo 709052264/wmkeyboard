@@ -584,6 +584,21 @@ class ClipboardStore(
         return true
     }
 
+    /**
+     * Makes [id] the newest clip, as a fresh copy of it would (#970): its time
+     * is now, and a place it was dragged to is let go, so it leads its group.
+     * Its pin stays. Returns the clip as it now stands, or null when it is gone.
+     */
+    @Synchronized
+    fun bump(id: Long, now: Long = System.currentTimeMillis()): ClipItem? {
+        val index = items.indexOfFirst { it.id == id }
+        if (index < 0) return null
+        val bumped = items[index].copy(timestamp = now, position = null)
+        items.removeAt(index)
+        items.add(0, bumped)
+        return bumped
+    }
+
     /** Most recent textual clip, for snippet {clip} expansion. */
     @Synchronized
     fun latestText(now: Long = System.currentTimeMillis()): String? =

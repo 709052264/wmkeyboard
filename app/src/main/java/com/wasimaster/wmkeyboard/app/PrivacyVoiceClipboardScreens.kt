@@ -887,6 +887,14 @@ internal fun ClipboardSettings(
         }
         item {
             ToggleSetting(
+                R.string.clipboard_bump_on_paste_title,
+                stringResource(R.string.clipboard_bump_on_paste_subtitle),
+                settings.watch { it.clipboard.bumpOnPaste },
+                default = SettingsDefaults.clipboard.bumpOnPaste,
+            ) { scope.launch { repository.setClipboardBumpOnPaste(it) } }
+        }
+        item {
+            ToggleSetting(
                 R.string.clipboard_type_tags_title,
                 stringResource(R.string.clipboard_type_tags_subtitle),
                 settings.watch { it.clipboard.typeTags },

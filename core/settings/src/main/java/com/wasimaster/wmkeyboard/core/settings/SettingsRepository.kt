@@ -7391,6 +7391,12 @@ data class ClipboardSettings(
      */
     val typeOutPastes: Boolean = false,
     /**
+     * A clip pasted from the panel or the strip goes to the top of the history
+     * and back on the system clipboard, the way copying it again would (#970).
+     * Off by default: the history then stays in the order things were copied.
+     */
+    val bumpOnPaste: Boolean = false,
+    /**
      * The small "Rich text" tag under a clip that carries formatting (#414).
      * On by default. Off, the tag goes, and with it the footer row of a card
      * that had nothing else to show there, the same as the buttons toggle.
@@ -10952,6 +10958,7 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_OUTLINE_PINNED = booleanPreferencesKey("clipboard_outline_pinned")
         private val CLIPBOARD_CARD_BUTTONS = booleanPreferencesKey("clipboard_card_buttons")
         private val CLIPBOARD_TYPE_OUT_PASTES = booleanPreferencesKey("clipboard_type_out_pastes")
+        private val CLIPBOARD_BUMP_ON_PASTE = booleanPreferencesKey("clipboard_bump_on_paste")
         private val CLIPBOARD_TYPE_TAGS = booleanPreferencesKey("clipboard_type_tags")
         private val CLIPBOARD_KEEP_RICH_TEXT = booleanPreferencesKey("clipboard_keep_rich_text")
         /** Read only, to carry the old right-swipe switch across to [CLIPBOARD_SWIPE_PIN]. */
@@ -12882,6 +12889,7 @@ class SettingsRepository(private val context: Context) {
             outlinePinned = p[CLIPBOARD_OUTLINE_PINNED] ?: defaults.clipboard.outlinePinned,
             cardButtons = p[CLIPBOARD_CARD_BUTTONS] ?: defaults.clipboard.cardButtons,
             typeOutPastes = p[CLIPBOARD_TYPE_OUT_PASTES] ?: defaults.clipboard.typeOutPastes,
+            bumpOnPaste = p[CLIPBOARD_BUMP_ON_PASTE] ?: defaults.clipboard.bumpOnPaste,
             typeTags = p[CLIPBOARD_TYPE_TAGS] ?: defaults.clipboard.typeTags,
             keepRichText = p[CLIPBOARD_KEEP_RICH_TEXT] ?: defaults.clipboard.keepRichText,
             swipePin = p[CLIPBOARD_SWIPE_PIN]
@@ -20807,6 +20815,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setClipboardTypeOutPastes(value: Boolean) =
         editPrefs { it[CLIPBOARD_TYPE_OUT_PASTES] = value }
+
+    suspend fun setClipboardBumpOnPaste(value: Boolean) =
+        editPrefs { it[CLIPBOARD_BUMP_ON_PASTE] = value }
 
     suspend fun setClipboardTypeTags(value: Boolean) =
         editPrefs { it[CLIPBOARD_TYPE_TAGS] = value }

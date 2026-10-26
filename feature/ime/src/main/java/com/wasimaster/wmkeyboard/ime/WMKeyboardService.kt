@@ -48494,7 +48494,32 @@ open class WMKeyboardService : InputMethodService() {
         // copies stays up for the next one, until a key is typed (#612).
         clearClipboardSuggestion()
         purgeAfterPasswordPaste(item)
+        bumpPastedClip(item)
         closePanelAfterInsertIfEnabled()
+    }
+
+    /**
+     * Moves a clip just pasted to the top of the history and puts it back on
+     * the system clipboard, when [ClipboardSettings.bumpOnPaste] asks (#970),
+     * so the app's own Paste gives the same thing next time.
+     *
+     * Not into a password field, whose paste the sweep above may just have
+     * taken out of the history, and the system clipboard is left alone for a
+     * hidden clip and while the keyboard's clipboard is private, where putting
+     * the text there is the leak those modes exist to stop.
+     */
+    private fun bumpPastedClip(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
+        val state = _uiState.value
+        if (!state.settings.clipboard.bumpOnPaste || state.secureField) return
+        clipboardStore.bump(item.id) ?: return
+        clipboardStore.save()
+        if (item.kind.isTextual && !item.sensitive && !KeyboardClipboard.isPrivate) {
+            runCatching {
+                (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
+                    .setPrimaryClip(android.content.ClipData.newPlainText(null, item.text))
+            }
+        }
+        _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
     }
 
     /**
