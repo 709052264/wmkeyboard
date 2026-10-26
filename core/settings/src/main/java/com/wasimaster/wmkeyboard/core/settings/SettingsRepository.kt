@@ -5491,6 +5491,11 @@ data class SelectionMacroSettings(
      */
     val timeZones: List<String> = emptyList(),
     /**
+     * The Zones ladder lists [timeZones] by the time there, earliest first,
+     * rather than in the order they were put in (#970).
+     */
+    val sortZonesByTime: Boolean = false,
+    /**
      * Read a selected phone number, address or link as that thing, rather than
      * treating every selection as plain text.
      *
@@ -11631,6 +11636,7 @@ class SettingsRepository(private val context: Context) {
         private val SELECTION_MACROS_ORDER = stringPreferencesKey("selection_macros_order")
         private val SELECTION_MACROS_AI_ACTIONS = stringPreferencesKey("selection_macros_ai_actions")
         private val SELECTION_MACROS_TIME_ZONES = stringPreferencesKey("selection_macros_time_zones")
+        private val SELECTION_MACROS_SORT_ZONES = booleanPreferencesKey("selection_macros_sort_zones")
         private val TOOL_KEYWORDS = stringPreferencesKey("tool_keywords")
         private val TOOL_KEYWORD_CASE = stringPreferencesKey("tool_keyword_case")
         private val CALC_DEGREES = booleanPreferencesKey("calc_degrees")
@@ -14000,6 +14006,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.selectionMacros.aiDirectActions,
             timeZones = p[SELECTION_MACROS_TIME_ZONES]?.let(AiActionCodec::decodeIds)
                 ?: defaults.selectionMacros.timeZones,
+            sortZonesByTime = p[SELECTION_MACROS_SORT_ZONES] ?: defaults.selectionMacros.sortZonesByTime,
             detectEntities = p[SELECTION_MACROS_DETECT] ?: defaults.selectionMacros.detectEntities,
             inEverySelection = p[SELECTION_MACROS_EVERY_SELECTION]
                 ?: defaults.selectionMacros.inEverySelection,
@@ -22039,6 +22046,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSelectionMacroTimeZones(ids: List<String>) =
         editPrefs { it[SELECTION_MACROS_TIME_ZONES] = AiActionCodec.encodeIds(ids) }
+
+    suspend fun setSelectionMacroSortZones(value: Boolean) =
+        editPrefs { it[SELECTION_MACROS_SORT_ZONES] = value }
 
     /** Replaces one tool's trigger words; an empty list silences that tool. */
     suspend fun setToolKeywords(tool: ToolbarTool, words: List<String>) =

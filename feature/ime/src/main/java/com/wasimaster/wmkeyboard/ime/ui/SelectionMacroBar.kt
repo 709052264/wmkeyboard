@@ -325,12 +325,20 @@ private fun barItems(macros: List<SelectionMacro>, aiDirect: List<AiActionSpec>)
 private fun colourChoices(colour: Colour): List<Pair<String, String>> =
     ColourCodes.ladder(colour).map { form -> form.name to ColourCodes.render(colour, form) }
 
-/** The moment in each of the user's zones, minus the one it was read in. */
+/**
+ * The moment in each of the user's zones, minus the one it was read in: in
+ * their order, or earliest there first when they asked for that (#970).
+ */
 private fun zoneChoices(hit: DateTimeHit, settings: KeyboardSettings, hour24: Boolean): List<Pair<String, String>> {
     val now = System.currentTimeMillis()
-    return settings.selectionMacros.effectiveTimeZones(TimeZone.getDefault().id)
+    val zones = settings.selectionMacros.effectiveTimeZones(TimeZone.getDefault().id)
         .filter { it != hit.zoneId }
-        .map { id -> id to DateTimes.renderInZone(hit.startMillis, id, hit.zoneId, hit.hasDate, hour24, now) }
+    val ordered = if (settings.selectionMacros.sortZonesByTime) {
+        zones.sortedBy { TimeZone.getTimeZone(it).getOffset(hit.startMillis) }
+    } else {
+        zones
+    }
+    return ordered.map { id -> id to DateTimes.renderInZone(hit.startMillis, id, hit.zoneId, hit.hasDate, hour24, now) }
 }
 
 /**

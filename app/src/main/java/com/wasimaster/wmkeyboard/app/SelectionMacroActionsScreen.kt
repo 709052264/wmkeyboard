@@ -37,6 +37,7 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.selection.MacroCategory
 import com.wasimaster.wmkeyboard.core.selection.SelectionMacro
 import com.wasimaster.wmkeyboard.core.selection.SelectionMacros
+import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.effectiveTimeZones
 import com.wasimaster.wmkeyboard.core.tools.orderedAiActions
@@ -424,6 +425,14 @@ internal fun SelectionMacroZonesScreen(
         }
         if (defaultZones) {
             item { CaptionText(stringResource(R.string.selection_macros_zones_default_caption)) }
+        }
+        item {
+            ToggleSetting(
+                R.string.selection_macros_zones_sort_title,
+                stringResource(R.string.selection_macros_zones_sort_subtitle),
+                settings.watch { it.selectionMacros.sortZonesByTime },
+                default = SettingsDefaults.selectionMacros.sortZonesByTime,
+            ) { scope.launch { repository.setSelectionMacroSortZones(it) } }
         }
     }
 
