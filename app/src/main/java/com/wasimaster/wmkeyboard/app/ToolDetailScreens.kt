@@ -155,6 +155,8 @@ import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.ToolBlocker
 import com.wasimaster.wmkeyboard.core.settings.toolBlocker
 import com.wasimaster.wmkeyboard.core.settings.PowerSavingTrigger
+import com.wasimaster.wmkeyboard.core.settings.PowerSavingPreset
+import com.wasimaster.wmkeyboard.core.settings.preset
 import com.wasimaster.wmkeyboard.core.settings.CursorWordSteps
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
@@ -1259,15 +1261,6 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.camera.shutterSound,
                     ) { scope.launch { repository.setCameraShutterSound(it) } }
                 }
-                item(level = SettingLevel.ADVANCED) {
-                    ToggleSetting(
-                        R.string.tooldetail_camera_haptics_title,
-                        stringResource(R.string.tooldetail_camera_haptics_subtitle),
-                        settings.watch { it.camera.haptics },
-                        info = stringResource(R.string.tooldetail_camera_haptics_info),
-                        default = SettingsDefaults.camera.haptics,
-                    ) { scope.launch { repository.setCameraHaptics(it) } }
-                }
             }
         }
         ToolbarTool.DICTIONARY -> {
@@ -1570,6 +1563,20 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.powerSaving.manual,
                     ) { scope.launch { repository.setPowerSavingManual(it) } }
                 }
+                // One bundle over the twelve switches below (the audit's
+                // "collapse to presets with an advanced expander"): the
+                // switches keep their rows, at Everything.
+                item(level = SettingLevel.STANDARD) {
+                    ChoiceSetting(
+                        R.string.tooldetail_power_preset_title,
+                        subtitle = stringResource(R.string.tooldetail_power_preset_subtitle),
+                        info = stringResource(R.string.tooldetail_power_info),
+                        options = PowerSavingPreset.entries.map { it to stringResource(powerPresetLabelRes(it)) },
+                        selected = settings.watch { it.powerSaving.preset },
+                        default = PowerSavingPreset.BALANCED,
+                        detail = { preset -> ChoiceDetail(stringResource(powerPresetDescRes(preset))) },
+                    ) { scope.launch { repository.setPowerSavingPreset(it) } }
+                }
                 item(level = SettingLevel.STANDARD) {
                     ChoiceSetting(
                         R.string.tooldetail_power_trigger_title,
@@ -1645,14 +1652,6 @@ internal fun ToolDetailSettings(
                 }
                 item {
                     ToggleSetting(
-                        R.string.tooldetail_power_drop_popup_title,
-                        stringResource(R.string.tooldetail_power_drop_popup_subtitle),
-                        settings.watch { it.powerSaving.dropKeyPopup },
-                        default = SettingsDefaults.powerSaving.dropKeyPopup,
-                    ) { scope.launch { repository.setPowerSavingDropKeyPopup(it) } }
-                }
-                item {
-                    ToggleSetting(
                         R.string.tooldetail_power_drop_glass_blur_title,
                         stringResource(R.string.tooldetail_power_drop_glass_blur_subtitle),
                         settings.watch { it.powerSaving.dropGlassBlur },
@@ -1713,14 +1712,6 @@ internal fun ToolDetailSettings(
                         info = stringResource(R.string.tooldetail_power_drop_models_info),
                         default = SettingsDefaults.powerSaving.dropOnDeviceModels,
                     ) { scope.launch { repository.setPowerSavingDropOnDeviceModels(it) } }
-                }
-                item {
-                    ToggleSetting(
-                        R.string.tooldetail_power_drop_stats_title,
-                        stringResource(R.string.tooldetail_power_drop_stats_subtitle),
-                        settings.watch { it.powerSaving.dropTypingStats },
-                        default = SettingsDefaults.powerSaving.dropTypingStats,
-                    ) { scope.launch { repository.setPowerSavingDropTypingStats(it) } }
                 }
                 item {
                     ToggleSetting(
@@ -2427,24 +2418,29 @@ internal fun ToolDetailSettings(
                     }
                 }
             }
-            SectionHeader(
-                stringResource(R.string.tooldetail_media_filter_header),
-                info = stringResource(R.string.tooldetail_media_filter_info),
-            )
-            ChoiceControl(
-                options = GifContentFilter.entries.map { filter ->
-                    filter to when (filter) {
-                        GifContentFilter.OFF -> stringResource(CommonR.string.common_off)
-                        GifContentFilter.LOW -> stringResource(R.string.tooldetail_media_filter_low)
-                        GifContentFilter.MEDIUM ->
-                            stringResource(R.string.tooldetail_media_filter_medium)
-                        GifContentFilter.HIGH -> stringResource(R.string.tooldetail_media_filter_high)
-                    }
-                },
-                selected = settings.watch { it.gif.contentFilter },
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                detail = { filter -> ChoiceDetail(stringResource(gifFilterDescRes(filter))) },
-            ) { filter -> scope.launch { repository.setGifContentFilter(filter) } }
+            // A row in a group like every other setting, so it folds, resets
+            // and lands from search; it used to be a bare control under a
+            // heading.
+            SettingsGroup(level = SettingLevel.STANDARD) {
+                item {
+                    ChoiceSetting(
+                        R.string.tooldetail_media_filter_header,
+                        info = stringResource(R.string.tooldetail_media_filter_info),
+                        options = GifContentFilter.entries.map { filter ->
+                            filter to when (filter) {
+                                GifContentFilter.OFF -> stringResource(CommonR.string.common_off)
+                                GifContentFilter.LOW -> stringResource(R.string.tooldetail_media_filter_low)
+                                GifContentFilter.MEDIUM ->
+                                    stringResource(R.string.tooldetail_media_filter_medium)
+                                GifContentFilter.HIGH -> stringResource(R.string.tooldetail_media_filter_high)
+                            }
+                        },
+                        selected = settings.watch { it.gif.contentFilter },
+                        default = SettingsDefaults.gif.contentFilter,
+                        detail = { filter -> ChoiceDetail(stringResource(gifFilterDescRes(filter))) },
+                    ) { filter -> scope.launch { repository.setGifContentFilter(filter) } }
+                }
+            }
             SettingsGroup(stringResource(R.string.tooldetail_media_limit_group), level = SettingLevel.ADVANCED) {
                 item {
                     SliderSetting(
@@ -3107,16 +3103,18 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setQrSaveToGallery(it) } }
                 }
             }
-            SectionHeader(stringResource(R.string.tooldetail_qr_gen_ecc_header))
-            ChoiceControl(
-                // The names are the standard's own single letters (L/M/Q/H),
-                // not words, so they are not translated.
-                options = QrEccLevel.entries.map { it to it.name },
-                selected = settings.watch { it.scanner.qrEcc },
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                detail = { level -> ChoiceDetail(stringResource(qrEccDescRes(level))) },
-            ) { level -> scope.launch { repository.setQrEcc(level) } }
             SettingsGroup(level = SettingLevel.ADVANCED) {
+                item {
+                    ChoiceSetting(
+                        R.string.tooldetail_qr_gen_ecc_header,
+                        // The names are the standard's own single letters (L/M/Q/H),
+                        // not words, so they are not translated.
+                        options = QrEccLevel.entries.map { it to it.name },
+                        selected = settings.watch { it.scanner.qrEcc },
+                        default = SettingsDefaults.scanner.qrEcc,
+                        detail = { level -> ChoiceDetail(stringResource(qrEccDescRes(level))) },
+                    ) { level -> scope.launch { repository.setQrEcc(level) } }
+                }
                 item {
                     val charsFormat = stringResource(R.string.values_number)
                     SliderSetting(
@@ -3618,29 +3616,22 @@ private fun TypingTestToolSettings(repository: SettingsRepository, settings: Liv
         TypingHistory.decode(encodedHistory)
     }
 
-    SectionHeader(stringResource(R.string.toolai_typing_default_test_title))
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp),
-    ) {
-        for (mode in TypingTestMode.entries) {
-            FilterChip(
-                selected = testMode == mode,
-                onClick = { scope.launch { repository.setTypingTestMode(mode) } },
-                label = {
-                    Text(
-                        stringResource(
-                            when (mode) {
-                                TypingTestMode.TIME -> R.string.toolai_typing_mode_time_label
-                                TypingTestMode.WORDS -> R.string.toolai_typing_mode_words_label
-                                TypingTestMode.QUOTE -> R.string.toolai_typing_mode_quote_label
-                            },
-                        ),
+    SettingsGroup {
+        item(level = SettingLevel.STANDARD) {
+            ChoiceSetting(
+                R.string.toolai_typing_default_test_title,
+                options = TypingTestMode.entries.map { mode ->
+                    mode to stringResource(
+                        when (mode) {
+                            TypingTestMode.TIME -> R.string.toolai_typing_mode_time_label
+                            TypingTestMode.WORDS -> R.string.toolai_typing_mode_words_label
+                            TypingTestMode.QUOTE -> R.string.toolai_typing_mode_quote_label
+                        },
                     )
                 },
-            )
+                selected = testMode,
+                default = SettingsDefaults.typingTest.mode,
+            ) { mode -> scope.launch { repository.setTypingTestMode(mode) } }
         }
     }
 
@@ -4666,6 +4657,22 @@ internal fun WeatherLocationSetting(repository: SettingsRepository, settings: Li
 internal val AUTO_INCOGNITO_INFO = R.string.privacy_auto_incognito_info
 
 /** What arms power saving under each answer, one line, for the picker sheet. */
+@StringRes
+private fun powerPresetLabelRes(preset: PowerSavingPreset): Int = when (preset) {
+    PowerSavingPreset.LIGHT -> R.string.tooldetail_power_preset_light
+    PowerSavingPreset.BALANCED -> R.string.tooldetail_power_preset_balanced
+    PowerSavingPreset.AGGRESSIVE -> R.string.tooldetail_power_preset_aggressive
+    PowerSavingPreset.CUSTOM -> R.string.tooldetail_power_preset_custom
+}
+
+@StringRes
+private fun powerPresetDescRes(preset: PowerSavingPreset): Int = when (preset) {
+    PowerSavingPreset.LIGHT -> R.string.tooldetail_power_preset_light_desc
+    PowerSavingPreset.BALANCED -> R.string.tooldetail_power_preset_balanced_desc
+    PowerSavingPreset.AGGRESSIVE -> R.string.tooldetail_power_preset_aggressive_desc
+    PowerSavingPreset.CUSTOM -> R.string.tooldetail_power_preset_custom_desc
+}
+
 private fun powerTriggerDescRes(trigger: PowerSavingTrigger): Int = when (trigger) {
     PowerSavingTrigger.OFF -> R.string.tooldetail_power_trigger_off_desc
     PowerSavingTrigger.SYSTEM_SAVER -> R.string.tooldetail_power_trigger_system_desc

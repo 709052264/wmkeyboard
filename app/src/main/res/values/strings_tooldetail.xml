@@ -344,6 +344,17 @@
 
     <!-- Power saving tool: which features it drops. -->
     <string name="tooldetail_power_drop_group">Effects to drop</string>
+    <!-- One bundle over the twelve drop switches. -->
+    <string name="tooldetail_power_preset_title">What to drop</string>
+    <string name="tooldetail_power_preset_subtitle">A bundle of the switches further down</string>
+    <string name="tooldetail_power_preset_light">Light</string>
+    <string name="tooldetail_power_preset_light_desc">Vibration, sounds, animations, the glide trail, glass blur and the background watchers</string>
+    <string name="tooldetail_power_preset_balanced">Balanced</string>
+    <string name="tooldetail_power_preset_balanced_desc">Light, plus background fetches and the on-device models</string>
+    <string name="tooldetail_power_preset_aggressive">Aggressive</string>
+    <string name="tooldetail_power_preset_aggressive_desc">Balanced, plus glide typing, emoji suggestions and smart chips</string>
+    <string name="tooldetail_power_preset_custom">Custom</string>
+    <string name="tooldetail_power_preset_custom_desc">Your own mix of the switches further down</string>
     <string name="tooldetail_power_drop_helpers_group">Typing helpers to drop</string>
     <string name="tooldetail_power_drop_background_group">Background work to drop</string>
     <string name="tooldetail_power_drop_haptics_title">Key vibration</string>

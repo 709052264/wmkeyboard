@@ -19811,6 +19811,32 @@ class SettingsRepository(private val context: Context) {
     suspend fun setPowerSavingDropHaptics(value: Boolean) =
         editPrefs { it[PS_DROP_HAPTICS] = value }
 
+    /**
+     * Every drop switch a bundle stands for, written in one transaction; see
+     * [PowerSavingSettings.withPreset]. [PowerSavingPreset.CUSTOM] is the
+     * user's own mix and writes nothing.
+     */
+    suspend fun setPowerSavingPreset(preset: PowerSavingPreset) {
+        if (preset == PowerSavingPreset.CUSTOM) return
+        val d = PowerSavingSettings().withPreset(preset)
+        editPrefs {
+            it[PS_DROP_HAPTICS] = d.dropHaptics
+            it[PS_DROP_KEY_SOUND] = d.dropKeySound
+            it[PS_DROP_ANIMATIONS] = d.dropAnimations
+            it[PS_DROP_GLIDE_TRAIL] = d.dropGlideTrail
+            it[PS_DROP_KEY_POPUP] = d.dropKeyPopup
+            it[PS_DROP_GLASS_BLUR] = d.dropGlassBlur
+            it[PS_DROP_GESTURE_TYPING] = d.dropGestureTyping
+            it[PS_DROP_EMOJI_PREDICTION] = d.dropEmojiPrediction
+            it[PS_DROP_SMART_CHIPS] = d.dropSmartChips
+            it[PS_DROP_BACKGROUND_NETWORK] = d.dropBackgroundNetwork
+            it[PS_DROP_SCREENSHOT_WATCH] = d.dropScreenshotWatch
+            it[PS_DROP_ON_DEVICE_MODELS] = d.dropOnDeviceModels
+            it[PS_DROP_TYPING_STATS] = d.dropTypingStats
+            it[PS_DROP_MEDIA_PIN] = d.dropMediaPin
+        }
+    }
+
     suspend fun setPowerSavingDropKeySound(value: Boolean) =
         editPrefs { it[PS_DROP_KEY_SOUND] = value }
 

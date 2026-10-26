@@ -246,12 +246,15 @@ they were set from the row names and the audit, not from use.
   rows), the selection action list and its sub-lists, the add-on detail and
   preview pages (information, not choices), the layout grid, and every keyed
   list row.
-- Still to do: the screens outside both lists, such as semantic search,
-  backup locations and the Espanso hub address group. None of the audit's
-  merges is applied yet; the rows they name are tagged where they stand
-  (Drags edit the active mode, Share GitHub link, the Dictionaries word-list
-  row, Start from the saved prompt, the power-saving presets and camera
-  haptics sit at advanced until merged or removed).
+- Tail done 2026-10-26: semantic search's two optional rows are Standard,
+  the Espanso hub address group is Advanced, backup locations are a list
+  (basic by rule). The three controls that sat outside any group now sit in
+  one: the GIF and sticker content filter (Standard), QR error correction
+  (Advanced, with the size limit) and the typing test's default test
+  (Standard). Audit merges on the tool pages: Power saving has a What to
+  drop bundle row (Light / Balanced / Aggressive / Custom) over its twelve
+  switches, and the key popup and typing statistics drops are gone; the
+  camera's own haptics switch is gone, the panel follows the keyboard's.
 
 **Phase 2 (done 2026-10-26, uncompiled):** Extensions. `Extension` in
 `core/settings` with the tools and routes each of the nineteen bundles owns,
@@ -306,6 +309,10 @@ slider on the title line (72 dp rather than 110); the pill, the typed value
 and the haptic ticks are unchanged. Density was checked, not changed: Material's
 72/88 dp rows, 3 dp between cards, 16 dp under a group; each card still pads
 4 dp above and below its row, from the reveal work.
+
+`GroupCard`'s 4 dp vertical padding went on 2026-10-26: a row brings its own
+padding, and the extra 4 dp made every row 80 dp where the list is designed
+around 72.
 
 ## What this does not do
 

@@ -278,7 +278,7 @@ internal fun CameraPanel(
                     description = stringResource(R.string.ime_camera_close_desc),
                     active = false,
                 ) {
-                    if (state.settings.camera.haptics) keyFeedback()
+                    keyFeedback()
                     onClose()
                 }
             }
@@ -353,7 +353,9 @@ private fun CameraContent(
     // Haptics on controls, ticks and shutter — the tool setting gates it;
     // the global haptic settings still shape the actual vibration.
     val keyFeedback = LocalKeyPressFeedback.current
-    val feedback = { if (state.settings.camera.haptics) keyFeedback() }
+    // No switch of its own any more: the keyboard's haptics setting is the
+    // one that says whether anything buzzes, here as on the keys.
+    val feedback = { keyFeedback() }
     // The shutter's answer to a tap: the button dips and springs back, and
     // when the picture is actually taken (after any countdown) the frame
     // flashes white and fades into the still. Both are draw-time values, and

@@ -3741,7 +3741,10 @@ private fun GroupCard(top: Dp, bottom: Dp, content: @Composable () -> Unit) {
         color = MaterialTheme.colorScheme.surfaceContainer,
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Column(modifier = Modifier.padding(vertical = 4.dp)) { content() }
+        // No padding of its own: a row brings its own (ListItem's 8 dp, a
+        // slider row's 8 dp), and 4 dp on top of that made every row 80 dp
+        // where 72 is the height the list is designed around.
+        Column { content() }
     }
 }
 

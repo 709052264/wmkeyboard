@@ -516,7 +516,7 @@ internal fun SnippetSettings(
     val canEditFolders = folders.isNotEmpty()
     LaunchedEffect(canEditFolders) { if (!canEditFolders) editingFolders = false }
     // Where hub.espanso.org package links are looked up.
-    ServerFieldsGroup(repository, settings, repos = listOf(ServiceRepo.ESPANSO_HUB))
+    ServerFieldsGroup(repository, settings, repos = listOf(ServiceRepo.ESPANSO_HUB), level = SettingLevel.ADVANCED)
     SettingsGroup(
         stringResource(R.string.expander_folders_title),
         info = stringResource(R.string.expander_folders_info),
