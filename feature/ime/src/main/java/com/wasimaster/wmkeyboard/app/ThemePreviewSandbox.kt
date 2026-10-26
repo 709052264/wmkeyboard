@@ -117,6 +117,7 @@ data class ThemePreviewSandbox(
                 else -> copy(layoutMode = LayoutMode.SECONDARY, secondaryLayoutId = action.id)
             }
             KeyAction.Emoji -> copy(panel = PanelMode.EMOJI)
+            KeyAction.Toolbox -> copy(panel = PanelMode.TOOLBOX)
             KeyAction.Numpad -> copy(panel = PanelMode.NUMPAD)
             is KeyAction.Tool -> onTool(action.tool)
             // Modifiers, raw key events, chords and the rest have nowhere to go

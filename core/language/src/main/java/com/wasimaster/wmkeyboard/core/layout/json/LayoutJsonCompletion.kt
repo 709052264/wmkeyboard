@@ -558,7 +558,7 @@ private class Context(
         const val LAYER_SNIPPET = "{\"rows\": [[]]}"
 
         val TAG_ORDER = listOf(
-            "shift", "delete", "enter", "space", "symbols", "letters", "language_switch", "emoji", "tool", "send_key", "mod",
+            "shift", "delete", "enter", "space", "symbols", "letters", "language_switch", "emoji", "tool", "toolbox", "send_key", "mod",
             "edit", "newline", "caps_lock", "forward_delete", "layout", "fn", "none", "input_method_picker", "broadcast",
             "text", "kana_variant", "add_stroke", "double_consonant", "reading_column", "han_script", "braille_dot", "morse_dot", "morse_dash", "keyman_key", "field",
         )

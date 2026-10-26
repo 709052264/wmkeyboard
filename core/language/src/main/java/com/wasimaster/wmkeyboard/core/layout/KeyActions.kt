@@ -153,6 +153,13 @@ sealed interface KeyAction {
     @Serializable @SerialName("emoji") data object Emoji : KeyAction
 
     /**
+     * Opens the toolbox, as the launcher at the head of the toolbar does
+     * (#970): the whole grid of tools one key away, for a layout that keeps
+     * the toolbar out of sight or wants it in reach of the thumb.
+     */
+    @Serializable @SerialName("toolbox") data object Toolbox : KeyAction
+
+    /**
      * Opens the numeric keypad panel over the current field. Produced at
      * runtime by a long-press on the ?123 / symbols key or the popup entry it
      * adds to one with alternates
@@ -605,7 +612,7 @@ fun KeyAction.fallbackLabel(): String = when (this) {
     // this stays exhaustive and a new action cannot be added without deciding.
     KeyAction.Text, KeyAction.Shift, KeyAction.CapsLock, KeyAction.Delete,
     KeyAction.ForwardDelete, KeyAction.Enter, KeyAction.LanguageSwitch,
-    KeyAction.InputMethodPicker, KeyAction.Emoji,
+    KeyAction.InputMethodPicker, KeyAction.Emoji, KeyAction.Toolbox,
     -> ""
 }
 
@@ -745,7 +752,7 @@ fun KeyAction.canRepeatOnHold(): Boolean = when (this) {
     KeyAction.Space, KeyAction.None -> false
     KeyAction.MorseDot, KeyAction.MorseDash -> false
     KeyAction.Shift, KeyAction.CapsLock, KeyAction.Fn -> false
-    KeyAction.Symbols, KeyAction.Letters, KeyAction.Numpad, KeyAction.Emoji -> false
+    KeyAction.Symbols, KeyAction.Letters, KeyAction.Numpad, KeyAction.Emoji, KeyAction.Toolbox -> false
     KeyAction.LanguageSwitch, KeyAction.InputMethodPicker -> false
     is KeyAction.SwitchInputMethod -> false
     is KeyAction.Mod, is KeyAction.Layout, is KeyAction.Tool -> false

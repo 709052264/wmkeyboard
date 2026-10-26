@@ -183,6 +183,7 @@ object LayoutJsonDocs {
             "The other keyboard's input method id, the package/.ServiceClass text the system files it under. Leave it blank and " +
             "the key opens the system list.",
         "action:emoji" to "Opens the emoji panel.",
+        "action:toolbox" to "Opens the toolbox, the grid of every tool, as the button at the start of the toolbar does.",
         "action:numpad" to "Opens the number pad. The keyboard makes this key by itself, and a layout does not use it.",
         "action:tool" to "Opens one of the keyboard's tools, the same as its toolbar button.",
         "action:tool.tool" to "Which tool the key opens.",

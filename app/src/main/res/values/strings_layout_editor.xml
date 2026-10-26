@@ -497,6 +497,8 @@
     <string name="layout_editor_action_letters_detail">Goes back to the letter grid</string>
     <string name="layout_editor_action_emoji_title">Emoji panel</string>
     <string name="layout_editor_action_emoji_detail">Opens the emoji picker</string>
+    <string name="layout_editor_action_toolbox_title">Toolbox</string>
+    <string name="layout_editor_action_toolbox_detail">Opens the grid of every tool, like the button at the start of the toolbar</string>
     <string name="layout_editor_action_switch_layout_title">Switch layout</string>
     <string name="layout_editor_action_switch_layout_detail">Changes to the next layout that you turned on</string>
     <string name="layout_editor_action_input_method_picker_title">Switch keyboard</string>

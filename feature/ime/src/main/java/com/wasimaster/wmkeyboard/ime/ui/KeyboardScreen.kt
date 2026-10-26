@@ -1192,6 +1192,7 @@ private fun spokenLabel(key: Key, state: KeyboardUiState): SpokenLabel = when (k
     KeyAction.LanguageSwitch -> SpokenLabel(R.string.ime_key_language_switch)
     KeyAction.InputMethodPicker, is KeyAction.SwitchInputMethod -> SpokenLabel(R.string.ime_key_input_method_picker)
     KeyAction.Emoji -> SpokenLabel(R.string.ime_key_emoji)
+    KeyAction.Toolbox -> if (key.label.isBlank()) SpokenLabel(R.string.ime_toolbox_desc) else SpokenLabel(text = key.label)
     is KeyAction.Mod -> {
         val nameRes = when ((key.action as KeyAction.Mod).key) {
             ModifierKey.CTRL -> R.string.ime_key_modifier_control
@@ -25384,6 +25385,7 @@ private fun AlternateAction(
         KeyAction.LanguageSwitch -> IconSlots.KEY_GLOBE
         KeyAction.InputMethodPicker, is KeyAction.SwitchInputMethod -> IconSlots.KEY_INPUT_METHOD_PICKER
         KeyAction.Emoji -> IconSlots.KEY_EMOJI
+        KeyAction.Toolbox -> IconSlots.CHROME_TOOLBOX
         is KeyAction.Tool -> IconSlots.forTool(action.tool)
         is KeyAction.SendKey -> arrowKeySlot(action.keyCode)
         else -> null
@@ -25506,6 +25508,7 @@ private fun alternateActionSpoken(action: KeyAction): Int? = when (action) {
     KeyAction.LanguageSwitch -> R.string.ime_key_language_switch
     KeyAction.InputMethodPicker, is KeyAction.SwitchInputMethod -> R.string.ime_key_input_method_picker
     KeyAction.Emoji -> R.string.ime_key_emoji
+    KeyAction.Toolbox -> R.string.ime_toolbox_desc
     KeyAction.Space -> R.string.ime_key_space
     else -> null
 }
@@ -26497,6 +26500,9 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
             val toolSlot = (key.action as? KeyAction.Tool)
                 ?.takeIf { mainIcon == null && key.label.isBlank() }
                 ?.let { IconSlots.forTool(it.tool) }
+                // The toolbox key wears the toolbar launcher's icon (#970).
+                ?: IconSlots.CHROME_TOOLBOX
+                    .takeIf { key.action == KeyAction.Toolbox && mainIcon == null && key.label.isBlank() }
                 // The arrow row's keys, and a custom key wearing the same glyph
                 // for the same code, draw their slot the same way (#504).
                 ?: (key.action as? KeyAction.SendKey)

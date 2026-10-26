@@ -5286,6 +5286,12 @@ internal val KeyActionCatalog: List<KeyActionOption> = listOf(
         { KeyAction.Emoji }, { it == KeyAction.Emoji },
     ),
     KeyActionOption(
+        R.string.layout_editor_action_toolbox_title,
+        R.string.layout_editor_action_group_layers,
+        R.string.layout_editor_action_toolbox_detail,
+        { KeyAction.Toolbox }, { it == KeyAction.Toolbox },
+    ),
+    KeyActionOption(
         R.string.layout_editor_action_switch_layout_title,
         R.string.layout_editor_action_group_layers,
         R.string.layout_editor_action_switch_layout_detail,

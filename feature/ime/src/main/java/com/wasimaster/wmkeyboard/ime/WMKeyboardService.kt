@@ -9928,6 +9928,8 @@ open class WMKeyboardService : InputMethodService() {
             KeyAction.InputMethodPicker -> showInputMethodPicker()
             is KeyAction.SwitchInputMethod -> switchToInputMethod((key.action as KeyAction.SwitchInputMethod).id)
             KeyAction.Emoji -> onPanelChange(emojiOpenerTarget(), haptic = false)
+            // The toolbox, from a key (#970): what the toolbar's launcher opens.
+            KeyAction.Toolbox -> onPanelChange(PanelMode.TOOLBOX, haptic = false)
             // Produced only by a long-press on ?123 when the opt-in is set.
             KeyAction.Numpad -> {
                 releaseUserShift()
