@@ -1974,6 +1974,18 @@ data class ToolbarBehavior(
      */
     val stripToolbox: Boolean = false,
     /**
+     * The pinned tools wear their own colours, the ones Colorful tool icons
+     * gives them in the toolbox (#970). Off by default: the bar keeps the
+     * theme's one toolbar-icon colour.
+     */
+    val pinnedToolColors: Boolean = false,
+    /**
+     * With tool labels on, every labelled button keeps the width of the tool
+     * buttons and a longer name is cut short, instead of the name setting the
+     * button's width (#970).
+     */
+    val labelsFixedWidth: Boolean = false,
+    /**
      * How long a pinned tool is held before the hold counts, in ms: the bound
      * hold action, the settings page, the pick-up for a reorder (#665). 0
      * follows the system's own touch-and-hold delay, which is what the bar
@@ -11095,6 +11107,8 @@ class SettingsRepository(private val context: Context) {
         private val HW_KEYS_SHOWN = booleanPreferencesKey("hw_keys_shown")
         private val HW_KEYS_AUTO_HIDE = booleanPreferencesKey("hw_keys_auto_hide")
         private val REVERSE_TOOLBAR_RTL = booleanPreferencesKey("reverse_toolbar_rtl")
+        private val TOOLBAR_PINNED_COLORS = booleanPreferencesKey("toolbar_pinned_colors")
+        private val TOOLBAR_LABELS_FIXED_WIDTH = booleanPreferencesKey("toolbar_labels_fixed_width")
         private val TOOLBAR_HEIGHT = intPreferencesKey("toolbar_height")
         private val TOOLBAR_SCROLLABLE = booleanPreferencesKey("toolbar_scrollable")
         private val TOOLBAR_HIDE_WHEN_LOCKED = booleanPreferencesKey("toolbar_hide_when_locked")
@@ -13406,6 +13420,8 @@ class SettingsRepository(private val context: Context) {
             hardwareKeysShown = p[HW_KEYS_SHOWN] ?: defaults.toolbarBehavior.hardwareKeysShown,
             hardwareKeysAutoHide = p[HW_KEYS_AUTO_HIDE] ?: defaults.toolbarBehavior.hardwareKeysAutoHide,
             reverseForRtl = p[REVERSE_TOOLBAR_RTL] ?: defaults.toolbarBehavior.reverseForRtl,
+            pinnedToolColors = p[TOOLBAR_PINNED_COLORS] ?: defaults.toolbarBehavior.pinnedToolColors,
+            labelsFixedWidth = p[TOOLBAR_LABELS_FIXED_WIDTH] ?: defaults.toolbarBehavior.labelsFixedWidth,
             greedy = p[TOOLBAR_GREEDY] ?: defaults.toolbarBehavior.greedy,
             scrollable = p[TOOLBAR_SCROLLABLE] ?: defaults.toolbarBehavior.scrollable,
             hideWhenLocked = p[TOOLBAR_HIDE_WHEN_LOCKED] ?: defaults.toolbarBehavior.hideWhenLocked,
@@ -15741,6 +15757,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setReverseToolbarForRtl(value: Boolean) =
         editPrefs { it[REVERSE_TOOLBAR_RTL] = value }
+
+    suspend fun setToolbarPinnedToolColors(value: Boolean) =
+        editPrefs { it[TOOLBAR_PINNED_COLORS] = value }
+
+    suspend fun setToolbarLabelsFixedWidth(value: Boolean) =
+        editPrefs { it[TOOLBAR_LABELS_FIXED_WIDTH] = value }
 
     suspend fun setToolbarHeightDp(value: Int) =
         editPrefs { it[TOOLBAR_HEIGHT] = value.coerceIn(32, 80) }

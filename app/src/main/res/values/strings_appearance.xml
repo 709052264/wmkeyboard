@@ -95,6 +95,10 @@
     <string name="appearance_toolbar_labels_title">Tool labels</string>
     <string name="appearance_toolbar_labels_subtitle">Show the name of each tool below its icon on the toolbar</string>
     <string name="appearance_toolbar_labels_info">The keyboard draws a small name below every pinned tool. Increase the toolbar height to give the labels space.</string>
+    <string name="appearance_toolbar_labels_fixed_title">Keep labelled tools one width</string>
+    <string name="appearance_toolbar_labels_fixed_subtitle">Cut a long name short instead of widening its button</string>
+    <string name="appearance_toolbar_pinned_colors_title">Color the pinned tools</string>
+    <string name="appearance_toolbar_pinned_colors_subtitle">Give the tools on the toolbar the colors they have in the toolbox</string>
     <string name="appearance_toolbar_label_size_title">Label text size</string>
     <string name="appearance_toolbar_label_size_subtitle">Font size of the tool labels on the toolbar</string>
     <string name="appearance_tool_circle_title">Tool circle radius</string>

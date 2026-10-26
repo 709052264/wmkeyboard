@@ -1040,6 +1040,8 @@ private fun SearchStrings.appearanceToolbarRows(): List<SettingsSearchEntry> {
         row(R.string.appearance_toolbar_lock_title, R.string.appearance_toolbar_lock_subtitle),
         row(R.string.appearance_toolbar_labels_title, R.string.appearance_toolbar_labels_subtitle),
         row(R.string.appearance_toolbar_label_size_title, R.string.appearance_toolbar_label_size_subtitle),
+        row(R.string.appearance_toolbar_labels_fixed_title, R.string.appearance_toolbar_labels_fixed_subtitle),
+        row(R.string.appearance_toolbar_pinned_colors_title, R.string.appearance_toolbar_pinned_colors_subtitle),
         row(R.string.appearance_suggestion_text_size_title, R.string.appearance_suggestion_text_size_subtitle),
         row(R.string.appearance_suggestion_spacing_title, R.string.appearance_suggestion_spacing_subtitle),
         row(R.string.appearance_suggestion_primary_color_title, R.string.appearance_suggestion_primary_color_subtitle),

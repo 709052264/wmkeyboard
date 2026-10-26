@@ -498,6 +498,8 @@ internal object SettingsRowIcons {
         put(R.string.appearance_toolbar_padding_bottom_title) { Icons.Outlined.VerticalAlignBottom }
         put(R.string.appearance_toolbar_labels_title) { Icons.AutoMirrored.Outlined.Label }
         put(R.string.appearance_toolbar_label_size_title) { Icons.Outlined.FormatSize }
+        put(R.string.appearance_toolbar_labels_fixed_title) { Icons.Outlined.Straighten }
+        put(R.string.appearance_toolbar_pinned_colors_title) { Icons.Outlined.Palette }
         put(R.string.appearance_tool_circle_title) { Icons.Outlined.Circle }
         put(R.string.appearance_tool_shape_title) { Icons.Outlined.Category }
         put(R.string.appearance_toolbox_layout_title) { Icons.Outlined.GridView }

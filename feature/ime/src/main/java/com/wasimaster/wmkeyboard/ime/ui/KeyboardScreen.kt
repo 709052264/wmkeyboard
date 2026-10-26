@@ -9989,6 +9989,9 @@ internal fun ToolCircle(
     // Bare-icon form only, and ignored when [compact].
     widthDp: Int? = null,
     iconSizeDp: Int? = null,
+    // The labelled button's widest, in dp: a longer name is cut short rather
+    // than widening the button (#970). Null lets the name set the width.
+    labelMaxWidthDp: Int? = null,
     onClick: () -> Unit,
 ) {
     val kb = LocalKbTheme.current
@@ -10036,7 +10039,9 @@ internal fun ToolCircle(
     if (label != null) {
         // Labelled variant (toolbar labels): icon in its circle, name beneath.
         Column(
-            modifier = modifier.then(click),
+            modifier = modifier
+                .then(if (labelMaxWidthDp != null) Modifier.widthIn(max = labelMaxWidthDp.dp) else Modifier)
+                .then(click),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
@@ -10560,12 +10565,16 @@ private fun StripToolButton(
         drag.pinnedToolWidthPx.takeIf { it > 0 && !behavior.stripOwnSize }?.toDp()
     }
     val label = stringResource(toolLabelRes(tool))
+    // Coloured as the pinned copy is, so the slide between them lands on the same icon.
+    val paint = if (behavior.pinnedToolColors) toolAccentPaint(tool, state.settings) else null
     ToolCircle(
         // The emoji keeps an icon-pack slot of its own here, the one this
         // button has always had.
         slot = if (tool == ToolbarTool.EMOJI) IconSlots.CHROME_EMOJI_SHORTCUT else IconSlots.forTool(tool),
         description = label,
         active = toolActive(tool, state),
+        tint = paint?.color,
+        tintBrush = paint?.brush,
         modifier = Modifier
             .then(if (pinnedWidth != null) Modifier.widthIn(max = pinnedWidth) else Modifier)
             .animateSharedPlacement(
@@ -10734,6 +10743,10 @@ private fun RowScope.ToolbarRow(
     val greedy = state.settings.toolbarBehavior.greedy && !scrollable
     val labels = state.settings.toolbarLabels
     val labelSize = state.settings.toolbarLabelSize
+    // A name cut to the tool width, when asked for (#970); null lets it set the width.
+    val labelMaxWidth = LocalKbTheme.current.toolWidthDp.takeIf { state.settings.toolbarBehavior.labelsFixedWidth }
+    // The tools' own colours on the bar too, when asked for (#970).
+    val pinnedColors = state.settings.toolbarBehavior.pinnedToolColors
     val motion = !state.settings.reduceMotion
     // Enter and exit share one duration so the back chevron takes the same
     // time to leave as it took to arrive; a shorter exit made closing a panel
@@ -10879,6 +10892,7 @@ private fun RowScope.ToolbarRow(
                 // sits a few pixels off the others' baseline as well.
                 label = stringResource(R.string.ime_toolbox_desc).takeIf { labels },
                 labelSizeSp = labelSize,
+                labelMaxWidthDp = labelMaxWidth,
                 modifier = Modifier
                     .then(
                         if (dpadRing) {
@@ -10963,12 +10977,16 @@ private fun RowScope.ToolbarRow(
                         onHoldMenu = { voiceMenuOpen = true },
                         holdDelayMs = state.settings.toolbarBehavior.holdDelayMs,
                     ) { dragModifier ->
+                        val paint = if (pinnedColors) toolAccentPaint(tool, state.settings) else null
                         ToolCircle(
                             slot = IconSlots.forTool(tool),
                             description = toolLabel(tool),
                             active = toolActive(tool, state),
+                            tint = paint?.color,
+                            tintBrush = paint?.brush,
                             label = if (labels) toolLabel(tool) else null,
                             labelSizeSp = labelSize,
+                            labelMaxWidthDp = labelMaxWidth,
                             // This cell IS the drop preview while it is the one
                             // being dragged: it has moved to the slot under the
                             // finger and draws washed out there, so the row on

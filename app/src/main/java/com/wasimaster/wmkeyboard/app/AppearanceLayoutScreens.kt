@@ -542,6 +542,22 @@ internal fun AppearanceToolbarSettings(
                 default = SettingsDefaults.toolbarLabelSize.toFloat(),
             ) { scope.launch { repository.setToolbarLabelSize(it.roundToInt()) } }
         }
+        item(visible = toolbarOn && labelsOn, level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.appearance_toolbar_labels_fixed_title,
+                stringResource(R.string.appearance_toolbar_labels_fixed_subtitle),
+                settings.watch { it.toolbarBehavior.labelsFixedWidth },
+                default = SettingsDefaults.toolbarBehavior.labelsFixedWidth,
+            ) { scope.launch { repository.setToolbarLabelsFixedWidth(it) } }
+        }
+        item(visible = toolbarOn, level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.appearance_toolbar_pinned_colors_title,
+                stringResource(R.string.appearance_toolbar_pinned_colors_subtitle),
+                settings.watch { it.toolbarBehavior.pinnedToolColors },
+                default = SettingsDefaults.toolbarBehavior.pinnedToolColors,
+            ) { scope.launch { repository.setToolbarPinnedToolColors(it) } }
+        }
         item(level = SettingLevel.STANDARD) {
             SliderSetting(
                 R.string.appearance_suggestion_text_size_title,
