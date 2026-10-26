@@ -15,7 +15,7 @@ class FancyStylesTest {
 
     @Test
     fun `normal plus the 31 styles are present, in the shipped order, with a default`() {
-        assertEquals(32, FancyStyles.all.size)
+        assertEquals(33, FancyStyles.all.size)
         assertEquals(FancyStyles.NORMAL_ID, FancyStyles.all.first().id)
         assertEquals("bold", FancyStyles.all[1].id)
         // The tail of the original 22, then the tail of the whole table: the

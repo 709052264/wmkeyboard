@@ -550,6 +550,23 @@ object FancyStyles {
                 "Ṡ", "Ṫ", "U̇", "V̇", "Ẇ", "Ẋ", "Ẏ", "Ż",
             ),
         ),
+        // Currency and other symbol glyphs that look like the letters
+        // (Telegram group). Single-case. Letters a language writes with (ł,
+        // Ø, Đ) are left out, so reading a styled field back never turns a
+        // Polish or Danish word into plain letters: Ɨ, Ꝋ and ₫ stand in.
+        style(
+            "currency", "Currency", "₵ɄⱤⱤɆ₦₵Ɏ",
+            listOf(
+                "₳", "฿", "₵", "₫", "Ɇ", "₣", "₲", "Ⱨ", "Ɨ",
+                "J", "₭", "Ⱡ", "₥", "₦", "Ꝋ", "₱", "Q", "Ɽ",
+                "₴", "₮", "Ʉ", "V", "₩", "Ӿ", "Ɏ", "Ⱬ",
+            ),
+            listOf(
+                "₳", "฿", "₵", "₫", "Ɇ", "₣", "₲", "Ⱨ", "Ɨ",
+                "J", "₭", "Ⱡ", "₥", "₦", "Ꝋ", "₱", "Q", "Ɽ",
+                "₴", "₮", "Ʉ", "V", "₩", "Ӿ", "Ɏ", "Ⱬ",
+            ),
+        ),
         // Rotated glyphs laid out back to front — see [FancyAssembly.REVERSED].
         style(
             "upside_down", "Upside Down", "uʍoᗡ ǝpısd∩",
