@@ -4452,6 +4452,9 @@ internal fun ToggleSetting(
                             change(default == true)
                         }
                     }
+                    // A little air before the switch (#970): with the "?" right
+                    // against it, a tap meant for one landed on the other.
+                    Spacer(Modifier.width(6.dp))
                     Switch(
                         checked = checked,
                         onCheckedChange = change,
