@@ -3543,6 +3543,8 @@ data class KeyboardUiState(
      */
     val toolsRecent: List<ToolbarTool> = emptyList(),
     val toolsMostUsed: List<ToolbarTool> = emptyList(),
+    /** Every tool by its name in the keyboard's language, for the toolbox's A to Z order. */
+    val toolsAlphabetical: List<ToolbarTool> = emptyList(),
     /** Palette-grid base emoji → the skin-tone/gender variant it renders as. */
     val emojiVariantPrefs: Map<String, String> = emptyMap(),
     /**

@@ -2156,11 +2156,12 @@ enum class ToolboxLayout { ICONS, PILLS }
 
 /**
  * What puts the toolbox's tools in order. [CUSTOM] is
- * [KeyboardSettings.toolboxOrder], the arrangement dragging builds; the other
- * two rank by use, counted each time a tool runs, and fall back to that
- * arrangement for the tools never used.
+ * [KeyboardSettings.toolboxOrder], the arrangement dragging builds; [MOST_USED]
+ * and [RECENT] rank by use, counted each time a tool runs, and fall back to
+ * that arrangement for the tools never used. [ALPHABETICAL] is by name, in the
+ * keyboard's language (#970).
  */
-enum class ToolboxSort { CUSTOM, MOST_USED, RECENT }
+enum class ToolboxSort { CUSTOM, MOST_USED, RECENT, ALPHABETICAL }
 
 /**
  * How the toolbox is laid out and paged. Its own class rather than flat fields

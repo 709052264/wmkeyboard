@@ -809,12 +809,13 @@ internal fun AppearanceToolboxSettings(
         }
     }
 }
-/** The three orders the toolbox and its search can take. */
+/** The orders the toolbox and its search can take. */
 @Composable
 private fun toolboxSortOptions(): List<Pair<ToolboxSort, String>> = listOf(
     ToolboxSort.CUSTOM to stringResource(R.string.appearance_toolbox_sort_custom_label),
     ToolboxSort.MOST_USED to stringResource(R.string.appearance_toolbox_sort_most_used_label),
     ToolboxSort.RECENT to stringResource(R.string.appearance_toolbox_sort_recent_label),
+    ToolboxSort.ALPHABETICAL to stringResource(R.string.appearance_toolbox_sort_alphabetical_label),
 )
 
 // ---- layout & size ----

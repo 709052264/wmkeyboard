@@ -23167,6 +23167,7 @@ internal fun sortedByUse(tools: List<ToolbarTool>, sort: ToolboxSort, state: Key
         ToolboxSort.CUSTOM -> return tools
         ToolboxSort.MOST_USED -> state.toolsMostUsed
         ToolboxSort.RECENT -> state.toolsRecent
+        ToolboxSort.ALPHABETICAL -> state.toolsAlphabetical
     }
     if (ranking.isEmpty()) return tools
     val rank = ranking.withIndex().associate { it.value to it.index }

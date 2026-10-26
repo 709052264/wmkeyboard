@@ -46764,7 +46764,13 @@ open class WMKeyboardService : InputMethodService() {
     private fun publishToolUsage() {
         val recent = toolUsage.recent()
         val mostUsed = toolUsage.mostUsed()
-        _uiState.update { it.copy(toolsRecent = recent, toolsMostUsed = mostUsed) }
+        // By the names the grid shows, so the order follows the keyboard's
+        // language; a collator, so "Échange" files under E, not after Z.
+        val collator = java.text.Collator.getInstance(resources.configuration.locales[0])
+        val alphabetical = ToolbarTool.entries.sortedWith(
+            compareBy(collator) { tool: ToolbarTool -> getString(com.wasimaster.wmkeyboard.ime.ui.toolLabelRes(tool)) },
+        )
+        _uiState.update { it.copy(toolsRecent = recent, toolsMostUsed = mostUsed, toolsAlphabetical = alphabetical) }
     }
 
     fun onEmojiTapped(emoji: String) {
