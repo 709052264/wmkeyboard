@@ -225,7 +225,7 @@ The joining marks work the same way, with one extra test. A slash, a backslash, 
 
 Three presses behave differently once it's on:
 
-- **The opening bracket** types the pair. `(` `[` `{` do it, and so do the CJK and fullwidth brackets: `（` `［` `｛` `〈` `《` `「` `『` `｢` `【` `〔` `〖` `〘` `〚` `⟨` `⟦`.
+- **The opening bracket** types the pair. `(` `[` `{` do it, and so do the CJK and fullwidth brackets: `（` `［` `｛` `〈` `《` `「` `『` `｢` `【` `〔` `〖` `〘` `〚` `⟨` `⟦`. The pair only goes in where nothing follows the cursor but a space, a line break, the end of the text, a closing bracket or a mark like `.` or `,`. In front of anything else, a word, `@name`, `#tag`, `$5`, an emoji or a quote, you're putting a bracket around that text by hand, so only the opener is typed: `he (was`, not `he ()was`.
 - **The closing bracket**, pressed when that very character is already the next one in front of the cursor, steps over it instead of typing a second one. Typing both halves out of habit gives you `()`, not `())`.
 - **Backspace** on an empty pair takes both halves out in one press, so undoing the bracket undoes the closer that came with it. A pair with anything inside it deletes one character at a time, as always.
 
