@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -7,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -25,6 +29,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -40,6 +45,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.common.R as CommonR
@@ -203,6 +210,16 @@ private fun RunningFace(state: KeyboardUiState, onAction: (SpeedTestAction) -> U
         },
     )
     val transferring = ui.phase == SpeedTestPhase.DOWNLOAD || ui.phase == SpeedTestPhase.UPLOAD
+    // The engine reports five times a second; the dial and its number glide
+    // from one report to the next rather than snapping, which at that rate
+    // reads as flicker. Each report is the phase's running mean, so the
+    // target itself moves little once the connections have opened.
+    val animated by animateFloatAsState(
+        targetValue = ui.liveMbps.toFloat(),
+        animationSpec = tween(SPEED_GLIDE_MS),
+        label = "speed",
+    )
+    val shownMbps = if (kb.motion.any) animated.toDouble() else ui.liveMbps
     Row(
         modifier = Modifier
             .fillMaxSize()
@@ -210,13 +227,16 @@ private fun RunningFace(state: KeyboardUiState, onAction: (SpeedTestAction) -> U
         verticalAlignment = Alignment.CenterVertically,
     ) {
         // The dial: an arc filled on a log scale, the live speed inside it.
+        // Capped so a tall keyboard does not hand it most of the width and
+        // leave the phase label to wrap beside it.
         Box(
             modifier = Modifier
+                .heightIn(max = DIAL_MAX)
                 .fillMaxHeight()
                 .aspectRatio(1f),
             contentAlignment = Alignment.Center,
         ) {
-            val fraction = SpeedTestMath.gaugeFraction(ui.liveMbps)
+            val fraction = SpeedTestMath.gaugeFraction(shownMbps)
             Canvas(Modifier.fillMaxSize()) {
                 val stroke = 10.dp.toPx()
                 val radius = min(size.width, size.height) / 2f - stroke
@@ -230,7 +250,7 @@ private fun RunningFace(state: KeyboardUiState, onAction: (SpeedTestAction) -> U
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 if (transferring) {
                     Text(
-                        SpeedTestMath.formatSpeed(ui.liveMbps, unit),
+                        SpeedTestMath.formatSpeed(shownMbps, unit),
                         color = kb.keyText,
                         fontSize = 26.sp,
                         fontWeight = FontWeight.Bold,
@@ -253,11 +273,18 @@ private fun RunningFace(state: KeyboardUiState, onAction: (SpeedTestAction) -> U
                 .fillMaxHeight(),
             verticalArrangement = Arrangement.Center,
         ) {
-            Text(phaseLabel, color = kb.keyText, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-            Text(ui.serverLabel, color = kb.secondaryText, fontSize = 12.sp)
+            Text(
+                phaseLabel,
+                color = kb.keyText,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(ui.serverLabel, color = kb.secondaryText, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Spacer(Modifier.height(8.dp))
             LiveLine(
-                ui.liveSamples,
+                SpeedTestMath.smooth(ui.liveSamples),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(44.dp),
@@ -296,82 +323,90 @@ private fun DoneFace(state: KeyboardUiState, onAction: (SpeedTestAction) -> Unit
     val ui = state.speedTest
     val s = state.settings.speedTest
     val result = ui.result ?: return
-    Row(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 12.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
     ) {
-        // The card, as big as the height allows at its own shape.
-        Box(
-            modifier = Modifier
-                .fillMaxHeight()
-                .aspectRatio(s.cardSize.aspect.coerceIn(0.5f, 1.6f))
-                .clip(RoundedCornerShape(10.dp))
-                .background(kb.modifierKey),
-            contentAlignment = Alignment.Center,
+        // The card, as big as the height allows at its own shape, but never
+        // more than CARD_WIDTH_SHARE of the width: on a tall keyboard a square
+        // card the full height would leave the chips one to a row.
+        val aspect = s.cardSize.aspect.coerceIn(0.5f, 1.6f)
+        val cardWidth = minOf(maxHeight * aspect, maxWidth * CARD_WIDTH_SHARE)
+        val cardHeight = cardWidth / aspect
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            val preview = ui.preview
-            if (preview != null) {
-                Image(preview, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
-            } else {
-                Text(
-                    SpeedTestMath.formatSpeed(result.downMbps, s.unit) + " " + SpeedTestMath.unitLabel(s.unit),
-                    color = kb.secondaryText,
-                    fontSize = 12.sp,
-                )
-            }
-        }
-        Spacer(Modifier.width(12.dp))
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            ChipRow {
-                for (style in SpeedCardStyle.entries) {
-                    ToolPanelChip(stringResource(styleLabel(style)), selected = s.cardStyle == style) {
-                        onAction(SpeedTestAction.SetStyle(style))
-                    }
+            Box(
+                modifier = Modifier
+                    .size(cardWidth, cardHeight)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(kb.modifierKey),
+                contentAlignment = Alignment.Center,
+            ) {
+                val preview = ui.preview
+                if (preview != null) {
+                    Image(preview, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
+                } else {
+                    Text(
+                        SpeedTestMath.formatSpeed(result.downMbps, s.unit) + " " + SpeedTestMath.unitLabel(s.unit),
+                        color = kb.secondaryText,
+                        fontSize = 12.sp,
+                    )
                 }
             }
-            ChipRow {
-                for (size in SpeedCardSize.entries) {
-                    ToolPanelChip(stringResource(sizeLabel(size)), selected = s.cardSize == size) {
-                        onAction(SpeedTestAction.SetSize(size))
+            Spacer(Modifier.width(12.dp))
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                ChipRow {
+                    for (style in SpeedCardStyle.entries) {
+                        ToolPanelChip(stringResource(styleLabel(style)), selected = s.cardStyle == style) {
+                            onAction(SpeedTestAction.SetStyle(style))
+                        }
                     }
                 }
-            }
-            ChipRow {
-                for (layout in SpeedCardLayout.entries) {
-                    ToolPanelChip(stringResource(layoutLabel(layout)), selected = s.cardLayout == layout) {
-                        onAction(SpeedTestAction.SetLayout(layout))
+                ChipRow {
+                    for (size in SpeedCardSize.entries) {
+                        ToolPanelChip(stringResource(sizeLabel(size)), selected = s.cardSize == size) {
+                            onAction(SpeedTestAction.SetSize(size))
+                        }
                     }
                 }
-                for (unit in SpeedUnit.entries) {
-                    ToolPanelChip(SpeedTestMath.unitLabel(unit), selected = s.unit == unit) {
-                        onAction(SpeedTestAction.SetUnit(unit))
+                ChipRow {
+                    for (layout in SpeedCardLayout.entries) {
+                        ToolPanelChip(stringResource(layoutLabel(layout)), selected = s.cardLayout == layout) {
+                            onAction(SpeedTestAction.SetLayout(layout))
+                        }
+                    }
+                    for (unit in SpeedUnit.entries) {
+                        ToolPanelChip(SpeedTestMath.unitLabel(unit), selected = s.unit == unit) {
+                            onAction(SpeedTestAction.SetUnit(unit))
+                        }
                     }
                 }
-            }
-            ChipRow {
-                val busy = ui.rendering
-                ToolPanelChip(stringResource(R.string.ime_speed_send), selected = true, enabled = !busy) {
-                    onAction(SpeedTestAction.Send)
-                }
-                ToolPanelChip(stringResource(R.string.ime_speed_save), icon = Icons.Outlined.Save, enabled = !busy) {
-                    onAction(SpeedTestAction.Save)
-                }
-                ToolPanelChip(stringResource(R.string.ime_speed_share), icon = Icons.Outlined.Share, enabled = !busy) {
-                    onAction(SpeedTestAction.Share)
-                }
-                ToolPanelChip(stringResource(R.string.ime_speed_insert_text), icon = Icons.Outlined.TextFields) {
-                    onAction(SpeedTestAction.InsertText)
-                }
-                ToolPanelChip(stringResource(R.string.ime_speed_again), icon = Icons.Outlined.Replay) {
-                    onAction(SpeedTestAction.Again)
+                ChipRow {
+                    val busy = ui.rendering
+                    ToolPanelChip(stringResource(R.string.ime_speed_send), selected = true, enabled = !busy) {
+                        onAction(SpeedTestAction.Send)
+                    }
+                    ToolPanelChip(stringResource(R.string.ime_speed_save), icon = Icons.Outlined.Save, enabled = !busy) {
+                        onAction(SpeedTestAction.Save)
+                    }
+                    ToolPanelChip(stringResource(R.string.ime_speed_share), icon = Icons.Outlined.Share, enabled = !busy) {
+                        onAction(SpeedTestAction.Share)
+                    }
+                    ToolPanelChip(stringResource(R.string.ime_speed_insert_text), icon = Icons.Outlined.TextFields) {
+                        onAction(SpeedTestAction.InsertText)
+                    }
+                    ToolPanelChip(stringResource(R.string.ime_speed_again), icon = Icons.Outlined.Replay) {
+                        onAction(SpeedTestAction.Again)
+                    }
                 }
             }
         }
@@ -412,6 +447,15 @@ private fun layoutLabel(layout: SpeedCardLayout): Int = when (layout) {
     SpeedCardLayout.COMPACT -> R.string.ime_speed_layout_compact
     SpeedCardLayout.MINIMAL -> R.string.ime_speed_layout_minimal
 }
+
+/** How long the dial takes to glide from one of the engine's reports to the next; the reports are 200 ms apart. */
+private const val SPEED_GLIDE_MS = 220
+
+/** The dial's largest size; on a short keyboard it is the height instead. */
+private val DIAL_MAX: Dp = 150.dp
+
+/** How much of the result face's width the card may take; the chips have the rest. */
+private const val CARD_WIDTH_SHARE = 0.45f
 
 // ---- error ----
 

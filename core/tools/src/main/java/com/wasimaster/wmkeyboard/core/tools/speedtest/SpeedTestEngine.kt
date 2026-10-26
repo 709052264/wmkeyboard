@@ -44,7 +44,8 @@ class SpeedTestEngine(
     /**
      * One run against [server]. [onProgress] is called on the caller's
      * dispatcher about five times a second while bytes move, once at each
-     * phase change before that.
+     * phase change before that. Its speed is the phase's running mean, not
+     * the last sample, so the dial settles rather than flickers.
      */
     suspend fun run(
         server: SpeedTestServer,
@@ -215,6 +216,7 @@ class SpeedTestEngine(
             }
         }
         val samples = ArrayList<Float>()
+        val expected = (config.durationS * 1000L / SAMPLE_MS).toInt()
         var lastBytes = 0L
         var lastAt = start
         try {
@@ -225,7 +227,7 @@ class SpeedTestEngine(
                 samples += SpeedTestMath.mbps(bytes - lastBytes, at - lastAt).toFloat()
                 lastBytes = bytes
                 lastAt = at
-                onProgress(SpeedTestProgress(phase, SpeedTestMath.current(samples), samples.toList()))
+                onProgress(SpeedTestProgress(phase, SpeedTestMath.running(samples, expected), samples.toList()))
             }
         } finally {
             synchronized(open) { open.toList() }.forEach { runCatching { it.disconnect() } }

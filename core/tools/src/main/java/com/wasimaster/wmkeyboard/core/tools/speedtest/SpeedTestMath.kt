@@ -50,11 +50,48 @@ object SpeedTestMath {
         return kept.sumOf { it.toDouble() } / kept.size
     }
 
-    /** What the gauge shows mid-run: the mean of the last [window] samples. */
+    /** The mean of the last [window] samples. */
     fun current(samples: List<Float>, window: Int = 3): Double {
         if (samples.isEmpty()) return 0.0
         val tail = samples.takeLast(window)
         return tail.sumOf { it.toDouble() } / tail.size
+    }
+
+    /**
+     * What the dial shows mid-run: the mean of every sample since the grace
+     * period, which is the first [graceFraction] of the [expected] samples a
+     * phase will take. Before the grace period is over it is the mean of
+     * everything so far, so the number climbs with TCP and then settles on
+     * what [trimmedThroughput] will report once the phase ends.
+     *
+     * A running mean rather than the last few samples because an upload's
+     * samples come in bursts: a write lands in the kernel's send buffer at
+     * once and counts, then the next blocks until that drains, so the raw
+     * 200 ms samples swing between many times the line's speed and nothing.
+     */
+    fun running(samples: List<Float>, expected: Int, graceFraction: Double = 0.2): Double {
+        if (samples.isEmpty()) return 0.0
+        val grace = (expected * graceFraction).toInt()
+        val kept = if (samples.size > grace) samples.drop(grace) else samples
+        return kept.sumOf { it.toDouble() } / kept.size
+    }
+
+    /**
+     * [samples] with each value replaced by the mean of itself and the
+     * [window] - 1 before it, for the live line: the bursts an upload's raw
+     * samples come in draw as a saw otherwise. The first values average what
+     * there is.
+     */
+    fun smooth(samples: List<Float>, window: Int = 3): List<Float> {
+        if (window <= 1 || samples.size < 2) return samples
+        val out = ArrayList<Float>(samples.size)
+        var sum = 0.0
+        for (i in samples.indices) {
+            sum += samples[i]
+            if (i >= window) sum -= samples[i - window]
+            out += (sum / minOf(i + 1, window)).toFloat()
+        }
+        return out
     }
 
     /**

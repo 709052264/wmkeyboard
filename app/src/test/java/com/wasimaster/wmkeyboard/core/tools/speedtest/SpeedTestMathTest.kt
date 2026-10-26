@@ -49,6 +49,29 @@ class SpeedTestMathTest {
     }
 
     @Test
+    fun runningMeanSkipsTheGraceOnceItIsOver() {
+        // A 10 s phase is 50 samples; the grace is the first 10.
+        val slowStart = List(10) { 5f }
+        // Inside the grace: the mean of everything so far, so the number climbs.
+        assertEquals(5.0, SpeedTestMath.running(slowStart, 50), 1e-6)
+        // Past it: the slow start no longer counts, bursts average out.
+        val bursts = listOf(40f, 0f, 30f, 0f, 20f, 0f, 40f, 0f, 30f, 0f)
+        assertEquals(16.0, SpeedTestMath.running(slowStart + bursts, 50), 1e-6)
+        // Once the phase is over it is what the headline reports.
+        val whole = slowStart + List(40) { 16f }
+        assertEquals(SpeedTestMath.trimmedThroughput(whole), SpeedTestMath.running(whole, 50), 1e-6)
+        assertEquals(0.0, SpeedTestMath.running(emptyList(), 50), 0.0)
+    }
+
+    @Test
+    fun smoothIsATrailingMean() {
+        assertEquals(listOf(30f, 15f, 20f, 10f, 20f), SpeedTestMath.smooth(listOf(30f, 0f, 30f, 0f, 30f), 3))
+        // A window of one, or nothing to smooth, is the input itself.
+        assertEquals(listOf(30f, 0f), SpeedTestMath.smooth(listOf(30f, 0f), 1))
+        assertEquals(listOf(30f), SpeedTestMath.smooth(listOf(30f), 3))
+    }
+
+    @Test
     fun sparklineHasTheBucketsAskedForAndPeaksAtOne() {
         val line = SpeedTestMath.sparkline(List(50) { it.toFloat() }, 24)
         assertEquals(24, line.size)

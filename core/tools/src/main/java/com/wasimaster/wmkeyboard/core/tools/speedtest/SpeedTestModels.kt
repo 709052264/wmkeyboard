@@ -70,7 +70,7 @@ data class SpeedTestMeta(
 /** What the panel hears while a run is going. */
 data class SpeedTestProgress(
     val phase: SpeedTestPhase,
-    /** The speed right now, from the last few samples; 0 while nothing moved. */
+    /** The phase's speed so far ([SpeedTestMath.running]); 0 while nothing moved. */
     val mbps: Double = 0.0,
     /** Every 200 ms sample of the phase so far, oldest first. */
     val samples: List<Float> = emptyList(),
