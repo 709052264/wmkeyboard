@@ -176,7 +176,7 @@
     <string name="clipboard_storage_permission_title">The app needs the storage permission</string>
     <string name="clipboard_storage_permission_subtitle">Open the system settings to give the permission</string>
     <string name="clipboard_track_source_title">Show the source app</string>
-    <string name="clipboard_track_source_subtitle">Record which app a clip comes from. Press and hold a clip to see it. This needs the Usage Access permission</string>
+    <string name="clipboard_track_source_subtitle">Record which app a clip comes from. Each clip shows that app\'s icon, and its name when you press and hold it. This needs the Usage Access permission</string>
     <string name="clipboard_track_source_info">The keyboard reads the app in the foreground at the moment you copy, through Usage Access. Some copies have no source app, for example a copy from a background sync. Nothing about your app usage leaves your device.</string>
     <string name="clipboard_usage_permission_title">The app needs the Usage Access permission</string>
     <string name="clipboard_usage_permission_subtitle">Without it, the keyboard saves clips with no source app</string>

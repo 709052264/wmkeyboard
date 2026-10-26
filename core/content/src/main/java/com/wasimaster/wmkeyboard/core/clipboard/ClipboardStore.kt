@@ -79,6 +79,12 @@ data class ClipItem(
      */
     val sourceApp: String? = null,
     /**
+     * The package [sourceApp] names (#970), so the card can wear that app's
+     * icon. Null for a clip from before it was kept, and wherever [sourceApp]
+     * is.
+     */
+    val sourcePackage: String? = null,
+    /**
      * When the user last changed this clip's text in the panel's editor, in
      * epoch millis (#576); null for a clip that was never edited. Separate
      * from [timestamp], which an edit leaves alone so the clip keeps its place.
@@ -370,8 +376,9 @@ class ClipboardStore(
         sourceApp: String? = null,
         now: Long = System.currentTimeMillis(),
         sensitive: Boolean = false,
+        sourcePackage: String? = null,
     ): ClipItem? =
-        addTextual(text, html = null, sourceApp = sourceApp, now = now, sensitive = sensitive)
+        addTextual(text, html = null, sourceApp = sourceApp, now = now, sensitive = sensitive, sourcePackage = sourcePackage)
 
     /** Styled text: [html] is the markup, [text] the plain-text rendering. */
     @Synchronized
@@ -381,8 +388,9 @@ class ClipboardStore(
         sourceApp: String? = null,
         now: Long = System.currentTimeMillis(),
         sensitive: Boolean = false,
+        sourcePackage: String? = null,
     ): ClipItem? =
-        addTextual(text, html = html, sourceApp = sourceApp, now = now, sensitive = sensitive)
+        addTextual(text, html = html, sourceApp = sourceApp, now = now, sensitive = sensitive, sourcePackage = sourcePackage)
 
     /**
      * Registers an image already copied to [imageFile] (inside [imagesDir]).
@@ -395,6 +403,7 @@ class ClipboardStore(
         sourceApp: String? = null,
         now: Long = System.currentTimeMillis(),
         sensitive: Boolean = false,
+        sourcePackage: String? = null,
     ): ClipItem? {
         if (!imageFile.exists()) return null
         val item = ClipItem(
@@ -405,6 +414,7 @@ class ClipboardStore(
             imagePath = imageFile.absolutePath,
             mimeType = mimeType,
             sourceApp = sourceApp,
+            sourcePackage = sourcePackage,
             sensitive = sensitive,
         )
         items.add(0, item)
@@ -428,12 +438,17 @@ class ClipboardStore(
         now: Long = System.currentTimeMillis(),
         durationMs: Long = -1,
         sensitive: Boolean = false,
+        sourcePackage: String? = null,
     ): ClipItem? {
         if (uriString.isBlank()) return null
         // Re-copying the same file moves it to the top instead of duplicating.
         items.firstOrNull { it.uriString == uriString }?.let { existing ->
             items.remove(existing)
-            val refreshed = existing.copy(timestamp = now, sourceApp = sourceApp ?: existing.sourceApp)
+            val refreshed = existing.copy(
+                timestamp = now,
+                sourceApp = sourceApp ?: existing.sourceApp,
+                sourcePackage = sourcePackage ?: existing.sourcePackage,
+            )
             items.add(0, refreshed)
             return refreshed
         }
@@ -451,6 +466,7 @@ class ClipboardStore(
             fileName = displayName,
             fileSize = if (isDirectory) -1 else size,
             sourceApp = sourceApp,
+            sourcePackage = sourcePackage,
             durationMs = durationMs,
             sensitive = sensitive,
         )
@@ -465,6 +481,7 @@ class ClipboardStore(
         sourceApp: String?,
         now: Long,
         sensitive: Boolean = false,
+        sourcePackage: String? = null,
     ): ClipItem? {
         val whole = text.trim()
         if (whole.isEmpty()) return null
@@ -487,6 +504,7 @@ class ClipboardStore(
                 },
                 htmlText = html ?: existing.htmlText,
                 sourceApp = sourceApp ?: existing.sourceApp,
+                sourcePackage = sourcePackage ?: existing.sourcePackage,
                 // Sensitivity only ever tightens on a re-copy: the same text
                 // arriving once without the flag is not evidence it is safe.
                 sensitive = existing.sensitive || sensitive,
@@ -506,6 +524,7 @@ class ClipboardStore(
             htmlText = html,
             mimeType = if (html != null) "text/html" else "text/plain",
             sourceApp = sourceApp,
+            sourcePackage = sourcePackage,
             sensitive = sensitive,
         )
         items.add(0, item)

@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,6 +17,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.zIndex
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -162,6 +164,7 @@ import com.wasimaster.wmkeyboard.core.settings.ClipboardSettings
 import com.wasimaster.wmkeyboard.core.settings.ClipboardView
 import com.wasimaster.wmkeyboard.core.settings.SensitiveClipHandling
 import com.wasimaster.wmkeyboard.ime.ClipCombineDraft
+import com.wasimaster.wmkeyboard.ime.floating.rememberFloatingAppIcon
 import com.wasimaster.wmkeyboard.ime.ClipCombineField
 import com.wasimaster.wmkeyboard.ime.ClipEdit
 import com.wasimaster.wmkeyboard.ime.ClipUndo
@@ -2659,7 +2662,9 @@ private fun ClipCard(
             // Per card: one clip may still have a number or a time to show while
             // the next, pinned and unnumbered, has nothing left for the row.
             val shortcut = clipShortcut(item, hold)
-            val footer = buttons || number != null || time != null || tag || icons || shortcut
+            // The app it was copied from, as that app's icon (#970).
+            val appIcon = rememberFloatingAppIcon(item.sourcePackage, ClipSourceIconDp)
+            val footer = buttons || number != null || time != null || tag || icons || shortcut || appIcon != null
             if (footer) Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -2668,6 +2673,7 @@ private fun ClipCard(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 if (number != null) ClipNumberBadge(number)
+                if (appIcon != null) ClipSourceIcon(appIcon, item.sourceApp)
                 if (tag) {
                     Text(
                         stringResource(R.string.ime_clip_type_rich_text),
@@ -2689,6 +2695,18 @@ private fun ClipCard(
         hold.picked?.let { ClipPickMark(it, Modifier.align(Alignment.TopEnd).padding(5.dp)) }
     }
 }
+
+/** The source app's icon, small, at the head of a card's or a row's footer (#970). */
+@Composable
+private fun ClipSourceIcon(icon: ImageBitmap, label: String?) {
+    Image(
+        bitmap = icon,
+        contentDescription = label,
+        modifier = Modifier.size(ClipSourceIconDp.dp),
+    )
+}
+
+private const val ClipSourceIconDp = 14
 
 /**
  * What was found in one clip, as an icon per kind with a count once there is
@@ -2854,6 +2872,7 @@ private fun ClipRow(
         if (showInfo) ClipHoldPopup(item, hold, callbacks) { showInfo = false }
         hold.picked?.let { ClipPickMark(it) }
         if (number != null) ClipNumberBadge(number)
+        rememberFloatingAppIcon(item.sourcePackage, ClipSourceIconDp)?.let { ClipSourceIcon(it, item.sourceApp) }
         if (visual) {
             // Width-bound, so the picture keeps its own shape at thumbnail
             // size, and height-capped so a portrait shot stays a row.

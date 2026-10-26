@@ -3828,7 +3828,8 @@ open class WMKeyboardService : InputMethodService() {
 
         // Which app the user copied from, resolved now while it's still the
         // foreground app (best-effort; null unless opted in and permitted).
-        val source = if (state.settings.clipboard.trackSource) resolveClipSource() else null
+        val sourcePackage = if (state.settings.clipboard.trackSource) resolveClipSourcePackage() else null
+        val source = sourcePackage?.let(::clipSourceLabel)
 
         // The copying app's own claim that this clip holds a secret. Nothing
         // else in the system acts on it, so honoring it is entirely up to us —
@@ -3850,7 +3851,7 @@ open class WMKeyboardService : InputMethodService() {
         if (uri != null && imageMime == null && item.text == null) {
             val uris = (0 until clip.itemCount).mapNotNull { clip.getItemAt(it)?.uri }
             if (uris.isNotEmpty()) {
-                serviceScope.launch(Dispatchers.IO) { addFileClips(uris, source, flaggedSensitive) }
+                serviceScope.launch(Dispatchers.IO) { addFileClips(uris, source, flaggedSensitive, sourcePackage) }
                 return@OnPrimaryClipChangedListener
             }
         }
@@ -3874,7 +3875,7 @@ open class WMKeyboardService : InputMethodService() {
                 }.getOrNull()
                 if (copied != null) {
                     val added = clipboardStore.addImage(
-                        copied, imageMime, source, sensitive = flaggedSensitive,
+                        copied, imageMime, source, sensitive = flaggedSensitive, sourcePackage = sourcePackage,
                     )
                     saveClipboardSoon()
                     _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
@@ -3922,9 +3923,9 @@ open class WMKeyboardService : InputMethodService() {
         // Markup for the text as copied would paste back what a rule took out.
         val html = item.htmlText?.takeIf { !tidied }
         val added = if (html != null) {
-            clipboardStore.addHtml(text, html, source, sensitive = sensitive)
+            clipboardStore.addHtml(text, html, source, sensitive = sensitive, sourcePackage = sourcePackage)
         } else {
-            clipboardStore.add(text, source, sensitive = sensitive)
+            clipboardStore.add(text, source, sensitive = sensitive, sourcePackage = sourcePackage)
         }
         saveClipboardSoon()
         _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
@@ -4155,13 +4156,15 @@ open class WMKeyboardService : InputMethodService() {
         get() = "$packageName.clipboard"
 
     /**
-     * Best-effort label of the app that produced the current clip: the app that
-     * was in the foreground in the moments before the clipboard changed, per
-     * [UsageStatsManager]. Returns null when the Usage Access permission isn't
-     * granted or no recent foreground app can be found — the copy still lands in
-     * history, just without a source. Own package is treated as "no source".
+     * Best-effort package of the app that produced the current clip: the app
+     * that was in the foreground in the moments before the clipboard changed,
+     * per [UsageStatsManager]. Returns null when the Usage Access permission
+     * isn't granted or no recent foreground app can be found — the copy still
+     * lands in history, just without a source. Own package is treated as "no
+     * source". [clipSourceLabel] names it; the package itself gives the card
+     * the app's icon (#970).
      */
-    private fun resolveClipSource(): String? {
+    private fun resolveClipSourcePackage(): String? {
         if (!hasUsageAccess()) return null
         val usage = getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager ?: return null
         val now = System.currentTimeMillis()
@@ -4184,11 +4187,15 @@ open class WMKeyboardService : InputMethodService() {
             last
         }.getOrNull()
         if (pkg == null || pkg == packageName) return null
-        return runCatching {
+        return pkg
+    }
+
+    /** [pkg]'s name, for the clip's info popup; the package itself when it has none. */
+    private fun clipSourceLabel(pkg: String): String =
+        runCatching {
             val info = packageManager.getApplicationInfo(pkg, 0)
             packageManager.getApplicationLabel(info).toString()
         }.getOrDefault(pkg)
-    }
 
     /** Whether the user granted the Usage Access special permission. */
     private fun hasUsageAccess(): Boolean {
@@ -4220,6 +4227,7 @@ open class WMKeyboardService : InputMethodService() {
         uris: List<Uri>,
         sourceApp: String? = null,
         sensitive: Boolean = false,
+        sourcePackage: String? = null,
     ) {
         var added = false
         for (uri in uris.take(MAX_FILE_CLIPS_PER_COPY)) {
@@ -4236,6 +4244,7 @@ open class WMKeyboardService : InputMethodService() {
                 sourceApp = sourceApp,
                 durationMs = if (info.mimeType.startsWith("video/")) videoDuration(uri) else -1,
                 sensitive = sensitive,
+                sourcePackage = sourcePackage,
             )
             added = true
         }
