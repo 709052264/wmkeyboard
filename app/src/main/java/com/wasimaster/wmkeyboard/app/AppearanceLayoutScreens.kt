@@ -55,6 +55,7 @@ import com.wasimaster.wmkeyboard.core.settings.oneHandedAllowedOn
 import com.wasimaster.wmkeyboard.core.settings.splitAllowedOn
 import com.wasimaster.wmkeyboard.core.settings.ToolbarPlacement
 import com.wasimaster.wmkeyboard.core.settings.ToolboxLayout
+import com.wasimaster.wmkeyboard.core.settings.ToolboxSort
 import com.wasimaster.wmkeyboard.core.settings.ToolboxPageSizeRange
 import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
@@ -672,6 +673,16 @@ internal fun AppearanceToolboxSettings(
         }
         item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
+                R.string.appearance_toolbox_sort_title,
+                subtitle = stringResource(R.string.appearance_toolbox_sort_subtitle),
+                options = toolboxSortOptions(),
+                selected = settings.watch { it.toolbox.sort },
+                info = stringResource(R.string.appearance_toolbox_sort_info),
+                default = SettingsDefaults.toolbox.sort,
+            ) { scope.launch { repository.setToolboxSort(it) } }
+        }
+        item(level = SettingLevel.STANDARD) {
+            ChoiceSetting(
                 R.string.appearance_toolbox_layout_title,
                 subtitle = stringResource(R.string.appearance_toolbox_layout_subtitle),
                 options = listOf(
@@ -776,6 +787,16 @@ internal fun AppearanceToolboxSettings(
                 default = SettingsDefaults.toolbox.searchAtEnd,
             ) { scope.launch { repository.setToolboxSearchAtEnd(it) } }
         }
+        item(visible = searchButtonOn, level = SettingLevel.ADVANCED) {
+            ChoiceSetting(
+                R.string.appearance_toolbox_search_sort_title,
+                subtitle = stringResource(R.string.appearance_toolbox_search_sort_subtitle),
+                options = toolboxSortOptions(),
+                selected = settings.watch { it.toolbox.searchSort },
+                info = stringResource(R.string.appearance_toolbox_search_sort_info),
+                default = SettingsDefaults.toolbox.searchSort,
+            ) { scope.launch { repository.setToolboxSearchSort(it) } }
+        }
         // Drawn only once something has actually moved, like the group reset on
         // Layout & size. The order of the tools has its own reset above.
         item(visible = toolboxMoved, level = SettingLevel.STANDARD) {
@@ -788,6 +809,14 @@ internal fun AppearanceToolboxSettings(
         }
     }
 }
+/** The three orders the toolbox and its search can take. */
+@Composable
+private fun toolboxSortOptions(): List<Pair<ToolboxSort, String>> = listOf(
+    ToolboxSort.CUSTOM to stringResource(R.string.appearance_toolbox_sort_custom_label),
+    ToolboxSort.MOST_USED to stringResource(R.string.appearance_toolbox_sort_most_used_label),
+    ToolboxSort.RECENT to stringResource(R.string.appearance_toolbox_sort_recent_label),
+)
+
 // ---- layout & size ----
 
 /** The name the arrow order list gives [this] (issue #369). */

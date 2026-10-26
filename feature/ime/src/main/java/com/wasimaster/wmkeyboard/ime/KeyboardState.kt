@@ -40,6 +40,7 @@ import com.wasimaster.wmkeyboard.core.prediction.WordFacts
 import com.wasimaster.wmkeyboard.core.settings.GrammarLintKind
 import com.wasimaster.wmkeyboard.core.settings.KeyboardAlignment
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
+import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.RankControl
 import com.wasimaster.wmkeyboard.core.settings.ScreenVariant
 import com.wasimaster.wmkeyboard.core.settings.TransliterationHintMode
@@ -3534,6 +3535,14 @@ data class KeyboardUiState(
     val emojiRecents: List<String> = emptyList(),
     val emojiFrequents: List<String> = emptyList(),
     val emojiFavourites: List<String> = emptyList(),
+    /**
+     * Tools by use, for the toolbox's orders by use
+     * ([com.wasimaster.wmkeyboard.core.settings.ToolboxSort]): latest
+     * first, and most runs first. Published as the toolbox opens, so a tool
+     * tapped inside it never moves its neighbours under the finger.
+     */
+    val toolsRecent: List<ToolbarTool> = emptyList(),
+    val toolsMostUsed: List<ToolbarTool> = emptyList(),
     /** Palette-grid base emoji → the skin-tone/gender variant it renders as. */
     val emojiVariantPrefs: Map<String, String> = emptyMap(),
     /**

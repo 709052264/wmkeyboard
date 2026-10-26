@@ -485,6 +485,7 @@ import com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings
 import com.wasimaster.wmkeyboard.core.settings.ToolboxLayout
 import com.wasimaster.wmkeyboard.core.settings.ToolboxPageSizeRange
 import com.wasimaster.wmkeyboard.core.settings.ToolboxSettings
+import com.wasimaster.wmkeyboard.core.settings.ToolboxSort
 import com.wasimaster.wmkeyboard.core.settings.ToolboxFolder
 import com.wasimaster.wmkeyboard.core.settings.folderById
 import com.wasimaster.wmkeyboard.core.settings.folderOf
@@ -11162,7 +11163,8 @@ private data class ToolboxOrderPreview(
 /**
  * Gboard-style toolbox: every tool that is not on the toolbar, shown in a
  * labeled grid ordered by [KeyboardSettings.toolboxOrder] (most-used-first
- * until the user rearranges it). Tap to use a tool in place; hold and drag
+ * until the user rearranges it), or by use when [ToolboxSettings.sort] says
+ * so. Tap to use a tool in place; hold and drag
  * it up onto the toolbar to pin it, or around the grid to reorder. Toolbar
  * tools drag down here to unpin — at the spot they're dropped.
  *
@@ -11348,8 +11350,14 @@ private fun ToolboxPanel(
                 openFolder != null -> visibleToolboxTools(state).toSet().let { shown ->
                     openFolder.tools.filter { it in shown }
                 }
-                else -> visibleToolboxTools(state)
+                else -> toolboxGridTools(state)
             }
+            // Ranked by use, the grid does not follow the order a drop commits:
+            // it lands in the arrangement "Your order" brings back, and a
+            // preview of it would hold the grid in that order with nothing to
+            // let it go, since the list it was taken from never changes.
+            val rankedByUse = !searching && openFolder == null &&
+                state.settings.toolbox.sort != ToolboxSort.CUSTOM
             // The order the last drop committed, drawn until the settings flow
             // comes back with it.
             //
@@ -11361,7 +11369,9 @@ private fun ToolboxPanel(
             // (see [ToolboxGrid]'s keys) — which is the jerk at the end of a drag.
             // Drawing the committed order at once makes the drop the only move.
             var preview by remember { mutableStateOf<ToolboxOrderPreview?>(null) }
-            drag.onOrderPreview = { order -> preview = ToolboxOrderPreview(order, settledTools) }
+            drag.onOrderPreview = { order ->
+                if (!rankedByUse) preview = ToolboxOrderPreview(order, settledTools)
+            }
             val available = preview
                 ?.let { held -> settledTools.sortedBy { tool -> held.rank(tool) } }
                 ?: settledTools
@@ -11649,9 +11659,9 @@ private fun ToolboxGrid(
     // inserts a ghost into `display`, and every slot past it would then be
     // labelled with its neighbour's key.
     val hints = if (dragCell == null && state.toolPicker != null) armedHintPlan(withLiveTyping(state)) else null
-    // The plan numbers the toolbox's tools in toolbox order, folders or not,
+    // The plan numbers the toolbox's tools in grid order, folders or not,
     // so a cell's badge is found by its tool rather than by where it sits.
-    val hintSlots = hints?.let { visibleToolboxTools(state).withIndex().associate { (i, tool) -> tool to i } }
+    val hintSlots = hints?.let { toolboxGridTools(state).withIndex().associate { (i, tool) -> tool to i } }
     val dragEnabledNow by rememberUpdatedState(dragEnabled)
     val openFolder by rememberUpdatedState(drag.toolbox.onFolderOpen)
     val scope = rememberCoroutineScope()
@@ -23088,8 +23098,8 @@ internal fun toolboxCells(tools: List<ToolbarTool>, folders: List<ToolboxFolder>
  * The tools the toolbox search lists (#687): every toolbox tool, folders or
  * not, whose name as [label] spells it contains the query, ignoring case. The
  * names that start with it come first, then the ones with a word that does,
- * then the rest, each group in toolbox order. Everything, unsorted, while the
- * query is empty.
+ * then the rest, each group in toolbox order. Everything while the query is
+ * empty, in the order [ToolboxSettings.searchSort] asks for.
  *
  * [label] is a parameter so the service, which has no composition, can ask the
  * same question when Enter opens the first match.
@@ -23097,7 +23107,7 @@ internal fun toolboxCells(tools: List<ToolbarTool>, folders: List<ToolboxFolder>
 internal fun toolboxSearchMatches(state: KeyboardUiState, label: (ToolbarTool) -> String): List<ToolbarTool> {
     val tools = visibleToolboxTools(state)
     val query = state.toolboxView.query.trim()
-    if (query.isEmpty()) return tools
+    if (query.isEmpty()) return sortedByUse(tools, state.settings.toolbox.searchSort, state)
     return tools
         .mapNotNull { tool ->
             val name = label(tool)
@@ -23111,6 +23121,26 @@ internal fun toolboxSearchMatches(state: KeyboardUiState, label: (ToolbarTool) -
         }
         .sortedBy { it.second }
         .map { it.first }
+}
+
+/** The toolbox's top-level tools in the order its grid draws them. */
+internal fun toolboxGridTools(state: KeyboardUiState): List<ToolbarTool> =
+    sortedByUse(visibleToolboxTools(state), state.settings.toolbox.sort, state)
+
+/**
+ * [tools] in the order [sort] asks for. By use, the tools never run keep
+ * their place in [tools] after the ones that were, so a fresh install still
+ * opens on the toolbox order.
+ */
+internal fun sortedByUse(tools: List<ToolbarTool>, sort: ToolboxSort, state: KeyboardUiState): List<ToolbarTool> {
+    val ranking = when (sort) {
+        ToolboxSort.CUSTOM -> return tools
+        ToolboxSort.MOST_USED -> state.toolsMostUsed
+        ToolboxSort.RECENT -> state.toolsRecent
+    }
+    if (ranking.isEmpty()) return tools
+    val rank = ranking.withIndex().associate { it.value to it.index }
+    return tools.sortedBy { rank[it] ?: Int.MAX_VALUE }
 }
 
 /**
@@ -23170,7 +23200,7 @@ internal fun keyboardHintPlan(state: KeyboardUiState): HintPlan {
     }
     return buildHintPlan(
         toolbarTools = visibleToolbarTools(state),
-        toolboxTools = if (state.panel == PanelMode.TOOLBOX) visibleToolboxTools(state) else emptyList(),
+        toolboxTools = if (state.panel == PanelMode.TOOLBOX) toolboxGridTools(state) else emptyList(),
         toolLetters = resolvedToolLetters(hw.toolByLetter, usableTools(state.settings)),
         symbolCells = symbols,
         emojiCells = emoji,

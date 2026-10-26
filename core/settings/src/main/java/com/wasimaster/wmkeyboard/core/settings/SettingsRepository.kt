@@ -2155,6 +2155,14 @@ val DefaultThemesPanelBuiltIns: Set<String> = setOf(
 enum class ToolboxLayout { ICONS, PILLS }
 
 /**
+ * What puts the toolbox's tools in order. [CUSTOM] is
+ * [KeyboardSettings.toolboxOrder], the arrangement dragging builds; the other
+ * two rank by use, counted each time a tool runs, and fall back to that
+ * arrangement for the tools never used.
+ */
+enum class ToolboxSort { CUSTOM, MOST_USED, RECENT }
+
+/**
  * How the toolbox is laid out and paged. Its own class rather than flat fields
  * on [KeyboardSettings] for the reason [ToolbarBehavior] gives: that
  * constructor is at the JVM's argument ceiling. Each field still persists
@@ -2220,6 +2228,13 @@ data class ToolboxSettings(
      * far end keeps a tap meant for back from landing on the search.
      */
     val searchAtEnd: Boolean = true,
+    /**
+     * The order of the grid's top level. Inside a folder its own order holds
+     * whatever this says.
+     */
+    val sort: ToolboxSort = ToolboxSort.CUSTOM,
+    /** The order of the search's list before anything is typed into it. */
+    val searchSort: ToolboxSort = ToolboxSort.CUSTOM,
 ) {
     /** The caption size to draw at, resolving 0 against the toolbar's setting. */
     fun labelSizeOr(toolbarLabelSize: Int): Int =
@@ -11399,6 +11414,8 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBOX_FOLDERS = stringPreferencesKey("toolbox_folders")
         private val TOOLBOX_SEARCH_BUTTON = booleanPreferencesKey("toolbox_search_button")
         private val TOOLBOX_SEARCH_AT_END = booleanPreferencesKey("toolbox_search_at_end")
+        private val TOOLBOX_SORT = stringPreferencesKey("toolbox_sort")
+        private val TOOLBOX_SEARCH_SORT = stringPreferencesKey("toolbox_search_sort")
         private val SUGGESTION_TEXT_SCALE = floatPreferencesKey("suggestion_text_scale")
         private val LEARNED_WORD_MIN_COUNT = intPreferencesKey("learned_word_min_count")
         private val NEW_WORD_SIGHTINGS = intPreferencesKey("new_word_sightings")
@@ -13480,6 +13497,10 @@ class SettingsRepository(private val context: Context) {
             folders = decodeToolboxFolders(p[TOOLBOX_FOLDERS]),
             searchButton = p[TOOLBOX_SEARCH_BUTTON] ?: defaults.toolbox.searchButton,
             searchAtEnd = p[TOOLBOX_SEARCH_AT_END] ?: defaults.toolbox.searchAtEnd,
+            sort = p[TOOLBOX_SORT]?.let { runCatching { ToolboxSort.valueOf(it) }.getOrNull() }
+                ?: defaults.toolbox.sort,
+            searchSort = p[TOOLBOX_SEARCH_SORT]?.let { runCatching { ToolboxSort.valueOf(it) }.getOrNull() }
+                ?: defaults.toolbox.searchSort,
         )
 
     private fun readSensorTools(p: Preferences, defaults: KeyboardSettings) =
@@ -15560,6 +15581,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setToolboxSearchAtEnd(value: Boolean) =
         editPrefs { it[TOOLBOX_SEARCH_AT_END] = value }
+
+    suspend fun setToolboxSort(value: ToolboxSort) =
+        editPrefs { it[TOOLBOX_SORT] = value.name }
+
+    suspend fun setToolboxSearchSort(value: ToolboxSort) =
+        editPrefs { it[TOOLBOX_SEARCH_SORT] = value.name }
 
     suspend fun setToolboxPageSize(value: Int) =
         editPrefs { it[TOOLBOX_PAGE_SIZE] = value.coerceIn(ToolboxPageSizeRange) }
@@ -19003,7 +19030,7 @@ class SettingsRepository(private val context: Context) {
         it.remove(TOOLBAR_PADDING_BOTTOM)
     }
 
-    /** The Toolbox page's reset: the tool grid's layout, columns, paging and labels. */
+    /** The Toolbox page's reset: the tool grid's layout, columns, paging, labels, search and sort. */
     suspend fun resetToolbox() = editPrefs {
         it.remove(TOOLBOX_LAYOUT)
         it.remove(TOOLBOX_COLUMNS)
@@ -19014,6 +19041,8 @@ class SettingsRepository(private val context: Context) {
         it.remove(TOOLBOX_LABEL_SIZE)
         it.remove(TOOLBOX_SEARCH_BUTTON)
         it.remove(TOOLBOX_SEARCH_AT_END)
+        it.remove(TOOLBOX_SORT)
+        it.remove(TOOLBOX_SEARCH_SORT)
     }
 
     suspend fun setHoldToTalkMs(value: Int) = editPrefs {

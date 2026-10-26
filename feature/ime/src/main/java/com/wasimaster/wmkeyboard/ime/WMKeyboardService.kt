@@ -979,6 +979,7 @@ open class WMKeyboardService : InputMethodService() {
         CjkLearning.store?.save()
         languageMixConfidence.save()
         emojiUsage.save()
+        toolUsage.save()
         typingStats.save()
     }
 
@@ -1208,6 +1209,8 @@ open class WMKeyboardService : InputMethodService() {
      */
     private var scriptChoices = PhoneticScriptChoices(null)
     private lateinit var emojiUsage: EmojiUsage
+    /** Runs per tool, for the toolbox's orders by use; see [publishToolUsage]. */
+    private var toolUsage = ToolUsage(null)
     /**
      * A tap has moved the usage ranking since [KeyboardUiState.emojiRecents] /
      * [KeyboardUiState.emojiFrequents] were last published.
@@ -5565,6 +5568,7 @@ open class WMKeyboardService : InputMethodService() {
         emojiUsage = EmojiUsage(store("learning/emoji_usage.json")).also {
             it.maxRecents = _uiState.value.settings.emoji.recentsLimit
         }
+        toolUsage = ToolUsage(store(ToolUsage.FILE_PATH))
         // Under stats/, not learning/: "Delete learned words" must not take
         // the typing statistics with it. The enabled gate re-arms on the next
         // settings emission.
@@ -29532,6 +29536,7 @@ open class WMKeyboardService : InputMethodService() {
         if (!isSupportedTool(tool)) return
         val settings = _uiState.value.settings
         if (!isUsableTool(tool, settings)) return
+        toolUsage.record(tool)
         when (tool) {
             ToolbarTool.EMOJI -> onPanelChange(emojiOpenerTarget())
             ToolbarTool.CLIPBOARD -> {
@@ -29721,6 +29726,7 @@ open class WMKeyboardService : InputMethodService() {
         }
         if (rerouteVoiceTool(panel)) return
         dismissVoiceSurfacesFor(panel)
+        if (panel == PanelMode.TOOLBOX) publishToolUsage()
         // Panels have their own key semantics — the panel would eat the
         // modified key — so a pending latch does not survive opening one.
         clearModifiers()
@@ -46747,6 +46753,18 @@ open class WMKeyboardService : InputMethodService() {
                 emojiFavourites = emojiUsage.favourites(),
             )
         }
+    }
+
+    /**
+     * Copies [toolUsage]'s rankings into the UI state for the toolbox's
+     * orders by use. Only as the toolbox opens, the way [publishEmojiHistory]
+     * waits for a history surface to come into view: a tool that runs in
+     * place, Flashlight say, would otherwise reshuffle the grid it was tapped in.
+     */
+    private fun publishToolUsage() {
+        val recent = toolUsage.recent()
+        val mostUsed = toolUsage.mostUsed()
+        _uiState.update { it.copy(toolsRecent = recent, toolsMostUsed = mostUsed) }
     }
 
     fun onEmojiTapped(emoji: String) {
