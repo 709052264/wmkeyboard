@@ -11073,18 +11073,15 @@ private fun RowScope.ToolbarRow(
                         if (scrollable) {
                             Modifier.horizontalScroll(rememberScrollState())
                         } else {
-                            Modifier
+                            Modifier.shrinkToFit(
+                                anchorRight = toolsPackAtEnd != (toolsDirection == LayoutDirection.Rtl),
+                            )
                         },
                     )
                     .onGloballyPositioned { drag.toolbarBounds = it.boundsInRoot() },
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                // A weighted spacer can't live inside a horizontal scroll
-                // (infinite width); packed-to-fit mode still needs it to hold
-                // the tools against the launcher's end of the bar.
-                if (!scrollable && toolsPackAtEnd) Spacer(modifier = Modifier.weight(1f))
                 toolCells()
-                if (!scrollable && !toolsPackAtEnd) Spacer(modifier = Modifier.weight(1f))
             }
         }
     }
@@ -11141,6 +11138,39 @@ private fun RowScope.ToolbarRow(
                 .size(16.dp),
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+    }
+}
+
+/**
+ * The packed toolbar's tools at their own width while they fit, and scaled
+ * down together, icons and labels alike, when they don't.
+ *
+ * Packed cells have fixed widths, so a bar with as many tools as fit lost its
+ * last one off the end the moment anything else claimed a few dp of the bar:
+ * the incognito or power-saving badge, the hardware-keys button (#970). Scaling
+ * the group keeps every tool on screen and in proportion, and a layer's scale
+ * carries through to hit testing, so a tap and a drag still land on the icon
+ * drawn under the finger.
+ *
+ * [anchorRight] is which screen edge the tools hug, the toolbox launcher's: it
+ * is where the free space ends while they fit, and the fixed point of the
+ * scale when they don't.
+ */
+private fun Modifier.shrinkToFit(anchorRight: Boolean): Modifier = layout { measurable, constraints ->
+    val placeable = measurable.measure(constraints.copy(minWidth = 0, maxWidth = Constraints.Infinity))
+    val width = constraints.maxWidth
+    val scale = if (placeable.width > width) width / placeable.width.toFloat() else 1f
+    layout(width, placeable.height) {
+        val x = if (anchorRight) width - placeable.width else 0
+        if (scale == 1f) {
+            placeable.place(x, 0)
+        } else {
+            placeable.placeWithLayer(x, 0) {
+                scaleX = scale
+                scaleY = scale
+                transformOrigin = TransformOrigin(if (anchorRight) 1f else 0f, 0.5f)
+            }
+        }
     }
 }
 
