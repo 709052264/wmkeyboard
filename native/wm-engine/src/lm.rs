@@ -610,8 +610,27 @@ impl<B: AsRef<[u8]>> Session<B> {
         if let Some(id) = self.lm.id_of(&key) {
             return Some(self.logprob_id(id));
         }
+        self.logprob_pieces(&key)
+    }
+
+    /// [`Session::logprob`] for a word the vocabulary holds as one token,
+    /// `None` for any other: one lookup, never a forward step. The strip
+    /// asks this on every keystroke for every candidate; spelling each
+    /// unknown one in pieces there cost six forward steps per candidate
+    /// (decide time rose six-fold on the harness), so pieces are kept for
+    /// the gate's one typed word and the revision's few candidates.
+    pub fn logprob_listed(&mut self, word: &str) -> Option<f32> {
+        let key = token_key(word)?;
+        if key == "<num>" {
+            return None;
+        }
+        let id = self.lm.id_of(&key)?;
+        Some(self.logprob_id(id))
+    }
+
+    fn logprob_pieces(&mut self, key: &str) -> Option<f32> {
         let lm = self.lm.clone();
-        let pieces = lm.pieces_of(&key)?;
+        let pieces = lm.pieces_of(key)?;
         if pieces.len() > MAX_WORD_PIECES || self.tokens.len() + pieces.len() > lm.ctx {
             return None;
         }

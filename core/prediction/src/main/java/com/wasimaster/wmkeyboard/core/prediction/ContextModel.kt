@@ -52,7 +52,11 @@ class ContextModel private constructor(
         PredictionNative.lmSetContext(session, register.ordinal, field.ordinal, lang, words.toTypedArray())
     }
 
-    /** ln P(word next) for each of [words], NaN where the model has no opinion. */
+    /**
+     * ln P(word next) for each of [words], NaN for a word the vocabulary does
+     * not hold as one token. Pieces are not spelled here: this is asked per
+     * keystroke for the whole strip; [gateView] and [revise] spell them.
+     */
     fun scores(words: List<String>): FloatArray {
         if (closed || words.isEmpty()) return FloatArray(words.size) { Float.NaN }
         return PredictionNative.lmScores(session, words.toTypedArray())

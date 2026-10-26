@@ -145,8 +145,9 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
     })
 }
 
-/// `lmScores(session, words)`: ln P(word next) per word, NaN where the
-/// model has no opinion.
+/// `lmScores(session, words)`: ln P(word next) per listed word, NaN for a
+/// word the vocabulary does not hold as one token (no piece spelling here:
+/// this runs per keystroke over the whole strip).
 #[no_mangle]
 pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_lmScores(
     mut env: JNIEnv,
@@ -158,7 +159,7 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
         let session = object!(env, SESSIONS, session);
         let words = strings(env, &words)?;
         let mut s = session.lock().unwrap_or_else(|e| e.into_inner());
-        let scores: Vec<f32> = words.iter().map(|w| s.logprob(w).unwrap_or(f32::NAN)).collect();
+        let scores: Vec<f32> = words.iter().map(|w| s.logprob_listed(w).unwrap_or(f32::NAN)).collect();
         give_floats(env, &scores)
     })
 }

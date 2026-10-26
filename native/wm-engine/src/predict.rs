@@ -1116,7 +1116,15 @@ impl Predictor {
     }
 
     /// ln P(`word` next) from the context model, when it has one.
+    /// ln P(`word` next) for a word the model lists, `None` otherwise: the
+    /// per-keystroke question (blend, rerank, the gate's candidates).
     fn lm_logprob(&self, word: &str) -> Option<f32> {
+        self.lm.as_ref().and_then(|lm| lm.borrow_mut().logprob_listed(word))
+    }
+
+    /// ln P(`word` next) with unknown words spelled in pieces: once per
+    /// commit, for the typed word the gate judges.
+    fn lm_logprob_pieces(&self, word: &str) -> Option<f32> {
         self.lm.as_ref().and_then(|lm| lm.borrow_mut().logprob(word))
     }
 
@@ -2054,7 +2062,7 @@ impl Predictor {
                     lm_best: lm_scores.iter().filter_map(|s| *s).fold(None, |m: Option<f32>, v| Some(m.map_or(v, |m| m.max(v)))),
                     timing: timing.max(1e-6).ln(),
                     typed_shadowed: shadowed,
-                    lm_typed: if self.lm.is_some() { self.lm_logprob(lower) } else { None },
+                    lm_typed: if self.lm.is_some() { self.lm_logprob_pieces(lower) } else { None },
                     lm_typed_rank,
                     lm_entropy,
                     lm_second: lm_sorted.get(1).copied(),
