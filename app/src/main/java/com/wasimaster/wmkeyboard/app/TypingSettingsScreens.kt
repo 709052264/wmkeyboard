@@ -26,7 +26,6 @@ import com.wasimaster.wmkeyboard.core.media.hasNotificationAccess
 import com.wasimaster.wmkeyboard.core.prediction.OctopusKind
 import com.wasimaster.wmkeyboard.core.prediction.SlipFixes
 import com.wasimaster.wmkeyboard.core.prediction.UndoMemory
-import com.wasimaster.wmkeyboard.core.settings.Extension
 import com.wasimaster.wmkeyboard.core.settings.FlickDistanceRange
 import com.wasimaster.wmkeyboard.core.settings.FlickReachRange
 import com.wasimaster.wmkeyboard.core.settings.MAX_STOP_AFTER_DECLINES
@@ -181,7 +180,6 @@ internal fun TypingSettings(
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val extensions = LocalExtensions.current
     SettingsGroup {
         item {
             NavRow(
@@ -234,7 +232,7 @@ internal fun TypingSettings(
             }
         }
         // Owned by the Physical keyboard extension: gone with it.
-        item(visible = Extension.HARDWARE_KEYBOARD in extensions, level = SettingLevel.STANDARD) {
+        item(level = SettingLevel.STANDARD) {
             NavRow(
                 R.string.typing_group_hardware_title,
                 stringResource(R.string.typing_group_hardware_subtitle),

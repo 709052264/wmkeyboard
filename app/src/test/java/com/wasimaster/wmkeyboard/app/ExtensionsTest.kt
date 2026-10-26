@@ -16,20 +16,19 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Extensions (SETTINGS_REDESIGN.md §3): the feature bundles, what each owns,
- * the defaults a settings depth starts with, and the two filters the choke
- * points read. Off has to mean gone from the Tools list, the pickers, the
- * root list and the deep links, and nothing but a test holds the enum, the
- * route allowlist and the tool groups to one another.
+ * Extensions (SETTINGS_REDESIGN.md §3): the far-fetched feature bundles,
+ * what each owns, the defaults a settings depth starts with, and the two
+ * filters the choke points read. Off has to mean gone from the Tools list,
+ * the pickers, the root list and the deep links, and nothing but a test
+ * holds the enum, the route allowlist and the tool groups to one another.
  */
 class ExtensionsTest {
 
     // ---- the defaults per depth ----------------------------------------------
 
     @Test
-    fun `simple starts with a handful and everything with all`() {
-        val simple = Extension.defaultsFor(SettingsDepth.SIMPLE)
-        assertTrue("Simple should start with only a few bundles on", simple.size in 3..8)
+    fun `simple starts with stickers alone and everything with all`() {
+        assertEquals(setOf(Extension.STICKERS), Extension.defaultsFor(SettingsDepth.SIMPLE))
         assertEquals(Extension.All, Extension.defaultsFor(SettingsDepth.EVERYTHING))
     }
 
@@ -49,13 +48,28 @@ class ExtensionsTest {
     }
 
     @Test
-    fun `the simple set changes no keyboard default`() {
-        // Every bundle with a master switch that is on by default is on at
-        // Simple, so landing the defaults never has to move a master switch
-        // (the plan: it does not change any default of the keyboard itself).
-        val simple = Extension.defaultsFor(SettingsDepth.SIMPLE)
-        for (ext in listOf(Extension.VOICE, Extension.CLIPBOARD, Extension.HARDWARE_KEYBOARD)) {
-            assertTrue("$ext carries an on-by-default master switch and must be on at Simple", ext in simple)
+    fun `standard leaves off what needs another device, a server or the hardware`() {
+        val standard = Extension.defaultsFor(SettingsDepth.STANDARD)
+        for (ext in listOf(
+            Extension.KDE_CONNECT, Extension.SEND_FILES, Extension.SMART_HOME, Extension.MUSIC_ID,
+            Extension.SPEED_TEST, Extension.INSTRUMENTS, Extension.WEATHER_AND_LOCATION, Extension.MODES,
+        )) {
+            assertFalse("$ext should wait for Everything or a switch by hand", ext in standard)
+        }
+    }
+
+    @Test
+    fun `the necessities are not extensions`() {
+        // Voice, the clipboard, snippets, translate and AI are what a keyboard
+        // is for today; each has a switch where it lives, never here.
+        for (tool in listOf(
+            ToolbarTool.VOICE, ToolbarTool.CLIPBOARD, ToolbarTool.SNIPPETS, ToolbarTool.TRANSLATE,
+            ToolbarTool.AI, ToolbarTool.AI_REPLY, ToolbarTool.EMOJI, ToolbarTool.TEXT_EDIT,
+        )) {
+            assertNull("$tool must belong to no bundle", Extension.owning(tool))
+        }
+        for (route in listOf("voice", "clipboard", "expander", "ai", "ai_chat", "typing/hardware", "statistics", "floating_button")) {
+            assertNull("$route must belong to no bundle", Extension.owningRoute(route))
         }
     }
 
@@ -71,15 +85,15 @@ class ExtensionsTest {
     fun `an install that never chose keeps everything on`() {
         assertEquals(Extension.All, KeyboardSettings().extensionsResolved())
         assertEquals(Extension.All, KeyboardSettings(appUi = AppUiSettings(extensions = null)).extensionsResolved())
-        val chosen = setOf(Extension.VOICE)
+        val chosen = setOf(Extension.NOTES)
         assertEquals(chosen, KeyboardSettings(appUi = AppUiSettings(extensions = chosen)).extensionsResolved())
     }
 
     @Test
     fun `stored names decode and unknown ones are dropped`() {
         assertEquals(
-            setOf(Extension.AI, Extension.NOTES),
-            Extension.decode(setOf("AI", "NOTES", "FROM_A_LATER_VERSION")),
+            setOf(Extension.SCANNERS, Extension.NOTES),
+            Extension.decode(setOf("SCANNERS", "NOTES", "AI", "FROM_A_LATER_VERSION")),
         )
         assertEquals(emptySet<Extension>(), Extension.decode(emptySet()))
     }
@@ -109,6 +123,13 @@ class ExtensionsTest {
     }
 
     @Test
+    fun `every bundle owns at least one tool`() {
+        // An extension is a feature on the keyboard; a settings-only bundle
+        // would be a depth level wearing the wrong hat.
+        for (ext in Extension.entries) assertTrue("$ext owns no tool", ext.tools.isNotEmpty())
+    }
+
+    @Test
     fun `the extensions screens themselves belong to no bundle`() {
         // Or switching one off would lock the way back.
         assertNull(Extension.owningRoute(ExtensionsRoute))
@@ -131,7 +152,6 @@ class ExtensionsTest {
     @Test
     fun `off means not in ToolGroups`() {
         for (ext in Extension.entries) {
-            if (ext.tools.isEmpty()) continue
             val without = ToolGroups.withExtensions(Extension.All - ext).flatMap { it.second }.toSet()
             val stray = without.filter { it in ext.tools }
             assertEquals("$ext is off and its tools are still listed", emptyList<ToolbarTool>(), stray)
@@ -155,9 +175,9 @@ class ExtensionsTest {
 
     @Test
     fun `the enabled set filter answers for tools too`() {
-        val on = Extension.All - Extension.AI
-        assertFalse(on.allows(ToolbarTool.AI))
-        assertFalse(on.allows(ToolbarTool.AI_REPLY))
+        val on = Extension.All - Extension.SCANNERS
+        assertFalse(on.allows(ToolbarTool.OCR))
+        assertFalse(on.allows(ToolbarTool.QR_SCAN))
         assertTrue(on.allows(ToolbarTool.EMOJI))
         assertTrue(on.allows(ToolbarTool.CLIPBOARD))
     }
@@ -165,22 +185,20 @@ class ExtensionsTest {
     // ---- the root list and the deep links -------------------------------------
 
     @Test
-    fun `off takes the home row with it`() {
-        val routes = visibleRootEntries(Extension.All - Extension.VOICE - Extension.AI).map { it.route }
-        assertFalse("voice" in routes)
-        assertFalse("ai" in routes)
-        assertTrue("clipboard" in routes)
-        assertTrue("extensions" in routes)
-        assertEquals(RootEntries.map { it.route }, visibleRootEntries(Extension.All).map { it.route })
+    fun `no bundle owns a home row`() {
+        // The necessities on Home are not extensions, so every bundle off
+        // leaves the root list as it is, Extensions row included.
+        assertEquals(RootEntries.map { it.route }, visibleRootEntries(emptySet()).map { it.route })
+        assertTrue("extensions" in visibleRootEntries(emptySet()).map { it.route })
     }
 
     @Test
     fun `a link to an owned screen is redirected while its bundle is off`() {
-        val off = Extension.All - Extension.MODES - Extension.AI
+        val off = Extension.All - Extension.MODES - Extension.KDE_CONNECT - Extension.SCANNERS
         assertEquals(Extension.MODES, extensionRedirect("modes", off))
         assertEquals(Extension.MODES, extensionRedirect("mode_edit/mode_chat", off))
-        assertEquals(Extension.AI, extensionRedirect("tool/${ToolbarTool.AI.name}", off))
-        assertEquals(Extension.AI, extensionRedirect("ai_chat", off))
+        assertEquals(Extension.SCANNERS, extensionRedirect("tool/${ToolbarTool.OCR.name}", off))
+        assertEquals(Extension.KDE_CONNECT, extensionRedirect("kdeconnect/devices", off))
         assertNull(extensionRedirect("modes", Extension.All))
         assertNull(extensionRedirect("tool/${ToolbarTool.EMOJI.name}", off))
         assertNull(extensionRedirect("typing", off))

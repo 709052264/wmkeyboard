@@ -6722,6 +6722,13 @@ data class AppUiSettings(
      */
     val settingsDepth: SettingsDepth = SettingsDepth.AUTO,
     /**
+     * Whether a group whose rows sit above the settings depth ends in a
+     * "N more settings" row that opens them in place. Off, the rows are
+     * simply not there, which is what the depth is for; on is for someone
+     * who wants to know where the rest went.
+     */
+    val hiddenSettingsRows: Boolean = false,
+    /**
      * The feature bundles switched on (SETTINGS_REDESIGN.md §3), or null for
      * an install that has never chosen, which keeps everything on. Read
      * through [KeyboardSettings.extensionsResolved]. Here with the other
@@ -10771,6 +10778,7 @@ class SettingsRepository(private val context: Context) {
         private val SETTINGS_FAVOURITES_BUTTON = booleanPreferencesKey("settings_favourites_button")
         private val SETTINGS_SPLIT_TOOL_PANELS = booleanPreferencesKey("settings_split_tool_panels")
         private val SETTINGS_DEPTH = stringPreferencesKey("settings_depth")
+        private val SETTINGS_HIDDEN_ROWS = booleanPreferencesKey("settings_hidden_rows")
         private val EXTENSIONS_ENABLED = stringSetPreferencesKey("extensions_enabled")
         private val SYMBOL_ROW_HEIGHT = intPreferencesKey("symbol_row_height")
         private val SYMBOL_ROW_LINES = intPreferencesKey("symbol_row_lines")
@@ -12673,6 +12681,7 @@ class SettingsRepository(private val context: Context) {
             settingsDepth = p[SETTINGS_DEPTH]
                 ?.let { runCatching { SettingsDepth.valueOf(it) }.getOrNull() }
                 ?: defaults.appUi.settingsDepth,
+            hiddenSettingsRows = p[SETTINGS_HIDDEN_ROWS] ?: defaults.appUi.hiddenSettingsRows,
             extensions = p[EXTENSIONS_ENABLED]?.let(Extension::decode),
         )
 
@@ -20294,6 +20303,10 @@ class SettingsRepository(private val context: Context) {
     suspend fun setSettingsDepth(value: SettingsDepth) =
         editPrefs { it[SETTINGS_DEPTH] = value.name }
 
+    /** See [AppUiSettings.hiddenSettingsRows]. */
+    suspend fun setHiddenSettingsRows(value: Boolean) =
+        editPrefs { it[SETTINGS_HIDDEN_ROWS] = value }
+
     /**
      * Replaces the whole set of bundles that are on; see
      * [AppUiSettings.extensions]. Onboarding lands the depth's defaults
@@ -20304,12 +20317,10 @@ class SettingsRepository(private val context: Context) {
 
     /**
      * Switches one bundle on or off, and moves the master switch the bundle
-     * already had (voice on, clipboard history, keyboard modes, selection
-     * actions, the physical keyboard, statistics, the floating button) with
-     * it, so the two never disagree: a bundle switched off stops its
-     * background work the way its own switch always has, and switched back
-     * on it works at once. The plugin subsystem's switch is in its own store
-     * and is moved by the Extensions screen.
+     * already had with it, so the two never disagree: a bundle switched off
+     * stops its background work the way its own switch always has, and
+     * switched back on it works at once. Keyboard modes is the one bundle
+     * with such a switch today.
      */
     suspend fun setExtensionEnabled(extension: Extension, enabled: Boolean) {
         editPrefs { prefs ->
@@ -20318,18 +20329,11 @@ class SettingsRepository(private val context: Context) {
             prefs[EXTENSIONS_ENABLED] = next.mapTo(LinkedHashSet()) { ext -> ext.name }
             extensionMasterSwitch(extension)?.let { prefs[it] = enabled }
         }
-        // Its own store: the floating button's keys fold a legacy layout first.
-        if (extension == Extension.FLOATING_BUTTON) setSummonButton(enabled)
     }
 
     /** The master switch a bundle carries in the main store, or null. */
     private fun extensionMasterSwitch(extension: Extension): Preferences.Key<Boolean>? = when (extension) {
-        Extension.VOICE -> VOICE_ENABLED
-        Extension.CLIPBOARD -> CLIPBOARD_HISTORY
         Extension.MODES -> MODES_ENABLED
-        Extension.SELECTION_ACTIONS -> SELECTION_MACROS_ENABLED
-        Extension.HARDWARE_KEYBOARD -> HARDWARE_KEYBOARD_INPUT
-        Extension.STATISTICS -> TYPING_STATS_ENABLED
         else -> null
     }
 

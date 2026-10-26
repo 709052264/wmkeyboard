@@ -135,7 +135,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import com.wasimaster.wmkeyboard.core.settings.DeviceForm
 import com.wasimaster.wmkeyboard.core.settings.settingsDepthResolved
 import com.wasimaster.wmkeyboard.core.settings.Extension
-import com.wasimaster.wmkeyboard.core.settings.extensionOn
 import com.wasimaster.wmkeyboard.core.settings.extensionsResolved
 import com.wasimaster.wmkeyboard.core.settings.IconSettings
 import com.wasimaster.wmkeyboard.core.settings.isTelevision
@@ -762,8 +761,9 @@ private fun SettingsNavHost(
     // How much of the app is showing (settings depth), resolved once here and
     // read by every group; changed from Home, a page's footer or Accessibility.
     val depthResolved = settings.watch { it.settingsDepthResolved() }
-    val depthControl = remember(depthResolved) {
-        DepthControl(depthResolved) { depth -> foldScope.launch { repository.setSettingsDepth(depth) } }
+    val hiddenRows = settings.watch { it.appUi.hiddenSettingsRows }
+    val depthControl = remember(depthResolved, hiddenRows) {
+        DepthControl(depthResolved, hiddenRows) { depth -> foldScope.launch { repository.setSettingsDepth(depth) } }
     }
     // Which feature bundles are on (Extensions), read by Home, Advanced, the
     // Tools list and every picker; a route a switched-off bundle owns is
@@ -862,7 +862,7 @@ private fun SettingsNavHost(
             // draws it from this, so no screen has to know about it.
             // Gone with the AI bundle: the button is the chat's door.
             LocalAiChatFab provides openChat.takeIf {
-                settings.watch { it.appUi.aiChatButtonEverywhere && it.extensionOn(Extension.AI) }
+                settings.watch { it.appUi.aiChatButtonEverywhere }
             },
             // About › Documentation › Setting links (#646): how a row hands
             // out a link to itself, read by every row and heading.
@@ -3004,10 +3004,8 @@ private fun HomeScreen(
             }
             // One list drives this screen and the search index's root entries,
             // so a row cannot exist on one and not the other.
-            // How much of the app is showing, first: when a row someone is
-            // looking for is not on this list, this is where the answer is.
-            DepthRow()
-            val depth = LocalSettingsDepth.current.depth
+            val depthControl = LocalSettingsDepth.current
+            val depth = depthControl.depth
             // A row a switched-off extension owns is not on the list at all;
             // the Extensions row is where it comes back.
             val entries = visibleRootEntries(LocalExtensions.current)
@@ -3034,7 +3032,8 @@ private fun HomeScreen(
             // The rows above the depth, in one closed group at the end: still
             // one press away, and named on the fold so they can be found.
             val tucked = entries.filter { !depth.shows(it.level) }
-            if (tucked.isNotEmpty()) {
+            // Pointed at only when asked (About › App); otherwise not there.
+            if (tucked.isNotEmpty() && depthControl.hiddenRows) {
                 SettingsGroup(
                     stringResource(R.string.home_group_more_title),
                     foldKey = "more",
@@ -3317,8 +3316,9 @@ private fun SetupStep(label: String, done: Boolean, pending: Boolean, onClick: (
 internal fun AdvancedSettings(onNavigate: (String) -> Unit) {
     val extensions = LocalExtensions.current
     SettingsGroup {
-        // Whole features on or off (SETTINGS_REDESIGN.md §3). First: four of
-        // the rows below are bundles of its, and leave when switched off.
+        // The far-fetched features, on or off as one thing (SETTINGS_REDESIGN.md
+        // §3). First: Keyboard modes below is one of its bundles, and leaves
+        // when switched off.
         item {
             NavRow(R.string.extensions_title, stringResource(R.string.extensions_subtitle), route = ExtensionsRoute) {
                 onNavigate(ExtensionsRoute)
@@ -3329,7 +3329,7 @@ internal fun AdvancedSettings(onNavigate: (String) -> Unit) {
                 onNavigate("modes")
             }
         }
-        item(visible = Extension.ADDON_REPOSITORIES in extensions) {
+        item {
             NavRow(R.string.home_addons_title, stringResource(R.string.home_addons_subtitle), route = "addons") {
                 onNavigate("addons")
             }
@@ -3352,14 +3352,14 @@ internal fun AdvancedSettings(onNavigate: (String) -> Unit) {
                 route = "notifications",
             ) { onNavigate("notifications") }
         }
-        item(visible = Extension.SELECTION_ACTIONS in extensions) {
+        item {
             NavRow(
                 R.string.selection_macros_title,
                 stringResource(R.string.selection_macros_subtitle),
                 route = SelectionMacroRoute,
             ) { onNavigate(SelectionMacroRoute) }
         }
-        item(visible = Extension.FLOATING_BUTTON in extensions) {
+        item {
             NavRow(
                 R.string.floating_button_title,
                 stringResource(R.string.floating_button_subtitle),
@@ -3470,15 +3470,7 @@ private fun AnimatedVisibilityScope.SettingsScreen(
         // It also means a deep link or an EXTRA_OPEN_ROUTE lands on the gate
         // rather than around it, because the gate is at the destination and
         // not at the navigate() call.
-        // What this screen folded away at the current depth, counted by its
-        // groups and summed into the footer under the last of them.
-        val tuck = remember { ScreenTuck() }
-        val body: @Composable () -> Unit = {
-            CompositionLocalProvider(LocalScreenTuck provides tuck) {
-                content()
-                TuckedFooter(tuck)
-            }
-        }
+        val body: @Composable () -> Unit = content
         // Behind the lock, the extension check: a screen a switched-off
         // bundle owns says so and points at the Extensions screen, whichever
         // of the graph's navigate() calls reached it.
@@ -3602,49 +3594,57 @@ internal fun SettingsGroup(
     // while their feature's toggle is on).
     val scope = SettingsGroupScope().apply(builder)
     val route = LocalScreenRoute.current.orEmpty()
-    val depth = LocalSettingsDepth.current.depth
-    // A whole group above the depth folds closed under its own heading, so it
-    // is still there to open. One with no heading has nothing to fold under
-    // and tucks every row behind the "more settings" row instead.
+    val depthControl = LocalSettingsDepth.current
+    val depth = depthControl.depth
     val groupAbove = !depth.shows(level)
-    val foldsWhole = groupAbove && title != null
-    val tucked: (SettingsGroupScope.Entry) -> Boolean =
-        if (foldsWhole) { _ -> false } else { e -> groupAbove || !depth.shows(e.level) }
-    val tuckedCount = scope.items.count { it.visible && tucked(it) }
     val folds = LocalAdvancedFolds.current
     val highlighted = SettingsHighlight.target != 0 || SettingsHighlight.targetItems.isNotEmpty()
-    // The rows above the depth go behind one row at the end of the group's
-    // stack. Remembered per group like a fold, and drawn open while a
-    // highlight is pending so a search result can land on one of them.
-    val moreId = if (tuckedCount == 0) null else "$route/${foldKey ?: title ?: "group"}#more"
-    val moreOpen = moreId != null && (highlighted || (folds?.isOpen(moreId) ?: false))
-    // Counted for the page's footer; see [TuckedFooter].
-    val tuck = LocalScreenTuck.current
-    DisposableEffect(tuck, moreId, tuckedCount) {
-        if (tuck != null && moreId != null) tuck.set(moreId, tuckedCount)
-        onDispose { if (tuck != null && moreId != null) tuck.remove(moreId) }
-    }
-    val entries = if (moreId == null) scope.items else buildList {
-        scope.items.filterNotTo(this) { tucked(it) }
-        add(
-            SettingsGroupScope.Entry(visible = true, conditional = false, key = null) {
-                MoreSettingsRow(tuckedCount, moreOpen) { folds?.toggle(moreId, !moreOpen) }
-            },
-        )
-        // Conditional on the fold, so they grow in under the row rather than
-        // appear. Unkeyed on purpose: a keyed row's own arrive-and-leave
-        // motion is for a list the user edits, not for a fold.
-        for (entry in scope.items) {
-            if (!tucked(entry)) continue
-            add(
-                SettingsGroupScope.Entry(
-                    visible = entry.visible && moreOpen,
-                    conditional = true,
-                    key = null,
-                    level = entry.level,
-                    content = entry.content,
-                ),
-            )
+    // A row above the depth is not drawn at all; that is what the depth is
+    // for. Two things bring it back: a pending highlight (a search result or
+    // an addon's Use button has to land on it, so it is drawn in its place as
+    // if the depth allowed it), and About › App › "Show where settings are
+    // hidden", which puts a "N more settings" row at the end of the group
+    // and folds a whole titled group closed under its heading instead.
+    val reveal = highlighted || depthControl.hiddenRows
+    if (groupAbove && !reveal) return
+    val foldsWhole = groupAbove && title != null && depthControl.hiddenRows
+    val tucked: (SettingsGroupScope.Entry) -> Boolean =
+        { e -> !foldsWhole && (groupAbove || !depth.shows(e.level)) }
+    val tuckedCount = scope.items.count { it.visible && tucked(it) }
+    val entries = when {
+        tuckedCount == 0 -> scope.items
+        // Not pointed at: the hidden rows are simply not there.
+        !depthControl.hiddenRows && !highlighted -> scope.items.filterNot { tucked(it) }
+        // A highlight pending and nothing to point with: every row in its place.
+        !depthControl.hiddenRows -> scope.items
+        else -> {
+            // Remembered per group like a fold, and drawn open while a
+            // highlight is pending so a search result can land inside.
+            val moreId = "$route/${foldKey ?: title ?: "group"}#more"
+            val moreOpen = highlighted || (folds?.isOpen(moreId) ?: false)
+            buildList<SettingsGroupScope.Entry> {
+                scope.items.filterNotTo(this) { tucked(it) }
+                add(
+                    SettingsGroupScope.Entry(visible = true, conditional = false, key = null) {
+                        MoreSettingsRow(tuckedCount, moreOpen) { folds?.toggle(moreId, !moreOpen) }
+                    },
+                )
+                // Conditional on the fold, so they grow in under the row
+                // rather than appear. Unkeyed on purpose: a keyed row's own
+                // arrive-and-leave motion is for a list the user edits.
+                for (entry in scope.items) {
+                    if (!tucked(entry)) continue
+                    add(
+                        SettingsGroupScope.Entry(
+                            visible = entry.visible && moreOpen,
+                            conditional = true,
+                            key = null,
+                            level = entry.level,
+                            content = entry.content,
+                        ),
+                    )
+                }
+            }
         }
     }
     // What the group is showing right now, which is what every count below is

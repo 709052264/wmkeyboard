@@ -1,19 +1,25 @@
 package com.wasimaster.wmkeyboard.core.settings
 
 /**
- * A feature bundle the user can switch off as one thing (SETTINGS_REDESIGN.md
- * §3). A tool has a switch of its own on the Tools list, but a feature is
- * bigger than a tool: AI is two tools, a chat, an assistant, a memory screen,
- * a provider page and a button on every settings screen. Off means gone from
- * everywhere the bundle shows: its Home row, its rows under Advanced, its
- * entries on the Tools list and in every tool picker, its search results, its
- * buttons on the keyboard's toolbar and in its toolbox, its panels, and the
- * background work it owns. On brings all of it back with the settings it had.
+ * A feature most people would never expect a keyboard to have, switched on
+ * or off as one thing (SETTINGS_REDESIGN.md §3).
+ *
+ * Not the necessities. Voice typing, the clipboard, snippets, translate and
+ * AI are what a keyboard is for today, and each has a switch of its own
+ * where it lives. An extension is a bubble level, a music recogniser, a link
+ * to the desktop, a notebook, a speed test: a welcome surprise to one user
+ * and clutter to the next. So each is one row on the Extensions screen and
+ * shows up nowhere else until it is switched on.
+ *
+ * Off means gone from everywhere the bundle shows: its rows under Advanced,
+ * its entries on the Tools list and in every tool picker, its search
+ * results, its buttons on the keyboard's toolbar and in its toolbox, its
+ * panels, and the background work it owns. On brings all of it back with the
+ * settings it had.
  *
  * Each entry names what it owns: the [tools], and the settings [routes] as
- * the nav graph declares them (`{arg}` segments included). A Home row is a
- * route like any other, so the root list filters on [routes] too. A route or
- * a tool belongs to at most one bundle; [ExtensionsTest] holds that.
+ * the nav graph declares them (`{arg}` segments included). A route or a tool
+ * belongs to at most one bundle; [ExtensionsTest] holds that.
  *
  * The enabled set is stored in [AppUiSettings.extensions]. Nothing stored
  * means an install from before the screen existed, and that install keeps
@@ -23,58 +29,6 @@ enum class Extension(
     val tools: Set<ToolbarTool> = emptySet(),
     val routes: Set<String> = emptySet(),
 ) {
-    /** The two AI tools, the chat, the settings assistant, memory, history and the chat button. */
-    AI(
-        tools = setOf(ToolbarTool.AI, ToolbarTool.AI_REPLY),
-        routes = setOf(
-            "ai", "ai_actions", "ai_reply_tones", "ai_history", "ai_memory", "ai_chat",
-            "ai_chat/{conversationId}", "settings_assistant", "ai_action_edit/{actionId}",
-            "ai_tools", "ai_mcp", "ai_mcp_edit/{serverId}",
-        ),
-    ),
-
-    /** Dictation: the Voice tool, the microphone in the keyboard's own fields, the Voice typing screen. */
-    VOICE(
-        tools = setOf(ToolbarTool.VOICE),
-        routes = setOf("voice"),
-    ),
-
-    /** The clipboard panel, its history, its search and the recent-copies row. */
-    CLIPBOARD(
-        tools = setOf(ToolbarTool.CLIPBOARD, ToolbarTool.CLIPBOARD_SEARCH, ToolbarTool.RECENT_COPIES),
-        routes = setOf("clipboard", "clipboard/history", "clipboard/chips", "clipboard/rules", "phoneformats", "cliprules"),
-    ),
-
-    /** Snippets and their triggers. */
-    TEXT_EXPANSION(
-        tools = setOf(ToolbarTool.SNIPPETS),
-        routes = setOf(
-            "expander", "expander/folder/{folderId}", "expander/folder/{folderId}/new",
-            "expander/edit/{snippetId}",
-        ),
-    ),
-
-    /** Vocabulary packs, the word of the day and the nudges. */
-    VOCABULARY(
-        tools = setOf(ToolbarTool.VOCABULARY),
-        routes = setOf(
-            "vocab/packs", "vocab/lists", "vocab/list/{packId}", "vocab/review", "vocab/browse",
-            "vocab/word/{packId}/{word}",
-        ),
-    ),
-
-    /** The notebook in the keyboard and the quick note action. */
-    NOTES(
-        tools = setOf(ToolbarTool.NOTES, ToolbarTool.QUICK_NOTE),
-        routes = setOf("notes", "notes/edit/{noteId}", "notes/tags", "notes/trash"),
-    ),
-
-    /** The to-do list. */
-    TODO(
-        tools = setOf(ToolbarTool.TODO),
-        routes = setOf("todo"),
-    ),
-
     /** GIFs, stickers and emoji mixes: the three picture panels and the pack screens. */
     STICKERS(
         tools = setOf(ToolbarTool.GIF, ToolbarTool.STICKER, ToolbarTool.EMOJI_MIX),
@@ -89,26 +43,70 @@ enum class Extension(
         tools = setOf(ToolbarTool.OCR, ToolbarTool.QR_SCAN, ToolbarTool.DOC_SCAN),
     ),
 
-    /** The Translate tool and its engines. */
-    TRANSLATE(
-        tools = setOf(ToolbarTool.TRANSLATE),
+    /** The handwriting panel and its models. */
+    HANDWRITING(
+        tools = setOf(ToolbarTool.HANDWRITING),
     ),
 
-    /** Lua plugins: the tool, the list, the IDE. */
-    PLUGINS(
-        tools = setOf(ToolbarTool.PLUGINS),
-        routes = setOf("plugins", "plugin/{pluginId}", "plugin_ide", "plugin_ide/{draftId}"),
+    /** The notebook in the keyboard and the quick note action. */
+    NOTES(
+        tools = setOf(ToolbarTool.NOTES, ToolbarTool.QUICK_NOTE),
+        routes = setOf("notes", "notes/edit/{noteId}", "notes/tags", "notes/trash"),
     ),
 
-    /** Add-on repositories and the store built from them. */
-    ADDON_REPOSITORIES(
-        routes = setOf("addons", "addon_repo/{repoUrl}", "addon/{repoUrl}/{addonId}"),
+    /** Vocabulary packs, the word of the day and the nudges. */
+    VOCABULARY(
+        tools = setOf(ToolbarTool.VOCABULARY),
+        routes = setOf(
+            "vocab/packs", "vocab/lists", "vocab/list/{packId}", "vocab/review", "vocab/browse",
+            "vocab/word/{packId}/{word}",
+        ),
     ),
 
-    /** Other devices: KDE Connect, Send files and Smart home. */
-    CONNECT(
-        tools = setOf(ToolbarTool.KDE_CONNECT, ToolbarTool.SEND_FILES, ToolbarTool.HOME_ASSISTANT),
-        routes = setOf("kdeconnect/devices", "send/instances", "send/history", "homeassistant/entities"),
+    /** The calculator and the unit and currency converters. */
+    CALCULATORS(
+        tools = setOf(ToolbarTool.CALCULATOR, ToolbarTool.UNIT_CONVERT, ToolbarTool.CURRENCY),
+    ),
+
+    /** Web search, image search and Wikipedia, inside the keyboard. */
+    WEB_SEARCH(
+        tools = setOf(ToolbarTool.WEB_SEARCH, ToolbarTool.IMAGE_SEARCH, ToolbarTool.WIKIPEDIA),
+    ),
+
+    /** The camera and the gallery panels. */
+    CAMERA_AND_GALLERY(
+        tools = setOf(ToolbarTool.CAMERA, ToolbarTool.GALLERY),
+    ),
+
+    /** The calendar and the world clock, timers and countdowns. */
+    CALENDAR_AND_CLOCK(
+        tools = setOf(ToolbarTool.CALENDAR, ToolbarTool.CLOCK),
+        routes = setOf("clock"),
+    ),
+
+    /** Passwords, QR codes and repeated text, made on the keyboard. */
+    GENERATORS(
+        tools = setOf(ToolbarTool.PASSWORD_GEN, ToolbarTool.QR_GEN, ToolbarTool.TEXT_REPEAT),
+    ),
+
+    /** The typing speed test and its history. */
+    TYPING_TEST(
+        tools = setOf(ToolbarTool.TYPING_TEST),
+    ),
+
+    /** The field read aloud. */
+    READ_BACK(
+        tools = setOf(ToolbarTool.READ_BACK),
+    ),
+
+    /** Teaching the dictionary from a block of text. */
+    LEARN_FROM_TEXT(
+        tools = setOf(ToolbarTool.LEARN_FROM_TEXT),
+    ),
+
+    /** Find and replace inside the field. */
+    FIND_REPLACE(
+        tools = setOf(ToolbarTool.FIND_REPLACE),
     ),
 
     /** Keyboard modes: per-app and per-field bundles of overrides. */
@@ -117,34 +115,55 @@ enum class Extension(
         routes = setOf("modes", "mode_edit/{modeId}"),
     ),
 
-    /** The selection actions bar and the selection-menu sheet. */
-    SELECTION_ACTIONS(
-        tools = setOf(ToolbarTool.SELECTION_ACTIONS),
-        routes = setOf(
-            "selection_macros", "selection_macros/actions", "selection_macros/icons",
-            "selection_macros/ai", "selection_macros/zones",
-        ),
+    /** Play, pause and skip from the toolbar, and the apps it follows. */
+    MEDIA_CONTROLS(
+        tools = setOf(ToolbarTool.MEDIA_CONTROL),
+        routes = setOf("musicapps"),
     ),
 
-    /** The button drawn over other apps. */
-    FLOATING_BUTTON(
-        routes = setOf("floating_button"),
+    /** Opening other apps and split-screen pairs from the keyboard. */
+    APP_LAUNCHER(
+        tools = setOf(ToolbarTool.APP_LAUNCHER),
+        routes = setOf("launchercombos"),
     ),
 
-    /** Typing on a physical keyboard through the engine, and the tool shortcuts. */
-    HARDWARE_KEYBOARD(
-        routes = setOf("typing/hardware", "hwshortcuts"),
+    /** The weather and the location panels. */
+    WEATHER_AND_LOCATION(
+        tools = setOf(ToolbarTool.WEATHER, ToolbarTool.LOCATION),
     ),
 
-    /** The handwriting panel and its models. */
-    HANDWRITING(
-        tools = setOf(ToolbarTool.HANDWRITING),
+    /** The flashlight, the compass, the bubble level and the moon phase. */
+    INSTRUMENTS(
+        tools = setOf(ToolbarTool.FLASHLIGHT, ToolbarTool.COMPASS, ToolbarTool.LEVEL, ToolbarTool.MOON_PHASE),
     ),
 
-    /** Typing statistics: the counting, the screen and the tool that opens it. */
-    STATISTICS(
-        tools = setOf(ToolbarTool.STATISTICS),
-        routes = setOf("statistics"),
+    /** Naming the song that is playing. */
+    MUSIC_ID(
+        tools = setOf(ToolbarTool.MUSIC_ID),
+        routes = setOf("music/history"),
+    ),
+
+    /** The internet speed test. */
+    SPEED_TEST(
+        tools = setOf(ToolbarTool.SPEED_TEST),
+    ),
+
+    /** The link to a desktop through KDE Connect. */
+    KDE_CONNECT(
+        tools = setOf(ToolbarTool.KDE_CONNECT),
+        routes = setOf("kdeconnect/devices"),
+    ),
+
+    /** Sending files to other devices. */
+    SEND_FILES(
+        tools = setOf(ToolbarTool.SEND_FILES),
+        routes = setOf("send/instances", "send/history"),
+    ),
+
+    /** Lights, switches and scenes from the keyboard. */
+    SMART_HOME(
+        tools = setOf(ToolbarTool.HOME_ASSISTANT),
+        routes = setOf("homeassistant/entities"),
     ),
     ;
 
@@ -153,26 +172,22 @@ enum class Extension(
         val All: Set<Extension> = entries.toSet()
 
         /**
-         * What "keep it simple" starts with: the features other keyboards have
-         * an answer to. Voice, the clipboard, GIFs and stickers, translate and
-         * text expansion are on Gboard or SwiftKey; the physical keyboard
-         * stays because it is only ever met when one is plugged in. Nothing
-         * here changes a keyboard default: every master switch these bundles
-         * carry is on by default already.
+         * What "keep it simple" starts with: GIFs and stickers, which every
+         * keyboard has an answer to, and nothing else. Nothing here changes a
+         * keyboard default: the bundle's tools are on or off as the starter
+         * tool set left them.
          */
-        val SimpleDefaults: Set<Extension> = setOf(
-            VOICE, CLIPBOARD, STICKERS, TRANSLATE, TEXT_EXPANSION, HARDWARE_KEYBOARD,
-        )
+        val SimpleDefaults: Set<Extension> = setOf(STICKERS)
 
         /**
-         * What "a good middle" starts with: Simple plus the bundles that are a
-         * panel or a screen rather than a system of their own. Left off: AI,
-         * plugins, repositories, other devices, modes and the floating button,
-         * each of which asks for an account, a pairing or a grant before it
-         * does anything.
+         * What "a good middle" starts with: Simple plus the bundles that work
+         * the moment they are on, with no pairing, account, sensor or grant
+         * behind them. Left off: the ones that reach another device, a server
+         * or the phone's hardware, and modes, which are a system of their own.
          */
         val StandardDefaults: Set<Extension> = SimpleDefaults + setOf(
-            VOCABULARY, NOTES, TODO, SCANNERS, SELECTION_ACTIONS, HANDWRITING, STATISTICS,
+            SCANNERS, HANDWRITING, NOTES, VOCABULARY, CALCULATORS, WEB_SEARCH, CAMERA_AND_GALLERY,
+            CALENDAR_AND_CLOCK, GENERATORS, TYPING_TEST, READ_BACK, LEARN_FROM_TEXT, FIND_REPLACE,
         )
 
         /** The bundles on at [depth] before the user touches the screen. */

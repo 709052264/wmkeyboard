@@ -1,6 +1,5 @@
 package com.wasimaster.wmkeyboard.app
 
-import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,32 +16,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
-import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.TextSnippet
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Adjust
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Checklist
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudDownload
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Devices
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DocumentScanner
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Draw
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EmojiEmotions
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Extension as ExtensionIcon
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Highlight
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mic
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QueryStats
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.School
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.StickyNote2
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Translate
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewCarousel
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Widgets
-import com.wasimaster.wmkeyboard.core.plugins.PluginStore
 import com.wasimaster.wmkeyboard.core.settings.Extension
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
@@ -54,7 +38,7 @@ import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
 import kotlinx.coroutines.launch
 
 /*
- * Extensions (SETTINGS_REDESIGN.md §3): whole features on or off.
+ * Extensions (SETTINGS_REDESIGN.md §3): the far-fetched features, on or off.
  *
  * The bundles themselves, what each owns and the stored set live in
  * `core/settings` ([Extension]); this file is the settings app's side: the
@@ -85,72 +69,71 @@ internal fun extensionOn(extension: Extension): Boolean = extension in LocalExte
 
 @StringRes
 internal fun extensionTitle(extension: Extension): Int = when (extension) {
-    Extension.AI -> R.string.extension_ai_title
-    Extension.VOICE -> R.string.extension_voice_title
-    Extension.CLIPBOARD -> R.string.extension_clipboard_title
-    Extension.TEXT_EXPANSION -> R.string.extension_text_expansion_title
-    Extension.VOCABULARY -> R.string.extension_vocabulary_title
-    Extension.NOTES -> R.string.extension_notes_title
-    Extension.TODO -> R.string.extension_todo_title
     Extension.STICKERS -> R.string.extension_stickers_title
     Extension.SCANNERS -> R.string.extension_scanners_title
-    Extension.TRANSLATE -> R.string.extension_translate_title
-    Extension.PLUGINS -> R.string.extension_plugins_title
-    Extension.ADDON_REPOSITORIES -> R.string.extension_addon_repositories_title
-    Extension.CONNECT -> R.string.extension_connect_title
-    Extension.MODES -> R.string.extension_modes_title
-    Extension.SELECTION_ACTIONS -> R.string.extension_selection_actions_title
-    Extension.FLOATING_BUTTON -> R.string.extension_floating_button_title
-    Extension.HARDWARE_KEYBOARD -> R.string.extension_hardware_keyboard_title
     Extension.HANDWRITING -> R.string.extension_handwriting_title
-    Extension.STATISTICS -> R.string.extension_statistics_title
+    Extension.NOTES -> R.string.extension_notes_title
+    Extension.VOCABULARY -> R.string.extension_vocabulary_title
+    Extension.CALCULATORS -> R.string.extension_calculators_title
+    Extension.WEB_SEARCH -> R.string.extension_web_search_title
+    Extension.CAMERA_AND_GALLERY -> R.string.extension_camera_gallery_title
+    Extension.CALENDAR_AND_CLOCK -> R.string.extension_calendar_clock_title
+    Extension.GENERATORS -> R.string.extension_generators_title
+    Extension.TYPING_TEST -> R.string.extension_typing_test_title
+    Extension.READ_BACK -> R.string.extension_read_back_title
+    Extension.LEARN_FROM_TEXT -> R.string.extension_learn_from_text_title
+    Extension.FIND_REPLACE -> R.string.extension_find_replace_title
+    Extension.MODES -> R.string.extension_modes_title
+    Extension.MEDIA_CONTROLS -> R.string.extension_media_controls_title
+    Extension.APP_LAUNCHER -> R.string.extension_app_launcher_title
+    Extension.WEATHER_AND_LOCATION -> R.string.extension_weather_location_title
+    Extension.INSTRUMENTS -> R.string.extension_instruments_title
+    Extension.MUSIC_ID -> R.string.extension_music_id_title
+    Extension.SPEED_TEST -> R.string.extension_speed_test_title
+    Extension.KDE_CONNECT -> R.string.extension_kde_connect_title
+    Extension.SEND_FILES -> R.string.extension_send_files_title
+    Extension.SMART_HOME -> R.string.extension_smart_home_title
 }
 
 /** One line on what the bundle adds, drawn under its row and its heading. */
 @StringRes
 internal fun extensionDescription(extension: Extension): Int = when (extension) {
-    Extension.AI -> R.string.extension_ai_desc
-    Extension.VOICE -> R.string.extension_voice_desc
-    Extension.CLIPBOARD -> R.string.extension_clipboard_desc
-    Extension.TEXT_EXPANSION -> R.string.extension_text_expansion_desc
-    Extension.VOCABULARY -> R.string.extension_vocabulary_desc
-    Extension.NOTES -> R.string.extension_notes_desc
-    Extension.TODO -> R.string.extension_todo_desc
     Extension.STICKERS -> R.string.extension_stickers_desc
     Extension.SCANNERS -> R.string.extension_scanners_desc
-    Extension.TRANSLATE -> R.string.extension_translate_desc
-    Extension.PLUGINS -> R.string.extension_plugins_desc
-    Extension.ADDON_REPOSITORIES -> R.string.extension_addon_repositories_desc
-    Extension.CONNECT -> R.string.extension_connect_desc
-    Extension.MODES -> R.string.extension_modes_desc
-    Extension.SELECTION_ACTIONS -> R.string.extension_selection_actions_desc
-    Extension.FLOATING_BUTTON -> R.string.extension_floating_button_desc
-    Extension.HARDWARE_KEYBOARD -> R.string.extension_hardware_keyboard_desc
     Extension.HANDWRITING -> R.string.extension_handwriting_desc
-    Extension.STATISTICS -> R.string.extension_statistics_desc
+    Extension.NOTES -> R.string.extension_notes_desc
+    Extension.VOCABULARY -> R.string.extension_vocabulary_desc
+    Extension.CALCULATORS -> R.string.extension_calculators_desc
+    Extension.WEB_SEARCH -> R.string.extension_web_search_desc
+    Extension.CAMERA_AND_GALLERY -> R.string.extension_camera_gallery_desc
+    Extension.CALENDAR_AND_CLOCK -> R.string.extension_calendar_clock_desc
+    Extension.GENERATORS -> R.string.extension_generators_desc
+    Extension.TYPING_TEST -> R.string.extension_typing_test_desc
+    Extension.READ_BACK -> R.string.extension_read_back_desc
+    Extension.LEARN_FROM_TEXT -> R.string.extension_learn_from_text_desc
+    Extension.FIND_REPLACE -> R.string.extension_find_replace_desc
+    Extension.MODES -> R.string.extension_modes_desc
+    Extension.MEDIA_CONTROLS -> R.string.extension_media_controls_desc
+    Extension.APP_LAUNCHER -> R.string.extension_app_launcher_desc
+    Extension.WEATHER_AND_LOCATION -> R.string.extension_weather_location_desc
+    Extension.INSTRUMENTS -> R.string.extension_instruments_desc
+    Extension.MUSIC_ID -> R.string.extension_music_id_desc
+    Extension.SPEED_TEST -> R.string.extension_speed_test_desc
+    Extension.KDE_CONNECT -> R.string.extension_kde_connect_desc
+    Extension.SEND_FILES -> R.string.extension_send_files_desc
+    Extension.SMART_HOME -> R.string.extension_smart_home_desc
 }
 
 /** The bundle's glyph: the one its Home row or its first tool already wears, where it has one. */
 internal fun extensionIcon(extension: Extension): ImageVector = when (extension) {
-    Extension.AI -> Icons.Outlined.AutoAwesome
-    Extension.VOICE -> Icons.Outlined.Mic
-    Extension.CLIPBOARD -> Icons.Outlined.ContentPaste
-    Extension.TEXT_EXPANSION -> Icons.AutoMirrored.Outlined.TextSnippet
-    Extension.VOCABULARY -> Icons.Outlined.School
-    Extension.NOTES -> Icons.Outlined.StickyNote2
-    Extension.TODO -> Icons.Outlined.Checklist
     Extension.STICKERS -> Icons.Outlined.EmojiEmotions
     Extension.SCANNERS -> Icons.Outlined.DocumentScanner
-    Extension.TRANSLATE -> Icons.Outlined.Translate
-    Extension.PLUGINS -> Icons.Outlined.ExtensionIcon
-    Extension.ADDON_REPOSITORIES -> Icons.Outlined.CloudDownload
-    Extension.CONNECT -> Icons.Outlined.Devices
-    Extension.MODES -> Icons.Outlined.ViewCarousel
-    Extension.SELECTION_ACTIONS -> Icons.Outlined.Highlight
-    Extension.FLOATING_BUTTON -> Icons.Outlined.Adjust
-    Extension.HARDWARE_KEYBOARD -> Icons.Outlined.Keyboard
     Extension.HANDWRITING -> Icons.Outlined.Draw
-    Extension.STATISTICS -> Icons.Outlined.QueryStats
+    Extension.NOTES -> Icons.Outlined.StickyNote2
+    Extension.VOCABULARY -> Icons.Outlined.School
+    Extension.MODES -> Icons.Outlined.ViewCarousel
+    // The rest wear their first tool's own glyph, the one the toolbar shows.
+    else -> extension.tools.firstOrNull()?.let(::toolIconFor) ?: Icons.Outlined.Widgets
 }
 
 /**
@@ -159,25 +142,30 @@ internal fun extensionIcon(extension: Extension): ImageVector = when (extension)
  * the row and the page it stands for are visibly one place.
  */
 internal fun extensionAccent(extension: Extension): Color = when (extension) {
-    Extension.AI -> Color(0xFFAB47BC)
-    Extension.VOICE -> Color(0xFFEF5350)
-    Extension.CLIPBOARD -> Color(0xFF26A69A)
-    Extension.TEXT_EXPANSION -> Color(0xFF5C6BC0)
-    Extension.VOCABULARY -> Color(0xFF7CB342)
-    Extension.NOTES -> Color(0xFFFFCA28)
-    Extension.TODO -> Color(0xFF66BB6A)
     Extension.STICKERS -> Color(0xFFFFA726)
     Extension.SCANNERS -> Color(0xFF29B6F6)
-    Extension.TRANSLATE -> Color(0xFF42A5F5)
-    Extension.PLUGINS -> Color(0xFF8D6E63)
-    Extension.ADDON_REPOSITORIES -> Color(0xFF26C6DA)
-    Extension.CONNECT -> Color(0xFF5C6BC0)
-    Extension.MODES -> Color(0xFF7E57C2)
-    Extension.SELECTION_ACTIONS -> Color(0xFFFF7043)
-    Extension.FLOATING_BUTTON -> Color(0xFFEC407A)
-    Extension.HARDWARE_KEYBOARD -> Color(0xFF78909C)
     Extension.HANDWRITING -> Color(0xFF9CCC65)
-    Extension.STATISTICS -> Color(0xFF9CCC65)
+    Extension.NOTES -> Color(0xFFFFCA28)
+    Extension.VOCABULARY -> Color(0xFF7CB342)
+    Extension.CALCULATORS -> Color(0xFF26A69A)
+    Extension.WEB_SEARCH -> Color(0xFF42A5F5)
+    Extension.CAMERA_AND_GALLERY -> Color(0xFFEC407A)
+    Extension.CALENDAR_AND_CLOCK -> Color(0xFF5C6BC0)
+    Extension.GENERATORS -> Color(0xFF8D6E63)
+    Extension.TYPING_TEST -> Color(0xFF66BB6A)
+    Extension.READ_BACK -> Color(0xFFAB47BC)
+    Extension.LEARN_FROM_TEXT -> Color(0xFF7CB342)
+    Extension.FIND_REPLACE -> Color(0xFF78909C)
+    Extension.MODES -> Color(0xFF7E57C2)
+    Extension.MEDIA_CONTROLS -> Color(0xFFEF5350)
+    Extension.APP_LAUNCHER -> Color(0xFF26C6DA)
+    Extension.WEATHER_AND_LOCATION -> Color(0xFF29B6F6)
+    Extension.INSTRUMENTS -> Color(0xFFFF7043)
+    Extension.MUSIC_ID -> Color(0xFFAB47BC)
+    Extension.SPEED_TEST -> Color(0xFF42A5F5)
+    Extension.KDE_CONNECT -> Color(0xFF5C6BC0)
+    Extension.SEND_FILES -> Color(0xFF26A69A)
+    Extension.SMART_HOME -> Color(0xFFFFCA28)
 }
 
 /**
@@ -186,36 +174,19 @@ internal fun extensionAccent(extension: Extension): Color = when (extension) {
  * open with no argument, since a page cannot list the user's own things.
  */
 internal fun extensionScreens(extension: Extension): List<Pair<String, Int>> = when (extension) {
-    Extension.AI -> listOf("ai" to R.string.home_ai_title, "ai_memory" to R.string.toolai_memory_screen_title)
-    Extension.VOICE -> listOf("voice" to R.string.home_voice_title)
-    Extension.CLIPBOARD -> listOf(
-        "clipboard" to R.string.home_clipboard_title,
-        "phoneformats" to R.string.home_screen_phoneformats_title,
-    )
-    Extension.TEXT_EXPANSION -> listOf("expander" to R.string.home_expander_title)
-    Extension.VOCABULARY -> listOf("vocab/packs" to R.string.vocab_packs_title, "vocab/lists" to R.string.vocab_lists_title)
-    Extension.NOTES -> listOf("notes" to R.string.notes_title)
-    Extension.TODO -> listOf("todo" to R.string.todo_title)
     Extension.STICKERS -> listOf(
         "sticker_packs" to R.string.home_screen_sticker_packs_title,
         "emoji/mixes" to R.string.emojimix_row_title,
     )
-    Extension.SCANNERS, Extension.TRANSLATE, Extension.HANDWRITING -> emptyList()
-    Extension.PLUGINS -> listOf("plugins" to R.string.home_screen_plugins_title)
-    Extension.ADDON_REPOSITORIES -> listOf("addons" to R.string.home_addons_title)
-    Extension.CONNECT -> listOf(
-        "kdeconnect/devices" to R.string.kdeconnect_devices_title,
-        "send/instances" to R.string.send_instances_screen_title,
-        "homeassistant/entities" to R.string.ha_entities_title,
-    )
+    Extension.NOTES -> listOf("notes" to R.string.notes_title)
+    Extension.VOCABULARY -> listOf("vocab/packs" to R.string.vocab_packs_title, "vocab/lists" to R.string.vocab_lists_title)
     Extension.MODES -> listOf("modes" to R.string.home_modes_title)
-    Extension.SELECTION_ACTIONS -> listOf(SelectionMacroRoute to R.string.selection_macros_title)
-    Extension.FLOATING_BUTTON -> listOf(FloatingButtonRoute to R.string.floating_button_title)
-    Extension.HARDWARE_KEYBOARD -> listOf(
-        "typing/hardware" to R.string.typing_group_hardware_title,
-        "hwshortcuts" to R.string.typing_hw_shortcuts_list_title,
-    )
-    Extension.STATISTICS -> listOf("statistics" to R.string.statistics_title)
+    Extension.MEDIA_CONTROLS -> listOf("musicapps" to R.string.musicapps_title)
+    Extension.APP_LAUNCHER -> listOf("launchercombos" to R.string.launchercombos_title)
+    Extension.KDE_CONNECT -> listOf("kdeconnect/devices" to R.string.kdeconnect_devices_title)
+    Extension.SEND_FILES -> listOf("send/instances" to R.string.send_instances_screen_title)
+    Extension.SMART_HOME -> listOf("homeassistant/entities" to R.string.ha_entities_title)
+    else -> emptyList()
 }
 
 /**
@@ -307,19 +278,9 @@ internal fun ExtensionGate(route: String, content: @Composable () -> Unit) {
     }
 }
 
-/**
- * Switches one bundle. The plugin subsystem's own switch lives in the plugin
- * store rather than the settings store, so it is moved here; every other
- * master switch moves inside [SettingsRepository.setExtensionEnabled].
- */
-internal suspend fun setExtensionEnabled(
-    repository: SettingsRepository,
-    context: Context,
-    extension: Extension,
-    enabled: Boolean,
-) {
+/** Switches one bundle; the master switch a bundle carries moves inside [SettingsRepository.setExtensionEnabled]. */
+internal suspend fun setExtensionEnabled(repository: SettingsRepository, extension: Extension, enabled: Boolean) {
     repository.setExtensionEnabled(extension, enabled)
-    if (extension == Extension.PLUGINS) PluginStore.get(context).setSubsystemEnabled(enabled)
 }
 
 /** The Extensions screen: one switch per bundle, and a page behind each. */
@@ -330,7 +291,6 @@ internal fun ExtensionsSettings(
     onOpen: (Extension) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
     val enabled = settings.watch { it.extensionsResolved() }
     val total = Extension.entries.size
     SettingsGroup(
@@ -344,7 +304,7 @@ internal fun ExtensionsSettings(
                     subtitle = stringResource(extensionDescription(extension)),
                     checked = extension in enabled,
                     route = extensionRoute(extension),
-                    onChange = { on -> scope.launch { setExtensionEnabled(repository, context, extension, on) } },
+                    onChange = { on -> scope.launch { setExtensionEnabled(repository, extension, on) } },
                     onOpen = { onOpen(extension) },
                 )
             }
@@ -366,7 +326,6 @@ internal fun ExtensionDetailSettings(
     onNavigate: (String) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
     val on = settings.watch { it.extensionOn(extension) }
     SettingsGroup {
         item {
@@ -375,7 +334,7 @@ internal fun ExtensionDetailSettings(
                 subtitle = stringResource(R.string.extension_enabled_subtitle),
                 checked = on,
                 icon = extensionIcon(extension),
-                onChange = { value -> scope.launch { setExtensionEnabled(repository, context, extension, value) } },
+                onChange = { value -> scope.launch { setExtensionEnabled(repository, extension, value) } },
             )
         }
     }

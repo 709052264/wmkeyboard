@@ -2587,7 +2587,6 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         access(R.string.accessibility_selection_motion_title, R.string.accessibility_selection_motion_subtitle),
         access(R.string.accessibility_language_switch_motion_title, R.string.accessibility_language_switch_motion_subtitle),
         access(R.string.accessibility_tool_result_motion_title, R.string.accessibility_tool_result_motion_subtitle),
-        access(R.string.settings_depth_title, R.string.settings_depth_subtitle),
         access(R.string.accessibility_row_icons_title, R.string.accessibility_row_icons_subtitle),
         access(R.string.accessibility_screen_transitions_title, R.string.accessibility_screen_transitions_subtitle),
         access(R.string.accessibility_keyboard_preview_title, R.string.accessibility_keyboard_preview_subtitle),
@@ -2654,6 +2653,8 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         about(R.string.about_email_developer_title),
         about(R.string.about_telegram_title, R.string.about_telegram_subtitle),
         about(R.string.about_follow_title, R.string.about_follow_subtitle),
+        about(R.string.settings_depth_title, R.string.settings_depth_subtitle),
+        about(R.string.settings_hidden_rows_title, R.string.settings_hidden_rows_subtitle),
         entry(
             R.string.about_diagnostics_title, R.string.about_diagnostics_subtitle,
             R.string.home_about_title, "debug_log", keywords = R.string.search_kw_diagnostics,

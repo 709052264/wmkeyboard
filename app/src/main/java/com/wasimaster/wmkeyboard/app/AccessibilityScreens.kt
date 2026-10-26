@@ -196,18 +196,6 @@ internal fun AccessibilitySettings(
 
     SettingsGroup(stringResource(R.string.accessibility_settings_app_title)) {
         item {
-            // The same three options the sheet on Home offers; see SettingsDepth.kt.
-            val depth = LocalSettingsDepth.current
-            ChoiceSetting(
-                title = R.string.settings_depth_title,
-                subtitle = stringResource(R.string.settings_depth_subtitle),
-                info = stringResource(R.string.settings_depth_info),
-                options = depthOptions(),
-                selected = depth.depth,
-                detail = { ChoiceDetail(depthDescription(it)) },
-            ) { depth.change(it) }
-        }
-        item {
             ToggleSetting(
                 R.string.accessibility_row_icons_title,
                 stringResource(R.string.accessibility_row_icons_subtitle),

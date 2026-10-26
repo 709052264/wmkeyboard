@@ -70,10 +70,11 @@ What already exists and is under-used:
 ## The design
 
 One dial, three levels, and every row knows which level it belongs to. The
-dial is **Settings depth**: **Simple**, **Standard**, **Everything**. Nothing is
-removed at any depth; a row that is below the current depth is folded into a
-"N more settings" row at the end of its group, one tap away, and search still
-finds it and opens the fold.
+dial is **Settings depth**: **Simple**, **Standard**, **Everything**. A row
+above the current depth is not drawn; it keeps its value, and search still
+finds it and opens its group with the row showing. Whoever wants to see where
+the rest went switches on About › App › "Show where settings are hidden", and
+every group that left something out ends in a "N more settings" row.
 
 ### 1. Settings depth
 
@@ -81,16 +82,16 @@ finds it and opens the fold.
   EVERYTHING }`, DataStore key `settings_depth`, default AUTO. AUTO resolves
   from the onboarding answer the same way the theme gallery style does: "Keep
   it simple" → Simple, "Show me everything" → Everything, anything else
-  (including installs that never saw the quiz) → Standard. So existing users
-  who said "keep it simple" get the simpler app on update, and everyone else
-  sees no change until rows are tagged below Standard.
-- Where to change it: a row at the top of Home ("Showing Simple settings ·
-  tap to change"), a footer on any page that folded something ("12 settings
-  on this page are hidden · Change"), and a choice row under Accessibility ›
-  Settings app. All three open the same sheet with the three options and a
-  line each on what they show.
-- The onboarding option subtitles gain the words "and fewer settings" /
-  "every setting", so the quiz is honest about what it decides.
+  (including installs that never saw the quiz) → Standard.
+- Where to change it: About › App › **How many settings to show**, beside the
+  other rows about the app itself. It was the first row on Home and a row on
+  Accessibility in the first cut; the owner moved it (2026-10-26): a control
+  about the settings app is not a setting anyone looks for first.
+- Under it, **Show where settings are hidden** (off): on, a "N more settings"
+  row ends every group the depth left something out of, and Home's left-out
+  rows come back as a closed More group. Off, a hidden row is simply not there.
+- The onboarding option subtitles say "and fewer settings" / "every setting",
+  so the quiz is honest about what it decides.
 
 ### 2. Row levels
 
@@ -108,12 +109,13 @@ time: an untagged screen looks exactly as it does today at every depth.
 `SettingsGroup(level = …)` tags a whole group; below its depth the group draws
 as a closed fold with its row count, and opens like any fold.
 
-Inside a group, the rows below the depth are moved to the end of its card
-stack behind one row, **"N more settings"** with a chevron. Tapping it expands
-them in place (the rows grow in under the row, same reveal as a conditional
-row), the group's corners follow, and the open state is remembered per group
-in `advancedOpen` so a power user who opened it once finds it open. While a
-search highlight is pending the fold is drawn open, as the existing folds do.
+Inside a group, the rows above the depth are left out. With "Show where
+settings are hidden" on they move to the end of the card stack behind one row,
+**"N more settings"** with a chevron: tapping it expands them in place (the
+rows grow in under the row, same reveal as a conditional row), the group's
+corners follow, and the open state is remembered per group in `advancedOpen`.
+While a search highlight is pending the hidden rows are drawn in their places
+whatever the switch says, so a result can land on one.
 
 Home's 17 rows get a level too. At Simple the list is Languages, Typing, Key
 press, Appearance, Layout & size, Emoji, Voice typing, Clipboard, Tools,
@@ -126,29 +128,34 @@ app, Standard about 600, Everything all 2,062.
 ### 3. Extensions
 
 The second half of "too many settings" is features a user never asked for
-showing up everywhere: a Home row, a Tools entry, a toolbar button, a search
-result, a notification, background work. The tool list already has a switch
-per tool, but a feature is bigger than a tool (AI is two tools, a chat, an
-assistant, a memory screen, a provider page, and a FAB).
+showing up everywhere: a Tools entry, a toolbar button, a search result, a
+panel, background work. The tool list already has a switch per tool, but a
+feature is bigger than a tool.
 
-An **Extensions** screen lists feature bundles with one switch each and a line
-on what the bundle adds. Off means gone: not on Home, not on Tools, not in the
-toolbar or toolbox, not in search, not in the row counts, no notifications,
-no background refresh. On restores all of it. First candidates, each already
-behind some master flag today:
+An **Extensions** screen lists the far-fetched features with one switch each
+and a line on what each adds. Far-fetched means what most people would never
+expect a keyboard to have: a bubble level, a music recogniser, a link to the
+desktop, a notebook, a speed test. Not the necessities. Voice typing, the
+clipboard, snippets, translate and AI are what a keyboard is for today and
+keep their own switches where they live. (The first cut had them as bundles;
+the owner called that nonsense on 2026-10-26 and the list was redone.)
 
-AI (tools, chat, assistant, memory, floating chat button) · Voice typing ·
-Clipboard history · Text expansion · Vocabulary · Notes · To-do · Stickers,
-GIFs and emoji mixes · Scanners (OCR, QR, documents) · Translate · Plugins
-(Lua) · Add-on repositories · KDE Connect, Send files and Smart home ·
-Keyboard modes · Selection actions · Floating button · Physical keyboard ·
-Handwriting · Statistics.
+Off means gone: not on Tools, not in the toolbar or toolbox, not in search,
+not in the row counts, no notifications, no background refresh. On restores
+all of it. The bundles, in the order the screen lists them: Stickers, GIFs
+and emoji mixes · Scanners · Handwriting · Notes · Vocabulary · Calculator
+and converters · Web search · Camera and gallery · Calendar and clock ·
+Generators · Typing test · Read back · Learn from text · Find and replace ·
+Keyboard modes · Media controls · App launcher · Weather and location ·
+Instruments · Music recognition · Speed test · KDE Connect · Send files ·
+Smart home.
 
-Mechanically it is one `Extension` enum carrying the tools, routes and root
-rows it owns, and a check at six choke points: `RootEntries`/`HomeScreen`,
-`SettingsSearch`, `ToolGroups`, the keyboard's toolbox and toolbar, the
-Advanced rows, and the deep-link allowlist. Depth sets the defaults: Simple
-starts with a handful on, Everything with all on.
+Mechanically it is one `Extension` enum carrying the tools and routes it owns,
+and a check at the choke points: `ToolGroups` (and every picker reading it),
+`SettingsSearch`, the keyboard's toolbox and toolbar, the Advanced rows, and
+the deep-link allowlist. Depth sets the defaults: Simple starts with stickers
+alone, Standard with the bundles that work the moment they are on, Everything
+with all.
 
 ### 4. Splits and merges
 
@@ -201,15 +208,16 @@ preview. Add to it:
 
 ### 7. Motion
 
-The "more settings" rows expand with the group's existing reveal, a depth
-change cross-fades the rows that come and go, and Reduce motion keeps the
-still versions, as every other motion in the app already does.
+The "more settings" rows, when shown, expand with the group's existing
+reveal, a depth change cross-fades the rows that come and go, and Reduce
+motion keeps the still versions, as every other motion in the app already
+does.
 
 ## Order of work
 
 **Phase 0 (done 2026-10-26, uncompiled):** depth setting and resolver, row
-levels and "more settings" folds, the picker in three places, Home's More
-fold, the NavRow fix, docs, and 391 tags across Typing and its six sub-pages,
+levels and "more settings" folds, the picker (since moved to About › App,
+with hidden rows hidden by default), Home's More fold, the NavRow fix, docs, and 391 tags across Typing and its six sub-pages,
 Key press and its three, Appearance, Layout & size and its two, Emoji and
 the panel page, the Languages root, Clipboard, Voice and Privacy. Untagged
 rows are basic, so every other screen is unchanged at every depth.
@@ -256,13 +264,17 @@ they were set from the row names and the audit, not from use.
   switches, and the key popup and typing statistics drops are gone; the
   camera's own haptics switch is gone, the panel follows the keyboard's.
 
-**Phase 2 (done 2026-10-26, uncompiled):** Extensions. `Extension` in
-`core/settings` with the tools and routes each of the nineteen bundles owns,
-the enabled set in `AppUiSettings.extensions` (null for an install from
-before, which keeps everything on; onboarding lands the depth's defaults),
-master switches moved with the bundle, `enabledTools` read with a switched-off
-bundle's tools taken out, the six choke points, the `extensions` screen and
-one page per bundle, docs and `ExtensionsTest`.
+**Phase 2 (done 2026-10-26, redone the same day after review, uncompiled):**
+Extensions. `Extension` in `core/settings` with the tools and routes each of
+the twenty-four bundles owns, the enabled set in `AppUiSettings.extensions`
+(null for an install from before, which keeps everything on; onboarding lands
+the depth's defaults), the Keyboard modes master switch moved with its
+bundle, `enabledTools` read with a switched-off bundle's tools taken out, the
+choke points, the `extensions` screen and one page per bundle, docs and
+`ExtensionsTest`. The first list bundled the necessities (AI, voice, the
+clipboard, snippets, translate, plugins, add-ons, selection actions, the
+floating button, the physical keyboard, statistics, to-do); the owner threw
+that out, and the list is now the far-fetched features only (§3).
 
 **Phase 3 (done 2026-10-26, uncompiled):** the splits and the merges.
 Seven routes added, none renamed: `typing/gestures` is a hub of
