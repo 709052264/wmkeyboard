@@ -104,12 +104,14 @@ bootstrap_bazel() {
     mkdir -p "$BAZEL_SRC"
     unzip -q "$dist" -d "$BAZEL_SRC"
     echo "bootstrapping Bazel $BAZEL_VERSION from source with $JDK (this takes a while)"
+    local started=$(date +%s)
     (cd "$BAZEL_SRC" && env JAVA_HOME="$JDK" PATH="$JDK/bin:$PATH" \
         EXTRA_BAZEL_ARGS="--tool_java_runtime_version=local_jdk --java_runtime_version=local_jdk" \
         BAZEL_DIR_STARTUP_OPTIONS="--output_user_root=$ROOT" \
         bash ./compile.sh > "$WORK/bazel-bootstrap.log" 2>&1) \
-        || { tail -60 "$WORK/bazel-bootstrap.log"; exit 1; }
+        || { echo "compile.sh failed; its last lines:" >&2; tail -60 "$WORK/bazel-bootstrap.log" >&2; exit 1; }
     [ -x "$BAZEL_SRC/output/bazel" ] || { echo "compile.sh left no output/bazel" >&2; exit 1; }
+    echo "bootstrapped Bazel in $(( $(date +%s) - started )) s"
 }
 
 # Bazel runs every action with paths relative to its execution root, so
@@ -156,8 +158,14 @@ else
     [ "$(sha256 "$BAZEL")" = "$BAZELISK_SHA256" ] || { echo "bazelisk checksum mismatch" >&2; exit 1; }
     chmod +x "$BAZEL"
 fi
-got=$("$BAZEL" ${STARTUP[@]+"${STARTUP[@]}"} --output_user_root="$ROOT" --version 2>/dev/null | sed -n 's/^bazel //p')
-[ "$got" = "$BAZEL_VERSION" ] || { echo "$BAZEL is Bazel '$got', expected $BAZEL_VERSION" >&2; exit 1; }
+# `--version` alone: the client answers it itself only when it is the
+# whole command line; with startup options in front it is an unknown option.
+# A bootstrapped Bazel labels itself "9.0.2 (@non-git)", so match the front.
+got=$("$BAZEL" --version 2>&1) || { echo "$BAZEL --version failed: $got" >&2; exit 1; }
+case "$got" in
+    "bazel $BAZEL_VERSION"|"bazel $BAZEL_VERSION "*) echo "using $got from $BAZEL" ;;
+    *) echo "$BAZEL is '$got', expected bazel $BAZEL_VERSION" >&2; exit 1 ;;
+esac
 
 SRC=${MOZC_SRC:-}
 if [ -z "$SRC" ]; then
