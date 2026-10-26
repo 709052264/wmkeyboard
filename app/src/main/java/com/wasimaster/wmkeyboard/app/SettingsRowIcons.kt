@@ -509,6 +509,7 @@ internal object SettingsRowIcons {
         put(R.string.appearance_toolbox_paginate_title) { Icons.Outlined.Swipe }
         put(R.string.appearance_toolbox_page_size_title) { Icons.Outlined.Numbers }
         put(R.string.appearance_toolbox_label_size_title) { Icons.Outlined.FormatSize }
+        put(R.string.appearance_toolbox_cell_spacing_title) { Icons.Outlined.Straighten }
         put(R.string.appearance_toolbox_search_button_title) { Icons.Outlined.Search }
         put(R.string.appearance_toolbox_search_at_end_title) { Icons.Outlined.AlignHorizontalRight }
         put(R.string.appearance_toolbox_sort_title) { Icons.AutoMirrored.Outlined.Sort }

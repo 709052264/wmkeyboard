@@ -12054,7 +12054,8 @@ private fun ToolboxGrid(
                     Column(
                         modifier = placement
                             .focusRing(focused, RoundedCornerShape(12.dp))
-                            .padding(vertical = 10.dp),
+                            // The same for a folder's cell, so the grid stays uniform.
+                            .padding(vertical = state.settings.toolbox.cellSpacingDp.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         if (ghost) {
@@ -12510,7 +12511,8 @@ private fun ToolboxFolderCell(
     Column(
         modifier = modifier
             .focusRing(focused, RoundedCornerShape(12.dp))
-            .padding(vertical = 10.dp)
+            // A tool cell's spacing, so a folder sits in the grid's rows.
+            .padding(vertical = state.settings.toolbox.cellSpacingDp.dp)
             .clearAndSetSemantics { contentDescription = description },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {

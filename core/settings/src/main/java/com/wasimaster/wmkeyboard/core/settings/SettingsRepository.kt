@@ -2220,6 +2220,11 @@ data class ToolboxSettings(
      */
     val labelSizeSp: Int = 0,
     /**
+     * Space above and below each tool in the toolbox's icon grid, in dp (#970).
+     * 10, the grid as it has always been; less fits more rows to a page.
+     */
+    val cellSpacingDp: Int = 10,
+    /**
      * Tools left out of the toolbox grid while staying switched on everywhere
      * else: the toolbar, a search by name, selection actions, hardware
      * shortcuts. For someone who only ever reaches a tool one of those other
@@ -11465,6 +11470,7 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBOX_PAGINATE = booleanPreferencesKey("toolbox_paginate")
         private val TOOLBOX_PAGE_SIZE = intPreferencesKey("toolbox_page_size")
         private val TOOLBOX_LABEL_SIZE = intPreferencesKey("toolbox_label_size")
+        private val TOOLBOX_CELL_SPACING = intPreferencesKey("toolbox_cell_spacing")
         private val TOOLBOX_HIDDEN_TOOLS = stringPreferencesKey("toolbox_hidden_tools")
         private val TOOLBOX_FOLDERS = stringPreferencesKey("toolbox_folders")
         private val TOOLBOX_SEARCH_BUTTON = booleanPreferencesKey("toolbox_search_button")
@@ -13556,6 +13562,7 @@ class SettingsRepository(private val context: Context) {
             pageSize = p[TOOLBOX_PAGE_SIZE]?.coerceIn(ToolboxPageSizeRange)
                 ?: defaults.toolbox.pageSize,
             labelSizeSp = p[TOOLBOX_LABEL_SIZE] ?: defaults.toolbox.labelSizeSp,
+            cellSpacingDp = p[TOOLBOX_CELL_SPACING]?.coerceIn(0, 16) ?: defaults.toolbox.cellSpacingDp,
             hiddenTools = decodeToolNames(p[TOOLBOX_HIDDEN_TOOLS]).toSet(),
             folders = decodeToolboxFolders(p[TOOLBOX_FOLDERS]),
             searchButton = p[TOOLBOX_SEARCH_BUTTON] ?: defaults.toolbox.searchButton,
@@ -15654,6 +15661,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setToolboxPageSize(value: Int) =
         editPrefs { it[TOOLBOX_PAGE_SIZE] = value.coerceIn(ToolboxPageSizeRange) }
+
+    suspend fun setToolboxCellSpacing(value: Int) =
+        editPrefs { it[TOOLBOX_CELL_SPACING] = value.coerceIn(0, 16) }
 
     /** 0 means "follow the toolbar label size"; see [ToolboxSettings.labelSizeSp]. */
     suspend fun setToolboxLabelSize(value: Int) =

@@ -666,6 +666,7 @@ internal fun AppearanceToolboxSettings(
 ) {
     val scope = rememberCoroutineScope()
     val spFormat = stringResource(R.string.values_sp)
+    val dpFormat = stringResource(R.string.typing_value_dp)
     // What decides which rows the group holds; each row reads its own value.
     val orderMoved = settings.watch { it.toolboxOrder != SettingsDefaults.toolboxOrder }
     val toolboxLayout = settings.watch { it.toolbox.layout }
@@ -784,6 +785,16 @@ internal fun AppearanceToolboxSettings(
                 info = stringResource(R.string.appearance_toolbox_label_size_info),
                 default = SettingsDefaults.toolbox.labelSizeSp.toFloat(),
             ) { scope.launch { repository.setToolboxLabelSize(it.roundToInt()) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                R.string.appearance_toolbox_cell_spacing_title,
+                subtitle = stringResource(R.string.appearance_toolbox_cell_spacing_subtitle),
+                value = settings.watch { it.toolbox.cellSpacingDp }.toFloat(),
+                range = 0f..16f,
+                display = { dpFormat.format(it.roundToInt()) },
+                default = SettingsDefaults.toolbox.cellSpacingDp.toFloat(),
+            ) { scope.launch { repository.setToolboxCellSpacing(it.roundToInt()) } }
         }
         item(level = SettingLevel.STANDARD) {
             ToggleSetting(

@@ -1069,6 +1069,7 @@ private fun SearchStrings.appearanceToolboxRows(): List<SettingsSearchEntry> {
         row(R.string.appearance_reset_toolbox_order_title, R.string.appearance_reset_toolbox_order_subtitle),
         row(R.string.appearance_toolbox_sort_title, R.string.appearance_toolbox_sort_subtitle),
         row(R.string.appearance_toolbox_label_size_title, R.string.appearance_toolbox_label_size_subtitle),
+        row(R.string.appearance_toolbox_cell_spacing_title, R.string.appearance_toolbox_cell_spacing_subtitle),
         row(R.string.appearance_toolbox_search_button_title, R.string.appearance_toolbox_search_button_subtitle),
         row(R.string.appearance_toolbox_search_at_end_title, R.string.appearance_toolbox_search_at_end_subtitle),
         row(R.string.appearance_toolbox_search_sort_title, R.string.appearance_toolbox_search_sort_subtitle),
