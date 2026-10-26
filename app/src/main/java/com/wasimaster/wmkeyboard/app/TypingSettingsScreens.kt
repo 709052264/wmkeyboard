@@ -2679,7 +2679,8 @@ internal fun TypingSpacebarSettings(
                     R.string.typing_space_cursor_step_title,
                     subtitle = stringResource(R.string.typing_space_cursor_step_subtitle),
                     value = settings.watch { it.textEditing.spaceCursorStepDp }.toFloat(),
-                    range = 8f..32f,
+                    // Down to 4 dp for the people who want it much faster (#970).
+                    range = 4f..32f,
                     display = { context.getString(R.string.typing_value_dp, it.toInt()) },
                     info = stringResource(R.string.typing_space_cursor_step_info),
                     default = SettingsDefaults.textEditing.spaceCursorStepDp.toFloat(),
@@ -2731,7 +2732,7 @@ internal fun TypingSpacebarSettings(
                     R.string.typing_space_cursor_top_speed_title,
                     subtitle = stringResource(R.string.typing_space_cursor_top_speed_subtitle),
                     value = settings.watch { it.textEditing.spaceCursorTopSpeed }.toFloat(),
-                    range = 2f..8f,
+                    range = 2f..16f,
                     display = { valueFormat.format(it.roundToInt().toString()) },
                     info = stringResource(R.string.typing_space_cursor_top_speed_info),
                     enabled = settings.watch { it.textEditing.spaceCursorAccelerate },

@@ -15247,7 +15247,7 @@ class SettingsRepository(private val context: Context) {
         editPrefs { it[DOUBLE_SPACE_WINDOW_MS] = value.coerceIn(200, 800) }
 
     suspend fun setSpaceCursorStepDp(value: Int) =
-        editPrefs { it[SPACE_CURSOR_STEP_DP] = value.coerceIn(8, 32) }
+        editPrefs { it[SPACE_CURSOR_STEP_DP] = value.coerceIn(4, 32) }
 
     suspend fun setSpaceCursorMagnifier(value: Boolean) =
         editPrefs { it[SPACE_CURSOR_MAGNIFIER] = value }
@@ -15271,7 +15271,7 @@ class SettingsRepository(private val context: Context) {
         editPrefs { it[SPACE_SWIPE_UP_NUMPAD] = value }
 
     suspend fun setSpaceCursorTopSpeed(value: Int) =
-        editPrefs { it[SPACE_CURSOR_TOP_SPEED] = value.coerceIn(2, 8) }
+        editPrefs { it[SPACE_CURSOR_TOP_SPEED] = value.coerceIn(2, 16) }
 
     suspend fun setBackspaceWordStepDp(value: Int) =
         editPrefs { it[BACKSPACE_WORD_STEP_DP] = value.coerceIn(32, 120) }

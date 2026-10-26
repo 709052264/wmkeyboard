@@ -31,11 +31,11 @@ Setting **Press and hold, then swipe** to Cursor or Numpad costs one thing: hold
   <Shot id="typing/spacebar-cursor-swipe" alt="Dragging the spacebar moves the text cursor a character at a time." />
 </PhoneFrame>
 
-Set a slot to **Cursor** and the drag moves the text cursor instead of typing. The caret steps one character for every 16&nbsp;dp of horizontal travel, in whichever direction you drag. That distance is a slider of its own, **Cursor speed**, which sits under the two swipe pickers and runs 8–32&nbsp;dp. Shorter moves the caret faster. Any composing text in progress (a word mid-transliteration, say) commits first, without autocorrect, so the cursor lands where you can see it rather than jumping past a word that was still being corrected.
+Set a slot to **Cursor** and the drag moves the text cursor instead of typing. The caret steps one character for every 16&nbsp;dp of horizontal travel, in whichever direction you drag. That distance is a slider of its own, **Cursor speed**, which sits under the two swipe pickers and runs 4–32&nbsp;dp. Shorter moves the caret faster. Any composing text in progress (a word mid-transliteration, say) commits first, without autocorrect, so the cursor lands where you can see it rather than jumping past a word that was still being corrected.
 
 <SettingsPath path="Typing / Gestures / Speed up long cursor swipes" />
 
-**Speed up long cursor swipes** (off by default) makes a long drag cover more text. The first 48&nbsp;dp of travel move at your Cursor speed, so a short nudge of a few characters stays exact. After that, each character costs less travel, and by 240&nbsp;dp the cursor is moving at **Top cursor speed**, 4× by default (2× to 8×). It keeps that pace for as long as you keep dragging the same way, the way a mouse's middle-button scroll does. Turn back and the cursor drops to Cursor speed again and builds up from there, so fixing an overshoot is as exact as a short nudge. A small wobble the other way doesn't count as turning back. With the 2-D cursor touchpad on, up and down movement speeds up the same way, on its own, one line at a time.
+**Speed up long cursor swipes** (off by default) makes a long drag cover more text. The first 48&nbsp;dp of travel move at your Cursor speed, so a short nudge of a few characters stays exact. After that, each character costs less travel, and by 240&nbsp;dp the cursor is moving at **Top cursor speed**, 4× by default (2× to 16×). It keeps that pace for as long as you keep dragging the same way, the way a mouse's middle-button scroll does. Turn back and the cursor drops to Cursor speed again and builds up from there, so fixing an overshoot is as exact as a short nudge. A small wobble the other way doesn't count as turning back. With the 2-D cursor touchpad on, up and down movement speeds up the same way, on its own, one line at a time.
 
 **Move the cursor directly** (off by default) changes what a swipe sends. Normally each step is a left or right arrow key, which is what a hardware keyboard would send and what every editor understands. A few fields read an arrow as something else: a search box with a dropdown steps through its suggestions, and some file managers put the cursor back at the start of a name being renamed. With this on, the swipe places the cursor by moving the selection instead, and the app sees no key at all. It needs the app to have told the keyboard where the cursor is; when one hasn't, the arrow keys are used as before. With the 2-D cursor touchpad on, the same goes for up and down in a one-line field like a search box or a file name: up puts the cursor at the start of the text and down at the end, where an up or down arrow would have stepped into the box's suggestions or out of the field. In a field with several lines, up and down stay arrow keys so the cursor follows the app's own line wrapping. Selection mode and a held shift stretch the selection the same direct way, so a search box sees no Shift+arrow either.
 
@@ -367,14 +367,14 @@ A printable table of every gesture on one page lives at [Gesture cheat sheet](/r
 | Quick swipe on the spacebar | Language |
 | Press and hold, then swipe | Cursor |
 | 2-D cursor touchpad | Off |
-| Cursor speed | 16&nbsp;dp (8–32&nbsp;dp) |
+| Cursor speed | 16&nbsp;dp (4–32&nbsp;dp) |
 | Speed up long cursor swipes | Off |
 | Move the cursor directly | Off |
 | Keep moving while held | Off |
 | Whole keyboard as touchpad | Off |
 | Swipe up for the touchpad | Off |
 | Swipe up for the number pad | Off |
-| Top cursor speed | 4× (2–8×) |
+| Top cursor speed | 4× (2–16×) |
 | Cursor magnifier | On |
 | Swipe in from the edge to go back | Off |
 | Swipe down to hide the keyboard | Off |
