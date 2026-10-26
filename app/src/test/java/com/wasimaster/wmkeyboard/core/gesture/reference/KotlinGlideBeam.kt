@@ -76,10 +76,10 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
         // Heaviest source first, so its emissions raise the floor before the
         // lighter ones start — the same ordering trick the typing beam uses.
         val ordered = sources.sortedByDescending {
-            it.logWeight + ln1p(it.walker.maxSubtree(it.walker.root))
+            it.logWeight + tuning.freqWeight * ln1p(it.walker.maxSubtree(it.walker.root))
         }
         for (src in ordered) {
-            val rootBound = src.logWeight + ln1p(src.walker.maxSubtree(src.walker.root))
+            val rootBound = src.logWeight + tuning.freqWeight * ln1p(src.walker.maxSubtree(src.walker.root))
             if (rootBound < floor - EPS) continue
             floor = searchOne(src, keys, ws, k, results, floor, ahead, budget)
         }
@@ -337,7 +337,7 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
         ws.push(
             node = walker.root, parent = -1, viaLabel = KotlinGlideWorkspace.NO_LABEL,
             lastKey = -1, length = 0, extra = 0f, floorCost = 0f,
-            bound = src.logWeight + ln1p(walker.maxSubtree(walker.root)),
+            bound = src.logWeight + tuning.freqWeight * ln1p(walker.maxSubtree(walker.root)),
             letterCp = 0,
         )
 
@@ -371,7 +371,7 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
                 if (length >= MIN_WORD_LENGTH && walker.isWord(node) &&
                     walker.frequency(node) >= minFrequency
                 ) {
-                    val score = src.logWeight + ln1p(walker.frequency(node)) -
+                    val score = src.logWeight + tuning.freqWeight * ln1p(walker.frequency(node)) -
                         tuning.shapeWeight * shape
                     if (score > floor - EPS || results.size < k) {
                         val word = ws.materialize(s)
@@ -462,7 +462,7 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
                     if (minCol >= KotlinGlideWorkspace.UNREACHABLE) continue
                 }
 
-                val bound = src.logWeight + ln1p(subtree) -
+                val bound = src.logWeight + tuning.freqWeight * ln1p(subtree) -
                     tuning.shapeWeight * (minCol + childExtra)
                 if (bound < floor - EPS) continue
 
@@ -513,7 +513,7 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
         floor: Double,
         ws: KotlinGlideWorkspace,
     ): Boolean {
-        val bound = src.logWeight + ln1p(subtree) -
+        val bound = src.logWeight + tuning.freqWeight * ln1p(subtree) -
             tuning.shapeWeight * (ws.floorCost[s] + extra)
         if (bound < floor - EPS) return true
         val id = ws.push(
@@ -586,7 +586,7 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
         val spelled = word.toString()
         if (listedNonWord(spelled, src)) return
         val extra = spelled.length - prefix.length
-        val score = src.logWeight + ln1p(best) - tuning.shapeWeight * shape -
+        val score = src.logWeight + tuning.freqWeight * ln1p(best) - tuning.shapeWeight * shape -
             tuning.lookAheadCost * extra
         val existing = ahead[spelled]
         if (existing == null || score > existing.score) {

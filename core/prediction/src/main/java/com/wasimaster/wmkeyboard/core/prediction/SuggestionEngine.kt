@@ -5,6 +5,7 @@ import com.wasimaster.wmkeyboard.core.gesture.DuetBeam
 import com.wasimaster.wmkeyboard.core.gesture.DuetWorkspace
 import com.wasimaster.wmkeyboard.core.gesture.GesturePoint
 import com.wasimaster.wmkeyboard.core.gesture.GlideBeam
+import com.wasimaster.wmkeyboard.core.gesture.GlideLanguageProfiles
 import com.wasimaster.wmkeyboard.core.gesture.GlideShapeSource
 import com.wasimaster.wmkeyboard.core.gesture.GlideToken
 import com.wasimaster.wmkeyboard.core.gesture.GlideCoverage
@@ -252,6 +253,8 @@ class SuggestionEngine(
             if (value == primaryLanguageIdField) return
             primaryLanguageIdField = value
             generation.incrementAndGet()
+            // The glide decoders carry the language's own weights (#966).
+            retuneGlide()
         }
 
     /**
@@ -1197,8 +1200,9 @@ class SuggestionEngine(
     private val beamWorkspace = ThreadLocal.withInitial { BeamWorkspace() }
 
     /**
-     * The weights both glide decoders are built from — the shipped
-     * [GlideBeam.Tuning] with whatever the user has moved on top.
+     * The weights the user asked for — the shipped [GlideBeam.Tuning] with
+     * whatever they have moved on top. The decoders are built from
+     * [languageTuning], which is this with the language's profile applied.
      *
      * Held rather than read per stroke because [GlideBeam] takes its tuning at
      * construction. It holds nothing else (the workspace is the caller's), so
@@ -1208,8 +1212,17 @@ class SuggestionEngine(
     @Volatile
     private var glideTuning = GlideBeam.Tuning.DEFAULT
 
+    /**
+     * [glideTuning] with the primary language's profile on top
+     * ([GlideLanguageProfiles], issue #966): the weights no setting
+     * reaches, set per language because a word list's frequencies mean
+     * something different in each. What every glide decoder is built from.
+     */
     @Volatile
-    private var glideBeam = GlideBeam(glideTuning)
+    private var languageTuning = GlideLanguageProfiles.tune(glideTuning, primaryLanguageIdField)
+
+    @Volatile
+    private var glideBeam = GlideBeam(languageTuning)
     private val glideWorkspace = ThreadLocal.withInitial { GlideWorkspace() }
 
     /**
@@ -1221,7 +1234,7 @@ class SuggestionEngine(
      * not what they meant.
      */
     @Volatile
-    private var deepGlideBeam = GlideBeam(glideTuning.copy(vocabularyRank = 0))
+    private var deepGlideBeam = GlideBeam(languageTuning.copy(vocabularyRank = 0))
 
     /**
      * The glide engine the user picked in place of [glideBeam] (FUTO Swipe
@@ -1240,7 +1253,7 @@ class SuggestionEngine(
      * [glideBeam] so a setting that moves a radius moves both.
      */
     @Volatile
-    private var duetBeam = DuetBeam(glideTuning)
+    private var duetBeam = DuetBeam(languageTuning)
     private val duetWorkspace = ThreadLocal.withInitial { DuetWorkspace() }
 
     /**
@@ -1256,9 +1269,21 @@ class SuggestionEngine(
     fun tuneGlide(next: GlideBeam.Tuning) {
         if (next == glideTuning) return
         glideTuning = next
-        glideBeam = GlideBeam(next)
-        deepGlideBeam = GlideBeam(next.copy(vocabularyRank = 0))
-        duetBeam = DuetBeam(next)
+        retuneGlide()
+    }
+
+    /**
+     * Rebuilds the decoders from [glideTuning] with [primaryLanguageId]'s
+     * profile on it (#966), when that changed anything: a switch between
+     * two languages with the same weights costs nothing.
+     */
+    private fun retuneGlide() {
+        val tuned = GlideLanguageProfiles.tune(glideTuning, primaryLanguageId)
+        if (tuned == languageTuning) return
+        languageTuning = tuned
+        glideBeam = GlideBeam(tuned)
+        deepGlideBeam = GlideBeam(tuned.copy(vocabularyRank = 0))
+        duetBeam = DuetBeam(tuned)
     }
 
     /**
@@ -1433,10 +1458,10 @@ class SuggestionEngine(
             sources = sources,
             limit = maxOf(limit, if (deep) GLIDE_DEEP_POOL else GLIDE_RERANK_POOL),
             deep = deep,
-            vocabularyRank = glideTuning.vocabularyRank,
+            vocabularyRank = languageTuning.vocabularyRank,
             lookAhead = lookAhead,
             shapes = shapes,
-            tuning = glideTuning,
+            tuning = languageTuning,
         )
         if (neural != null) {
             return finishGlide(

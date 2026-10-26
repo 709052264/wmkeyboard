@@ -35,6 +35,10 @@ pub struct Point {
 
 /// `GlideBeam.Tuning`. Defaults are the shipped ones, fitted on real swipes
 /// (`examples/glide_beam_eval`, `native/bench/futo-swipe/fit_glide.py`).
+/// `freq_weight` is the weight on `ln(1 + frequency)`, the one field a
+/// language profile moves (#966, `GlideLanguageProfiles` on the Kotlin
+/// side): every bound carries it too, so the walk's pruning stays sound
+/// at any value, and at 1.0 a decode is the unweighted one to the bit.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Tuning {
     pub sigma: f32,
@@ -42,6 +46,7 @@ pub struct Tuning {
     pub gap_weight: f32,
     pub gap_window: f32,
     pub shape_weight: f64,
+    pub freq_weight: f64,
     pub repeat_cost: f32,
     pub unlooped_repeat: f32,
     pub dwell_full: f32,
@@ -73,6 +78,7 @@ impl Default for Tuning {
             gap_weight: 1.33,
             gap_window: 32.0,
             shape_weight: 0.5,
+            freq_weight: 1.0,
             repeat_cost: 0.8,
             unlooped_repeat: 0.1,
             dwell_full: 2.0,
@@ -336,7 +342,8 @@ impl Decoder {
         let mut budget = self.tuning.look_ahead_budget;
         let mut floor = f64::NEG_INFINITY;
         let mut ordered: Vec<&Source> = sources.iter().collect();
-        let root_bound = |s: &Source| s.log_weight + ln1p(s.walker.max_subtree(s.walker.root()));
+        let fw = self.tuning.freq_weight;
+        let root_bound = |s: &Source| s.log_weight + fw * ln1p(s.walker.max_subtree(s.walker.root()));
         sort::by(&mut ordered, |a, b| root_bound(b).total_cmp(&root_bound(a)));
         for src in ordered {
             if root_bound(src) < floor - EPS {
@@ -598,7 +605,7 @@ impl Decoder {
 
         self.ws.reset();
         let root = walker.root();
-        self.ws.push(root, -1, NO_LABEL, -1, 0, 0.0, 0.0, src.log_weight + ln1p(walker.max_subtree(root)), 0);
+        self.ws.push(root, -1, NO_LABEL, -1, 0, 0.0, 0.0, src.log_weight + tuning.freq_weight * ln1p(walker.max_subtree(root)), 0);
 
         let mut pops = 0;
         let mut children = std::mem::take(&mut self.ws.children);
@@ -619,7 +626,7 @@ impl Decoder {
             if at_end {
                 let shape = total + extra + self.unclaimed_dwell(s, keys) + self.unclaimed_loop(s);
                 if length >= MIN_WORD_LENGTH && walker.is_word(node) && walker.frequency(node) >= min_frequency {
-                    let score = src.log_weight + ln1p(walker.frequency(node)) - tuning.shape_weight * shape as f64;
+                    let score = src.log_weight + tuning.freq_weight * ln1p(walker.frequency(node)) - tuning.shape_weight * shape as f64;
                     if score > floor - EPS || results.len() < k {
                         let word = self.ws.materialize(s);
                         if !(src.tier == Tier::Dictionary && is_non_word(&word)) {
@@ -692,7 +699,7 @@ impl Decoder {
                     }
                 }
 
-                let bound = src.log_weight + ln1p(subtree) - tuning.shape_weight * (min_col + child_extra) as f64;
+                let bound = src.log_weight + tuning.freq_weight * ln1p(subtree) - tuning.shape_weight * (min_col + child_extra) as f64;
                 if bound < floor - EPS {
                     continue;
                 }
@@ -714,7 +721,7 @@ impl Decoder {
 
     #[allow(clippy::too_many_arguments)]
     fn descend_silent(&mut self, src: &Source, subtree: i32, s: usize, child: u32, label: u16, extra: f32, floor: f64) -> bool {
-        let bound = src.log_weight + ln1p(subtree) - self.tuning.shape_weight * (self.ws.floor_cost[s] + extra) as f64;
+        let bound = src.log_weight + self.tuning.freq_weight * ln1p(subtree) - self.tuning.shape_weight * (self.ws.floor_cost[s] + extra) as f64;
         if bound < floor - EPS {
             return true;
         }
@@ -772,7 +779,7 @@ impl Decoder {
         }
         let extra = (word.len() - prefix.len()) as i32;
         let score =
-            src.log_weight + ln1p(best) - self.tuning.shape_weight * shape as f64 - self.tuning.look_ahead_cost * extra as f64;
+            src.log_weight + self.tuning.freq_weight * ln1p(best) - self.tuning.shape_weight * shape as f64 - self.tuning.look_ahead_cost * extra as f64;
         let replace = match ahead.get(&word) {
             None => true,
             Some(existing) => score > existing.score,

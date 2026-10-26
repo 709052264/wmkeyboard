@@ -14,6 +14,15 @@
 //! Prints top-1 and top-4 over all strokes, then top-1 over the short words
 //! with a doubled letter (#886) and over the words of six letters or more.
 //!
+//! For a layout that is not QWERTY, and for the numbers a language profile
+//! is judged on (#966): `COLS` is how many keys wide the canvas is (10
+//! unless set; German QWERTZ is 11), `RESULTS` how many candidates a decode
+//! returns (4; the keyboard's strip shows more), `ALL=1` scores every
+//! stroke, a word the list lacks as a miss, so the denominator is the
+//! swipes and not the list (success per swipe), and `DUMP=<path>` writes
+//! one line per stroke (`word`, top-1, hit, in list) for a regression set.
+//! Words are read in any alphabet, not Latin letters alone.
+//!
 //! `CHAIN=1` measures chained strokes instead (#968): consecutive records on
 //! the same canvas are joined the way a glide across the spacebar reaches
 //! the decoder, the first word's stroke continued straight down to the
@@ -40,10 +49,17 @@ fn number(v: &serde_json::Value, key: &str) -> f32 {
     v[key].as_f64().unwrap_or(0.0) as f32
 }
 
-/// The dataset's own key centres, in key widths: its keys are a tenth of the
-/// canvas wide (`GlideRealSwipeEval` reads them the same way).
+/// A key's width on a canvas `COLS` keys across: a tenth of it on the
+/// dataset's QWERTY (`GlideRealSwipeEval` reads it the same way), an
+/// eleventh on its German layout.
+fn key_width(canvas_width: f32) -> f32 {
+    let cols: f32 = std::env::var("COLS").ok().and_then(|v| v.parse().ok()).unwrap_or(10.0);
+    canvas_width / cols
+}
+
+/// The dataset's own key centres, in key widths.
 fn keymap(layout: &[(i32, f32, f32)], width: f32, height: f32) -> KeyMap {
-    let kw = width * 0.1;
+    let kw = key_width(width);
     let mut order: Vec<usize> = (0..layout.len()).collect();
     order.sort_by_key(|&i| layout[i].0);
     let xs = layout.iter().map(|k| k.1 * width / kw).collect();
@@ -60,6 +76,7 @@ fn set(t: &mut Tuning, name: &str, value: f64) {
         "gap_weight" => t.gap_weight = value as f32,
         "gap_window" => t.gap_window = value as f32,
         "shape_weight" => t.shape_weight = value,
+        "freq_weight" => t.freq_weight = value,
         "repeat_cost" => t.repeat_cost = value as f32,
         "unlooped_repeat" => t.unlooped_repeat = value as f32,
         "dwell_full" => t.dwell_full = value as f32,
@@ -118,6 +135,9 @@ fn main() {
     let skip = std::env::var("SKIP").ok().and_then(|v| v.parse().ok()).unwrap_or(0usize);
     let limit = std::env::var("LIMIT").ok().and_then(|v| v.parse().ok()).unwrap_or(usize::MAX);
     let threads = std::env::var("THREADS").ok().and_then(|v| v.parse().ok()).unwrap_or(8usize);
+    let all = std::env::var("ALL").is_ok_and(|v| v == "1");
+    let results = std::env::var("RESULTS").ok().and_then(|v| v.parse().ok()).unwrap_or(4usize).max(1);
+    let dump = std::env::var("DUMP").ok().filter(|p| !p.is_empty());
     let file = std::io::BufReader::new(std::fs::File::open(&args[1]).expect("records"));
     let records: Vec<Record> = file
         .lines()
@@ -125,7 +145,7 @@ fn main() {
         .filter_map(|line| {
             let v: serde_json::Value = serde_json::from_str(&line).ok()?;
             let word = v["word"].as_str()?.to_lowercase();
-            if word.len() < 2 || !word.bytes().all(|b| b.is_ascii_lowercase()) || !known.contains(&word) {
+            if word.chars().count() < 2 || !word.chars().all(char::is_alphabetic) || (!all && !known.contains(&word)) {
                 return None;
             }
             let (width, height) = (number(&v, "canvas_width"), number(&v, "canvas_height"));
@@ -146,21 +166,27 @@ fn main() {
         return;
     }
     let run = |tuning: &Tuning| -> Tally {
+        let dump_on = dump.is_some();
         let chunk = records.len().div_ceil(threads).max(1);
-        let tallies: Vec<Tally> = std::thread::scope(|scope| {
+        let tallies: Vec<(Tally, Vec<String>)> = std::thread::scope(|scope| {
             let handles: Vec<_> = records
                 .chunks(chunk)
                 .map(|part| {
-                    let (trie, layout) = (&trie, &layout);
+                    let (trie, layout, known) = (&trie, &layout, &known);
                     scope.spawn(move || {
                         let sources = [Source { walker: trie, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0 }];
                         let mut decoder = Decoder::new(tuning.clone());
                         let mut t = Tally::default();
+                        let mut lines: Vec<String> = Vec::new();
                         for r in part {
                             let keys = keymap(layout, r.width, r.height);
-                            let out = decoder.decode(&r.points, &keys, r.width * 0.1, &sources, 4, None, 0);
+                            let out = decoder.decode(&r.points, &keys, key_width(r.width), &sources, results, None, 0);
                             let words: Vec<String> = out.iter().map(|c| String::from_utf16_lossy(&c.word).to_lowercase()).collect();
                             let hit = words.first() == Some(&r.word);
+                            if dump_on {
+                                let top = words.first().map(String::as_str).unwrap_or("-");
+                                lines.push(format!("{}\t{top}\t{}\t{}", r.word, hit as u8, known.contains(&r.word) as u8));
+                            }
                             t.n += 1;
                             t.top1 += hit as usize;
                             t.top4 += words.iter().any(|w| *w == r.word) as usize;
@@ -173,14 +199,18 @@ fn main() {
                                 t.long_top1 += hit as usize;
                             }
                         }
-                        t
+                        (t, lines)
                     })
                 })
                 .collect();
             handles.into_iter().map(|h| h.join().unwrap()).collect()
         });
+        if let Some(path) = &dump {
+            let text: String = tallies.iter().flat_map(|(_, lines)| lines.iter()).map(|l| format!("{l}\n")).collect();
+            std::fs::write(path, text).expect("dump");
+        }
         let mut t = Tally::default();
-        for x in tallies {
+        for (x, _) in tallies {
             t.n += x.n;
             t.top1 += x.top1;
             t.top4 += x.top4;
@@ -194,7 +224,7 @@ fn main() {
     let report = |t: Tally| {
         let f = |a: usize, b: usize| a as f64 / b.max(1) as f64;
         println!(
-            "top1 {:.4} top4 {:.4} n {} | short doubled {:.4} n {} | 6+ letters {:.4} n {}",
+            "top1 {:.4} top{results} {:.4} n {} | short doubled {:.4} n {} | 6+ letters {:.4} n {}",
             f(t.top1, t.n),
             f(t.top4, t.n),
             t.n,

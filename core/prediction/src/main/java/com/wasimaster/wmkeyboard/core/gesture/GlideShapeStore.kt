@@ -5,6 +5,7 @@ import com.wasimaster.wmkeyboard.core.prediction.WordKey
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.File
+import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
@@ -489,10 +490,28 @@ class GlideShapeStore(private val storageFile: File?) {
          * coordinate is `QUANT` bytes to the key width of spread. Stops
          * counting once the running mean can no longer come in under
          * [abortAbove], and answers something above it then.
+         *
+         * The root per point is the cost of this, and the seeding scan
+         * ([GlideShapeSource.wordsNear]) takes it against every stored shape
+         * on every decode, previews included (issue #966). So a cut-off is
+         * first tried without any: each point's larger axis difference is
+         * never more than its distance, and a shape whose sum of those
+         * alone passes the limit is over it whatever the roots would have
+         * said. The answer is the same as before for every shape, nearer
+         * ones included, which then take the exact pass as they always did.
          */
         fun distance(a: ByteArray, b: ByteArray, abortAbove: Float = Float.MAX_VALUE): Float {
             val n = GlideWorkspace.SHAPE_POINTS
             val limit = abortAbove * n * QUANT
+            if (abortAbove < Float.MAX_VALUE) {
+                var bound = 0
+                for (j in 0 until n) {
+                    val dx = abs(a[2 * j] - b[2 * j])
+                    val dy = abs(a[2 * j + 1] - b[2 * j + 1])
+                    bound += if (dx > dy) dx else dy
+                    if (bound > limit) return abortAbove + 1f
+                }
+            }
             var sum = 0f
             for (j in 0 until n) {
                 val dx = (a[2 * j] - b[2 * j]).toFloat()

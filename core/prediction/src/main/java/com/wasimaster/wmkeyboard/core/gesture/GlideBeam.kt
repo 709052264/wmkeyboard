@@ -131,6 +131,31 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
          * the language model. 2.5 until the real-swipe fit (see [Tuning]). */
         val shapeWeight: Double = 0.5,
         /**
+         * Nats per nat of `ln(1 + frequency)`: how much a word's frequency
+         * counts against the stroke's shape. 1.0 is the unweighted language
+         * model the decoder was fitted with, and every bound in the walk
+         * carries the weight too, so pruning stays sound at any value.
+         *
+         * No setting reaches it, and no single value is right: it is a
+         * property of the language and its word list (issue #966). German's
+         * useful words are rare in every list (its compounds sit at a
+         * median rank of 20,714 in a 150k list, against 369 for the English
+         * words people swipe), so at 1.0 frequency outvotes shape there.
+         * Swept on 2,588 real German swipes (FUTO, Wikipedia text), 10,908
+         * more (HeliBoard, rare words) and 2,129 English, success per
+         * swipe over a 150k list:
+         *
+         *     1.0    71.41   21.95   81.49       0.5    73.69   30.46   80.41
+         *     0.8    72.84   25.60   80.98       0.4    73.38   31.94   79.66
+         *     0.6    73.49   28.80   80.55       0.25   71.48   32.90     -
+         *
+         * Monotonically worse for English, better for German: the signature
+         * of a language's setting. [GlideLanguageProfiles] holds the value
+         * per language and the engine applies it on top of the user's
+         * tuning; the default here stays the English fit.
+         */
+        val freqWeight: Double = 1.0,
+        /**
          * Flat charge for a doubled letter, which the stroke's shape cannot show.
          *
          * 0.1 until 2026-10-22, lowered with [unloopedRepeat] (#886); the

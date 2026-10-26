@@ -29,7 +29,7 @@ internal object NativeGlide {
             wiggleExtent.toDouble(), wiggleWeight.toDouble(), loopExclusion.toDouble(), unclaimedLoop.toDouble(),
             learnedShapeGain, if (shapeSeeding) 1.0 else 0.0, shapeChannel, startRadius.toDouble(),
             endRadius.toDouble(), nearRadius.toDouble(), vocabularyRank.toDouble(), lookAheadCost,
-            lookAheadBudget.toDouble(), joinerCost.toDouble(),
+            lookAheadBudget.toDouble(), joinerCost.toDouble(), freqWeight,
         )
     }
 
