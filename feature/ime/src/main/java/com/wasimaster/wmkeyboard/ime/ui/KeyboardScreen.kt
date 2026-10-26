@@ -27775,6 +27775,19 @@ private fun Modifier.pointerInputKey(
                                 if (hapticOnLongPress) onKeyPress()
                             }
                         }
+                    } else if (!holdOpensAlternates && spaceLongSwipe == SpaceSwipeAction.CURSOR) {
+                        // The hold has made the next drag a cursor drag (#970):
+                        // say so the moment it does, with a tick and the cursor
+                        // magnifier, rather than leaving the user to find out by
+                        // swiping. The drag that follows takes it from here.
+                        scope.launch {
+                            delay(longPressDelayMs.toLong())
+                            if (action == null && !hidden && !caretDragOpen) {
+                                onKeyHaptic()
+                                onCaretDrag(true)
+                                caretDragOpen = true
+                            }
+                        }
                     } else if (holdRepeatsSpace) {
                         scope.launch {
                             delay(keyRepeat.startDelayMs.toLong())
