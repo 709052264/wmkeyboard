@@ -17,7 +17,8 @@
 #
 # Bring back OUT/en_context.wmlm (about 10 MB) and OUT/best.pt (41 MB).
 set -euo pipefail
-PY=${PY:-.venv/bin/python}
+[ -f .env ] && . ./.env
+PY=${PY:-python3}
 TEACHER=${TEACHER:-Qwen/Qwen2.5-1.5B}
 SENTENCES=${SENTENCES:-150000}
 STEPS=${STEPS:-30000}
