@@ -297,7 +297,7 @@ Builds:
 
   - versionName: 0.6.3
     versionCode: 381
-    commit: ac06adfdcf06d6eadc99777fa315bd958cdf331e
+    commit: 308a3c7dc848f52de52b6a53b71eed129e87d281
     timeout: 18000
     subdir: app
     sudo:
@@ -353,7 +353,7 @@ Builds:
 
   - versionName: 0.6.3
     versionCode: 382
-    commit: ac06adfdcf06d6eadc99777fa315bd958cdf331e
+    commit: 308a3c7dc848f52de52b6a53b71eed129e87d281
     timeout: 18000
     subdir: app
     sudo:
@@ -409,7 +409,7 @@ Builds:
 
   - versionName: 0.6.3
     versionCode: 383
-    commit: ac06adfdcf06d6eadc99777fa315bd958cdf331e
+    commit: 308a3c7dc848f52de52b6a53b71eed129e87d281
     timeout: 18000
     subdir: app
     sudo:
