@@ -84,6 +84,14 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
             ) { v -> set { it.copy(sortZonesByTime = v) } }
         }
         item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.clock_zones_grid_title,
+                stringResource(R.string.clock_zones_grid_subtitle),
+                config.zonesGrid,
+                default = defaults.zonesGrid,
+            ) { v -> set { it.copy(zonesGrid = v) } }
+        }
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 title = R.string.clock_insert_format_title,
                 subtitle = stringResource(R.string.clock_insert_format_subtitle),

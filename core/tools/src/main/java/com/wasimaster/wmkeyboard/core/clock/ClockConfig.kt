@@ -25,6 +25,8 @@ data class ClockConfig(
     val zones: List<WorldZone> = emptyList(),
     /** The world clocks list earliest time first rather than in the order they were put in (#970). */
     val sortZonesByTime: Boolean = false,
+    /** The world clocks two to a row, smaller, rather than one card each (#970). */
+    val zonesGrid: Boolean = false,
     val insertFormat: String = InsertFormat.TIME_PLACE.id,
     /** The [DiscordStyle.code] the Discord format types. */
     val discordStyle: String = "F",
