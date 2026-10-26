@@ -18,10 +18,10 @@
     <string name="typing_group_volume_title">Volume keys</string>
     <string name="typing_group_hardware_title">Physical keyboard</string>
     <string name="typing_group_corrections_subtitle">Autocorrect and how it learns</string>
-    <string name="typing_group_suggestions_subtitle">Suggestion strip, learning</string>
+    <string name="typing_group_suggestions_subtitle">The suggestion strip and your words</string>
     <string name="typing_group_smart_chips_subtitle">Sums, units, dates, lookups</string>
     <string name="typing_group_otp_subtitle">Codes from messages</string>
-    <string name="typing_group_gestures_subtitle">Glide, swipes, handwriting</string>
+    <string name="typing_group_gestures_subtitle">Glide, spacebar, flicks</string>
     <string name="typing_group_hardware_subtitle">Shortcuts and hotkeys</string>
 
     <!-- Capitals, punctuation and spacing: the half of Automatic corrections
