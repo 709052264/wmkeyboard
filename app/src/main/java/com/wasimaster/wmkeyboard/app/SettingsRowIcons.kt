@@ -1262,6 +1262,7 @@ internal object SettingsRowIcons {
         put(R.string.clipboard_fragments_on_strip_title) { Icons.Outlined.ContentCut }
         put(R.string.clipboard_chip_life_title) { Icons.Outlined.Timer }
         put(R.string.clipboard_recent_chips_title) { Icons.Outlined.ContentPaste }
+        put(R.string.clipboard_compact_paste_chip_title) { Icons.Outlined.ContentPaste }
         put(R.string.clipboard_phone_formats_title) { Icons.Outlined.Phone }
         put(R.string.clipboard_screenshots_title) { Icons.Outlined.Screenshot }
         put(R.string.clipboard_track_source_title) { Icons.Outlined.Apps }

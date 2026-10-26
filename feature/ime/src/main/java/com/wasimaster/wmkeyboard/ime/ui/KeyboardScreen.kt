@@ -4913,7 +4913,7 @@ private fun RowScope.StripAnswerChips(
             clipChipShareHold = false
         }
     }
-    val clipChipShares = clipChipSharesNow || clipChipShareHold
+    val clipChipShares = clipChipSharesNow || clipChipShareHold || state.settings.clipboard.compactPasteChip
     // The last few copies as a row of chips (#414), newest first
     // whatever is pinned (#612). Asked for by hand, so it holds the
     // strip over any words until something is typed or its ✕.

@@ -1261,6 +1261,15 @@ internal fun ClipboardChipsSettings(
             ) { scope.launch { repository.setClipboardRecentChips(it.toInt()) } }
         }
         item(visible = suggestRecent, level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.clipboard_compact_paste_chip_title,
+                stringResource(R.string.clipboard_compact_paste_chip_subtitle),
+                settings.watch { it.clipboard.compactPasteChip },
+                info = stringResource(R.string.clipboard_compact_paste_chip_info),
+                default = SettingsDefaults.clipboard.compactPasteChip,
+            ) { scope.launch { repository.setClipboardCompactPasteChip(it) } }
+        }
+        item(visible = suggestRecent, level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 title = R.string.clipboard_suggest_codes_title,
                 subtitle = stringResource(R.string.clipboard_suggest_codes_subtitle),
