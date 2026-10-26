@@ -77,6 +77,8 @@ enum class ProviderTool(val id: String, val modes: List<ChainMode>, @StringRes v
      * starts with every kind off until a key is typed.
      */
     MUSIC("music", listOf(ChainMode.FALLBACK), R.string.core_tools_provider_tool_music),
+
+    /**
      * The speed test's servers: Cloudflare's, and LibreSpeed backends, the
      * user's own or picked from the public list. One run goes to one server,
      * the one chosen on the panel, so the list is always in [ChainMode.PICK].
