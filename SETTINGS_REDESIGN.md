@@ -281,8 +281,24 @@ the settings overview and `settings-links.json` follow the moves.
 
 **Phase 4:** pinned previews and the animated gesture demo.
 
-**Phase 5:** chrome: path strip depth, bar height, row furniture at Simple,
-hub subtitles, slider-on-title-line.
+**Phase 5 (done 2026-10-26, uncompiled):** chrome. The path strip draws from
+the third level (`MinCrumbDepth` 2), so a second-level page is its back arrow
+and its heading. Every page below Home takes a 112 dp expanded bar; Home keeps
+152 dp under its badge. The title bands were re-fitted by measuring every
+screen title in Manrope Bold against the 276 dp a 360 dp phone leaves beside
+the heading tile (≤14 chars 33sp, ≤18 28sp, ≤22 24sp, ≤25 21sp, longer 19sp),
+which puts "Phone number formats", "Image sizes and templates" and
+"One-handed, split and floating" on one line where they ellipsised before;
+the last still ellipsises in the collapsed strip, which has 248 dp. At Simple
+`RowExtras` composes no "?" and no link button; the row's hold menu opens
+with "What is this?" (the same dialog) and, with Setting links on Button,
+copies the link as Hold does. The reset stays. Thirty-five hub subtitles were
+cut to one line at 360 dp, measured in Inter at the row's 200 dp. A slider
+whose name fits beside a 140 dp slider, its pill and its extras draws the
+slider on the title line (72 dp rather than 110); the pill, the typed value
+and the haptic ticks are unchanged. Density was checked, not changed: Material's
+72/88 dp rows, 3 dp between cards, 16 dp under a group; each card still pads
+4 dp above and below its row, from the reveal work.
 
 ## What this does not do
 

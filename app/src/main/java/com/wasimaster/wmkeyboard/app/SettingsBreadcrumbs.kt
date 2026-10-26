@@ -86,10 +86,14 @@ import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
 
 /**
  * How far from the home screen a path has to be before the strip is drawn:
- * one step, so every screen but the home list wears one. The home list has
- * no path at all, and a strip with only its own pill on it would say nothing.
+ * two steps, so the strip starts at the third level. A second-level page
+ * already says where it is — its heading is the row on Home that opened it,
+ * and the back arrow is the whole way back — so a strip reading "Home" under
+ * a heading that says Typing spent a strip's height saying nothing. From the
+ * third level the path has a middle, which is what the strip is for. The
+ * home list has no path at all.
  */
-private const val MinCrumbDepth = 1
+internal const val MinCrumbDepth = 2
 
 /** The strip's own height. Chrome, so it is shorter than a settings row. */
 private val CrumbBarHeight = 48.dp

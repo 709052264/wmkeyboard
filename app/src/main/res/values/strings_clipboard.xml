@@ -158,7 +158,7 @@
     <string name="clipboard_fragments_on_strip_info">When you copy something that has a code, a phone number or a link in it, the suggestion strip shows the whole copy as a chip and then a dashed chip for each part. A press pastes that part, so you do not have to open the clipboard. The chips stay until you type something or press the ✕, and then the strip shows words again with the usual chip for the copy. This setting is off by default.</string>
     <string name="clipboard_entities_info">The chips sit above the history in dashed outlines, so they read as parts of a clip and not as clips of their own. Press and hold a chip to see it marked inside the clip that it comes from. A press pastes only that part, and the clip stays in the history. The keyboard finds these parts on your device.</string>
     <string name="clipboard_phone_formats_title">Phone number formats</string>
-    <string name="clipboard_phone_formats_subtitle">Keep only the numbers that look like the ones you copy. Every number becomes a chip now</string>
+    <string name="clipboard_phone_formats_subtitle">Numbers that become chips</string>
     <!-- %1$d is how many formats the user made. -->
     <plurals name="clipboard_phone_formats_count_subtitle">
         <item quantity="one">%1$d format kept</item>
@@ -213,7 +213,7 @@
 
     <!-- Rules that tidy every copy before the history keeps it (#612). -->
     <string name="clipboard_copy_rules_title">Copy rules</string>
-    <string name="clipboard_copy_rules_subtitle">Tidy every copy with patterns before it is kept</string>
+    <string name="clipboard_copy_rules_subtitle">Patterns applied to copies</string>
     <plurals name="clipboard_copy_rules_count_subtitle">
         <item quantity="one">%1$d rule</item>
         <item quantity="other">%1$d rules</item>

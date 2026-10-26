@@ -66,7 +66,7 @@
 
     <!-- Layout screen: the size and position group. -->
     <string name="layout_size_position_title">Size and position</string>
-    <string name="layout_size_subtitle">Height, width, padding, and each screen shape</string>
+    <string name="layout_size_subtitle">Height, width, padding</string>
     <string name="layout_resize_drag_title">Resize by dragging</string>
     <string name="layout_resize_drag_subtitle">Opens the keyboard with handles on its edges: drag the height, position and side margins in place</string>
     <string name="layout_resize_drag_action">Resize</string>
@@ -144,7 +144,7 @@
 
     <!-- Layout screen: one-handed, split and floating keyboards. -->
     <string name="layout_one_handed_group_title">One-handed, split and floating</string>
-    <string name="layout_one_handed_page_subtitle">One-handed, split and floating</string>
+    <string name="layout_one_handed_page_subtitle">One-handed, split, floating</string>
     <string name="layout_one_handed_title">One-handed mode</string>
     <string name="layout_one_handed_subtitle">Make the keyboard smaller at one edge of the screen</string>
     <string name="layout_one_handed_caption">You can set one-handed mode for each orientation. In the keyboard, the arrow on the rail changes the side and saves it here for that orientation.</string>

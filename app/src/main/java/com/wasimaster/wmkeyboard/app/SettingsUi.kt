@@ -74,6 +74,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import com.wasimaster.wmkeyboard.core.settings.SettingsDepth
 import kotlinx.coroutines.CoroutineScope
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -1701,10 +1702,20 @@ internal fun ResetSetting(
  * showing leaves no hole in the stack. Callers put the reset last: it is the
  * one that comes and goes, and last it appears in the free slot nearest the
  * switch instead of shuffling the "?" and the link into new places.
+ *
+ * At the Simple depth a row is its name and its control (SETTINGS_REDESIGN.md,
+ * section 5): the "?" and the link button compose nothing under
+ * [LocalRowExtrasBare], and the row's long press offers what they did, as
+ * "What is this?" and the copied link (see `RowHoldMenu`). The reset stays,
+ * since it is only there on a row that was changed.
  */
 @Composable
 internal fun RowExtras(stack: Boolean = true, content: @Composable () -> Unit) {
-    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
+    val bare = LocalSettingsDepth.current.depth == SettingsDepth.SIMPLE
+    CompositionLocalProvider(
+        LocalMinimumInteractiveComponentSize provides 0.dp,
+        LocalRowExtrasBare provides bare,
+    ) {
         Layout(content) { measurables, constraints ->
             val loose = constraints.copy(minWidth = 0, minHeight = 0)
             val all = measurables.map { it.measure(loose) }
@@ -1731,6 +1742,18 @@ internal fun RowExtras(stack: Boolean = true, content: @Composable () -> Unit) {
 }
 
 private const val ROW_EXTRAS_PER_COLUMN = 2
+
+/**
+ * True inside a [RowExtras] at the Simple depth, where a row's "?" and link
+ * button are not drawn: `InfoButton` and `SettingLinkButton` read it and
+ * compose nothing. A heading's controls sit outside any RowExtras and keep
+ * theirs.
+ */
+internal val LocalRowExtrasBare = compositionLocalOf { false }
+
+/** Whether a row's "?" is drawn on the row at this depth, for the rows that budget their own width. */
+@Composable
+internal fun rowInfoButtonShown(): Boolean = LocalSettingsDepth.current.depth != SettingsDepth.SIMPLE
 
 /** The width [RowExtras] takes for [count] controls, stacked, for the rows that budget their own width. */
 internal fun rowExtrasWidth(count: Int): Dp =
@@ -1789,7 +1812,7 @@ internal fun ColorSetting(
     onChange: (Long?) -> Unit,
 ) {
     var open by remember { mutableStateOf(false) }
-    HighlightableRow(title, highlightKey) {
+    HighlightableRow(title, highlightKey, info = info) {
         WmRow(
             title = title,
             subtitle = subtitle,
@@ -1832,9 +1855,18 @@ internal fun ColorSetting(
 
 // ---- collapsing app bar ----
 
-/** Bar geometry. Material's large-bar heights, so the rest of the layout still fits. */
+/**
+ * Bar geometry. The collapsed strip is Material's. The expanded bar is
+ * Material's medium bar on every page below Home: a heading is one line and a
+ * tile, and the 48 dp under the strip hold that; the 40 dp the large bar
+ * added were air between the heading and the first row, and with the path
+ * strip under it a second-level page spent 208 dp before its first setting
+ * (SETTINGS_REDESIGN.md, section 5). Home keeps the large bar, since it has a
+ * badge above its heading to make room for.
+ */
 private val CollapsedBarHeight = 64.dp
-private val ExpandedBarHeight = 152.dp
+private val ExpandedBarHeight = 112.dp
+private val BadgedBarHeight = 152.dp
 
 /** Title inset: 16dp on its own, cleared past the navigation icon when there is one. */
 private val TitleInset = 16.dp
@@ -1952,14 +1984,20 @@ private const val TitleTrackingRatio = -0.018f
  *
  * The steps are the app's display face at its display sizes (see
  * [WmTypography]): a short title gets the full 33sp, and each band below it
- * trades size for room. Manrope Bold sets wider than the Roboto these numbers
- * were first chosen for, hence the extra band rather than a straight scale-up.
+ * trades size for room. The bands were fitted by measuring every screen title
+ * in Manrope Bold against the 276 dp a 360 dp phone leaves beside a heading
+ * tile: the widest title of each length sets where its band ends, so
+ * "Phone number formats" (20) takes 24sp, "Image sizes and templates" (25)
+ * 21sp and "One-handed, split and floating" (30) 19sp, each just inside the
+ * width. Longer than 25 was 21sp before and overflowed; 19sp is the smallest
+ * step, since a heading smaller than that reads as a row.
  */
 private fun expandedTitleSp(title: String): Float = when {
     title.length <= 14 -> 33f
-    title.length <= 20 -> 28f
-    title.length <= 26 -> 24f
-    else -> 21f
+    title.length <= 18 -> 28f
+    title.length <= 22 -> 24f
+    title.length <= 25 -> 21f
+    else -> 19f
 }
 
 /**
@@ -2231,7 +2269,7 @@ internal fun WmCollapsingTopBar(
     // from the bottom, so the title itself does not move. A badge sits above
     // instead, so its band is pure extra height: the bar grows downward from a
     // fixed top, which is what makes room over the heading.
-    val barHeight = ExpandedBarHeight +
+    val barHeight = (if (badge != null) BadgedBarHeight else ExpandedBarHeight) +
         (if (subtitle != null) SubtitleBand + subtitleExtra else 0.dp) +
         (if (badge != null) BadgeBand else 0.dp)
     val expandedPx = with(density) { barHeight.toPx() }
@@ -2260,7 +2298,9 @@ internal fun WmCollapsingTopBar(
     val keepIcon = iconShare > 0f && iconInBar
 
     val expandedSp = expandedTitleSp(title)
-    val collapsedScale = CollapsedTitleSp / expandedSp
+    // A title that started below the collapsed size stays its size: growing
+    // into the strip would read as the bar pushing the heading about.
+    val collapsedScale = minOf(CollapsedTitleSp, expandedSp) / expandedSp
     // Where the expanded title's left edge sits: past the heading icon when
     // there is one, at the plain inset otherwise.
     val iconSize = if (iconTile) IconTileSize else HeaderBareIconSize
