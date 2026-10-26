@@ -63,6 +63,14 @@
     <string name="clock_fade_off">Off</string>
     <string name="clock_auto_silence_title">Stop ringing after</string>
     <string name="clock_auto_silence_subtitle">An alarm nobody answers stops by itself and shows as missed in the history</string>
+    <string name="clock_auto_snooze_title">Snooze when nobody answers</string>
+    <string name="clock_auto_snooze_subtitle">An alarm that stops ringing by itself snoozes instead, up to this many times, before it counts as missed</string>
+    <string name="clock_upcoming_title">Notice before an alarm</string>
+    <string name="clock_upcoming_subtitle">Shows the next alarm in the notifications this long before it rings, with a button to skip it</string>
+    <string name="clock_snoozed_notice_title">Notice while snoozed</string>
+    <string name="clock_snoozed_notice_subtitle">Shows a snoozed alarm in the notifications, with a button to end the snooze</string>
+    <string name="clock_missed_notice_title">Notice for a missed alarm</string>
+    <string name="clock_missed_notice_subtitle">Leaves a notification when an alarm rang with nobody to answer it</string>
     <string name="clock_volume_keys_title">Volume keys snooze</string>
     <string name="clock_volume_keys_subtitle">On the ring screen. When off, the volume keys do nothing there.</string>
     <string name="clock_pomodoro_group">Pomodoro</string>
@@ -82,6 +90,10 @@
     <plurals name="clock_minutes_value">
         <item quantity="one">%d minute</item>
         <item quantity="other">%d minutes</item>
+    </plurals>
+    <plurals name="clock_times_value">
+        <item quantity="one">Once</item>
+        <item quantity="other">%d times</item>
     </plurals>
     <plurals name="clock_seconds_value">
         <item quantity="one">%d second</item>

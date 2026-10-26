@@ -33,6 +33,21 @@ data class ClockConfig(
     val snoozeMinutes: Int = 10,
     val fadeInSeconds: Int = 20,
     val autoSilenceMinutes: Int = 10,
+    /**
+     * How many times an alarm nobody answers snoozes itself, at the end of
+     * [autoSilenceMinutes], before it counts as missed (#970). 0, the default,
+     * stops it the first time.
+     */
+    val autoSnoozes: Int = 0,
+    /**
+     * Minutes before an alarm a notice says it is coming, with a button that
+     * skips it (#970). 0, the default, posts none.
+     */
+    val upcomingNoticeMinutes: Int = 0,
+    /** A notice in the shade while an alarm is snoozed, with a button that ends the snooze (#970). */
+    val snoozedNotice: Boolean = true,
+    /** A notice in the shade for an alarm that rang with nobody there (#970). */
+    val missedNotice: Boolean = true,
     val vibrate: Boolean = true,
     /** Null rings the system's default alarm sound; empty rings nothing. */
     val alarmSound: String? = null,

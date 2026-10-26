@@ -168,6 +168,46 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
             ) { v -> set { it.copy(autoSilenceMinutes = v.roundToInt()) } }
         }
         item(level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                R.string.clock_auto_snooze_title,
+                stringResource(R.string.clock_auto_snooze_subtitle),
+                value = config.autoSnoozes.toFloat(),
+                range = 0f..5f,
+                display = { v ->
+                    val n = v.roundToInt()
+                    if (n == 0) context.getString(R.string.clock_fade_off) else context.resources.getQuantityString(R.plurals.clock_times_value, n, n)
+                },
+                default = defaults.autoSnoozes.toFloat(),
+            ) { v -> set { it.copy(autoSnoozes = v.roundToInt()) } }
+        }
+        item(level = SettingLevel.STANDARD) {
+            ChoiceSetting(
+                title = R.string.clock_upcoming_title,
+                subtitle = stringResource(R.string.clock_upcoming_subtitle),
+                options = listOf(0, 15, 30, 60, 120).map { m ->
+                    m to if (m == 0) stringResource(R.string.clock_fade_off) else minutes(m.toFloat())
+                },
+                selected = config.upcomingNoticeMinutes,
+                default = defaults.upcomingNoticeMinutes,
+            ) { v -> set { it.copy(upcomingNoticeMinutes = v) } }
+        }
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.clock_snoozed_notice_title,
+                stringResource(R.string.clock_snoozed_notice_subtitle),
+                config.snoozedNotice,
+                default = defaults.snoozedNotice,
+            ) { v -> set { it.copy(snoozedNotice = v) } }
+        }
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.clock_missed_notice_title,
+                stringResource(R.string.clock_missed_notice_subtitle),
+                config.missedNotice,
+                default = defaults.missedNotice,
+            ) { v -> set { it.copy(missedNotice = v) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.clock_volume_keys_title,
                 stringResource(R.string.clock_volume_keys_subtitle),
