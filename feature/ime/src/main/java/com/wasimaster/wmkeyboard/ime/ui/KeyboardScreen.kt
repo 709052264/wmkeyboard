@@ -22148,7 +22148,12 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     // ASCII "?" leads that key's hold, for URLs and code.
     val questionSwap = state.script.questionMark.takeIf { it != "?" }
     // Issue #606: the Arabic harakat at the end of the period key's hold.
-    val periodAlternates = if (lettersLayer) state.script.periodAlternates else emptyList()
+    // Issue #972: unless the language opts out, as Sorani does.
+    val periodAlternates = if (lettersLayer) {
+        state.language.periodAlternates ?: state.script.periodAlternates
+    } else {
+        emptyList()
+    }
     // Both emoji-key preferences exist because a phone's bottom row has no spare
     // slot, so one of the keys already there has to give it up. An expanded
     // tablet grid has a real emoji key of its own, and applying either here would
