@@ -9,6 +9,21 @@
     <string name="layout_editor_your_layouts_title">Your layouts</string>
     <string name="layout_editor_empty_title">No layouts of your own yet</string>
     <string name="layout_editor_empty_subtitle">Copy a layout below to start from a grid that already works</string>
+    <string name="layout_editor_bundle_title">Export layouts in use</string>
+    <string name="layout_editor_bundle_subtitle">Every layout that is on, and every one of your own, in one file. Import a layout reads it back</string>
+    <plurals name="layout_editor_bundle_done_message">
+        <item quantity="one">The app saved %d layout.</item>
+        <item quantity="other">The app saved %d layouts.</item>
+    </plurals>
+    <plurals name="layout_editor_bundle_confirm_title">
+        <item quantity="one">Import %d layout?</item>
+        <item quantity="other">Import %d layouts?</item>
+    </plurals>
+    <string name="layout_editor_bundle_confirm_body">They are added to your layouts. A layout you already have stays as it is, and the copy comes in beside it.</string>
+    <plurals name="layout_editor_bundle_imported_message">
+        <item quantity="one">The app imported %d layout.</item>
+        <item quantity="other">The app imported %d layouts.</item>
+    </plurals>
     <string name="layout_editor_import_title">Import a layout</string>
     <!-- .wmlayout.json is a file name ending. Do not translate it. -->
     <string name="layout_editor_import_subtitle">Opens a .wmlayout.json file that someone shared</string>

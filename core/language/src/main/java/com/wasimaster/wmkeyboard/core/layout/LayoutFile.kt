@@ -31,6 +31,21 @@ private data class LayoutEnvelope(
     val layout: LayoutSpec,
 )
 
+/**
+ * Several layouts in one file (#970): every layout in use, to move to another
+ * phone or keep in one place. The layouts inside are the same [LayoutSpec]s
+ * a one-layout file holds, ids and all, so the keys of one that open another
+ * still find it on the other side.
+ */
+@Serializable
+private data class LayoutBundle(
+    val format: String,
+    val version: Int,
+    val appVersion: Int = 0,
+    val appVersionName: String = "",
+    val layouts: List<LayoutSpec>,
+)
+
 /** A layout read off disk, with whatever had to be fixed to make it usable. */
 data class ImportedLayout(
     val layout: LayoutSpec,
@@ -131,6 +146,36 @@ object LayoutFile {
             repairNotes = repaired.repairNotes,
             fromAppVersion = envelope.appVersion,
         )
+    }
+
+    /** Tags [encodeBundle]'s files, apart from a one-layout file's [FORMAT]. */
+    const val BUNDLE_FORMAT = "wmkeyboard-layouts"
+
+    /** Same extension family as a one-layout file, so the picker and the share sheet treat it alike. */
+    const val BUNDLE_EXTENSION = "wmlayouts.json"
+
+    /** "Layouts-20261027-1405.wmlayouts.json": dated like a one-layout export. */
+    fun bundleFileName(stampMs: Long): String =
+        "Layouts-" + SimpleDateFormat("yyyyMMdd-HHmm", Locale.US).format(Date(stampMs)) + ".$BUNDLE_EXTENSION"
+
+    /** [layouts] in one file, indented like [encode]. */
+    fun encodeBundle(layouts: List<LayoutSpec>, appVersion: Int, appVersionName: String): String =
+        exportJson.encodeToString(LayoutBundle(BUNDLE_FORMAT, VERSION, appVersion, appVersionName, layouts))
+
+    /**
+     * Every layout in a file [encodeBundle] wrote, each repaired the way
+     * [decode] repairs one, or null when [text] is not such a file. An empty
+     * bundle is still null: there is nothing to ask the user about.
+     */
+    fun decodeBundle(text: String): List<ImportedLayout>? {
+        val bundle = runCatching {
+            LayoutCodec.json.decodeFromString<LayoutBundle>(text.firstJsonDocument())
+        }.getOrNull() ?: return null
+        if (bundle.format != BUNDLE_FORMAT || bundle.layouts.isEmpty()) return null
+        return bundle.layouts.map { layout ->
+            val repaired = layout.repair()
+            ImportedLayout(repaired.spec, repaired.repairNotes, bundle.appVersion)
+        }
     }
 
     /**

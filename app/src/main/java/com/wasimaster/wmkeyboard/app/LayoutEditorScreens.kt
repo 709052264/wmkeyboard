@@ -83,6 +83,7 @@ import com.wasimaster.wmkeyboard.core.settings.DeviceForm
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileOpen
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileUpload
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Share
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -600,6 +601,32 @@ internal fun KeyLayoutsScreen(
         }
     }
 
+    // Every layout in use, in one file (#970), parked like [pendingExport].
+    var pendingBundle by remember { mutableStateOf<List<LayoutSpec>?>(null) }
+    val bundleLauncher = rememberLauncherForActivityResult(
+        CreateDocumentAt(LayoutFile.MIME_TYPE, PickerPlaces.LAYOUT_EXPORT),
+    ) { uri ->
+        val bundle = pendingBundle
+        pendingBundle = null
+        if (uri == null || bundle == null) return@rememberLauncherForActivityResult
+        PickerPlaces.remember(context, PickerPlaces.LAYOUT_EXPORT, uri)
+        scope.launch {
+            val ok = runCancellable {
+                val text = LayoutFile.encodeBundle(bundle, BuildConfig.VERSION_CODE, BuildConfig.VERSION_NAME)
+                withContext(Dispatchers.IO) {
+                    context.contentResolver.requireOutputStream(uri).use { it.write(text.toByteArray()) }
+                }
+            }.isSuccess
+            message = if (ok) {
+                context.resources.getQuantityString(R.plurals.layout_editor_bundle_done_message, bundle.size, bundle.size)
+            } else {
+                context.getString(R.string.layout_editor_export_error)
+            }
+        }
+    }
+    // A file of several layouts, read and waiting on the user's answer.
+    var confirmBundle by remember { mutableStateOf<List<ImportedLayout>?>(null) }
+
     val importLauncher = rememberLauncherForActivityResult(
         OpenDocumentAt(PickerPlaces.LAYOUT_IMPORT),
     ) { uri ->
@@ -613,7 +640,13 @@ internal fun KeyLayoutsScreen(
             }
             val parsed = text?.let { LayoutFile.decode(it) }
             if (parsed == null) {
-                message = context.getString(R.string.layout_editor_import_wrong_file_error)
+                // Or a file of several, from Export layouts in use (#970).
+                val bundle = text?.let { LayoutFile.decodeBundle(it) }
+                if (bundle != null) {
+                    confirmBundle = bundle
+                } else {
+                    message = context.getString(R.string.layout_editor_import_wrong_file_error)
+                }
                 return@launch
             }
             // Read first, ask, then write. Importing a layout is not something
@@ -991,6 +1024,17 @@ internal fun KeyLayoutsScreen(
         }
         item(level = SettingLevel.STANDARD) {
             WmRow(
+                title = stringResource(R.string.layout_editor_bundle_title),
+                subtitle = stringResource(R.string.layout_editor_bundle_subtitle),
+                leading = { Icon(Icons.Outlined.FileUpload, contentDescription = null) },
+                onClick = {
+                    pendingBundle = layouts
+                    bundleLauncher.launch(LayoutFile.bundleFileName(System.currentTimeMillis()))
+                },
+            )
+        }
+        item(level = SettingLevel.STANDARD) {
+            WmRow(
                 title = stringResource(R.string.layout_editor_foreign_title),
                 subtitle = stringResource(R.string.layout_editor_foreign_subtitle),
                 leading = { Icon(Icons.Outlined.SwapHoriz, contentDescription = null) },
@@ -1109,6 +1153,61 @@ internal fun KeyLayoutsScreen(
             },
             dismissButton = {
                 TextButton(onClick = { confirmImport = null }) {
+                    Text(stringResource(CommonR.string.common_cancel))
+                }
+            },
+        )
+    }
+
+    confirmBundle?.let { bundle ->
+        AlertDialog(
+            onDismissRequest = { confirmBundle = null },
+            title = {
+                Text(pluralStringResource(R.plurals.layout_editor_bundle_confirm_title, bundle.size, bundle.size))
+            },
+            text = {
+                Column {
+                    Text(stringResource(R.string.layout_editor_bundle_confirm_body))
+                    Spacer(Modifier.height(8.dp))
+                    for (imported in bundle) Text("• " + imported.layout.name)
+                }
+            },
+            confirmButton = {
+                // A layout keeps its id when nothing here has it yet, so an
+                // "open a layout" key in one still opens the other. A clash
+                // (a built-in, or the same file twice) gets a new id instead.
+                fun import(turnOn: Boolean) {
+                    scope.launch {
+                        val taken = settings.value.customLayouts.mapTo(HashSet()) { it.id }
+                        val now = System.currentTimeMillis()
+                        val ids = bundle.mapIndexed { i, imported ->
+                            val id = imported.layout.id.takeIf {
+                                it.isNotBlank() && it !in taken && !isShippedLayoutId(it)
+                            } ?: "custom_${now + i}"
+                            repository.upsertCustomLayout(imported.layout.copy(id = id))
+                            id to imported.layout.secondary
+                        }
+                        if (turnOn) {
+                            val languages = ids.filterNot { it.second }.map { it.first }
+                            repository.setEnabledLayoutIds((settings.value.enabledLayoutIds + languages).distinct())
+                        }
+                        message = context.resources.getQuantityString(
+                            R.plurals.layout_editor_bundle_imported_message, bundle.size, bundle.size,
+                        )
+                    }
+                    confirmBundle = null
+                }
+                Row {
+                    TextButton(onClick = { import(turnOn = false) }) {
+                        Text(stringResource(CommonR.string.common_import))
+                    }
+                    TextButton(onClick = { import(turnOn = true) }) {
+                        Text(stringResource(R.string.layout_editor_import_and_enable))
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmBundle = null }) {
                     Text(stringResource(CommonR.string.common_cancel))
                 }
             },
