@@ -42728,6 +42728,9 @@ open class WMKeyboardService : InputMethodService() {
                 override fun setFavourite(pairKey: String, starred: Boolean) {
                     serviceScope.launch { settingsRepository.setEmojiMixFavourite(pairKey, starred) }
                 }
+                override fun setShuffleCategories(slot: Int, categories: Set<String>) {
+                    serviceScope.launch { settingsRepository.setEmojiMixShuffleCategories(slot, categories) }
+                }
                 override fun addToStickers(file: File, keywords: List<String>) = addEmojiMixToStickers(file, keywords)
                 override fun saveToGallery(file: File) =
                     saveToGalleryIfEnabled(file, MediaMime.PNG, enabled = true, namePrefix = "MIX", confirm = true)
@@ -42791,8 +42794,11 @@ open class WMKeyboardService : InputMethodService() {
     private fun emojiMixCallbacks() = com.wasimaster.wmkeyboard.ime.ui.EmojiMixCallbacks(
         onPickEmoji = { emojiMixTool.onPickEmoji(it) },
         onSlot = { emojiMixTool.onSlot(it) },
+        onClearSlot = { emojiMixTool.onClearSlot(it) },
+        onTab = { emojiMixTool.onTab(it) },
         onSwap = { emojiMixTool.onSwap() },
         onShuffle = { emojiMixTool.onShuffle() },
+        onShuffleCategories = { slot, categories -> emojiMixTool.onShuffleCategories(slot, categories) },
         onSend = { emojiMixTool.onSendCell(it) },
         onFavourite = { cell, on -> emojiMixTool.onFavourite(cell, on) },
         onAddToStickers = { emojiMixTool.onAddToStickers(it) },

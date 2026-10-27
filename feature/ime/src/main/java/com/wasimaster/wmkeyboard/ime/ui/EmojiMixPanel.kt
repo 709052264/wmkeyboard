@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.Animatable
@@ -36,25 +37,31 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -84,6 +91,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.ImageLoader
 import coil3.compose.AsyncImage
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckBox
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckBoxOutlineBlank
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Shuffle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapHoriz
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
@@ -103,8 +113,14 @@ data class EmojiMixCallbacks(
     val onPickEmoji: (String) -> Unit = {},
     /** One of the two slots: the next pick replaces that emoji. */
     val onSlot: (Int) -> Unit = {},
+    /** A slot's emoji taken out. */
+    val onClearSlot: (Int) -> Unit = {},
+    /** A tab of the emoji picker chosen. */
+    val onTab: (String) -> Unit = {},
     val onSwap: () -> Unit = {},
     val onShuffle: () -> Unit = {},
+    /** The categories the shuffle draws a slot's emoji from (0 the first, 1 the second); empty for all. */
+    val onShuffleCategories: (Int, Set<String>) -> Unit = { _, _ -> },
     /** A mix tapped: send it. */
     val onSend: (EmojiMixCell) -> Unit = {},
     /** A mix starred, or its star taken off. */
@@ -117,6 +133,7 @@ private val SlotSize = 52.dp
 private val ResultSize = 64.dp
 private val PickerCell = 40.dp
 private val FavouriteCell = 44.dp
+private val ClearBadge = 18.dp
 
 /** The two emoji coming together: a bouncy spring, under-damped so the mix lands with a little overshoot. */
 private val FuseSpring = spring<Float>(dampingRatio = 0.42f, stiffness = Spring.StiffnessMediumLow)
@@ -136,7 +153,9 @@ private const val SentMs = 200
  * user's starred mixes, every mix of the first emoji, and the emoji to pick
  * from at the bottom. A tap on a mix sends it; a hold offers a star, the
  * sticker packs and the gallery. [switcher] is the emoji / GIF / sticker
- * switch when the panel carries it beside its own header.
+ * switch when the panel carries it beside its own header. The picker's
+ * category tabs sit in the full-bleed header ([EmojiMixTabs]); [tabsInside]
+ * draws them over the picker instead, where there is no header to hold them.
  *
  * Everything moves when motion is on, and nothing does when it is off:
  * the mix lands on a spring with a ring and sparks thrown out behind it,
@@ -148,6 +167,7 @@ internal fun EmojiMixPanel(
     state: KeyboardUiState,
     callbacks: EmojiMixCallbacks,
     switcher: (@Composable () -> Unit)?,
+    tabsInside: Boolean,
 ) {
     val kb = LocalKbTheme.current
     val motion = kb.motion.any
@@ -172,13 +192,15 @@ internal fun EmojiMixPanel(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            MixSlot(ui.left, swaps, toStart = false, ui.slot == 0, motion, R.string.ime_emoji_mix_first_desc) {
-                callbacks.onSlot(0)
-            }
+            MixSlot(
+                ui.left, swaps, toStart = false, ui.slot == 0, motion, R.string.ime_emoji_mix_first_desc,
+                onClear = { callbacks.onClearSlot(0) },
+            ) { callbacks.onSlot(0) }
             Sign("+")
-            MixSlot(ui.right, swaps, toStart = true, ui.slot == 1, motion, R.string.ime_emoji_mix_second_desc) {
-                callbacks.onSlot(1)
-            }
+            MixSlot(
+                ui.right, swaps, toStart = true, ui.slot == 1, motion, R.string.ime_emoji_mix_second_desc,
+                onClear = { callbacks.onClearSlot(1) },
+            ) { callbacks.onSlot(1) }
             Sign("=", pulse = ui.result?.id, motion = motion)
             ResultSpot(state, ui.result, ui.loading, ui.noMix, loader, starred, motion, callbacks)
             Spacer(Modifier.weight(1f))
@@ -196,9 +218,22 @@ internal fun EmojiMixPanel(
                 if (ui.right.isNotEmpty()) swaps++
                 callbacks.onSwap()
             }
-            HeaderIcon(Icons.Outlined.Shuffle, R.string.ime_emoji_mix_shuffle_desc, shuffleTurn) {
-                shuffles++
-                callbacks.onShuffle()
+            var shuffleMenu by remember { mutableStateOf(false) }
+            Box {
+                HeaderIcon(
+                    Icons.Outlined.Shuffle, R.string.ime_emoji_mix_shuffle_desc, shuffleTurn,
+                    onLongClick = { shuffleMenu = true },
+                    onLongClickLabel = R.string.ime_emoji_mix_shuffle_hold_desc,
+                ) {
+                    shuffles++
+                    callbacks.onShuffle()
+                }
+                ShuffleCategoriesMenu(
+                    expanded = shuffleMenu,
+                    state = state,
+                    onChange = callbacks.onShuffleCategories,
+                    onDismiss = { shuffleMenu = false },
+                )
             }
             switcher?.invoke()
         }
@@ -219,12 +254,12 @@ internal fun EmojiMixPanel(
         Box(Modifier.fillMaxWidth().weight(1f)) {
             when {
                 ui.previewsHeld -> Notice(R.string.ime_emoji_mix_previews_held)
-                ui.mixes.isEmpty() && ui.left.isEmpty() -> PickFirstNotice(motion)
+                ui.mixes.isEmpty() && ui.left.isEmpty() && ui.right.isEmpty() -> PickFirstNotice(motion)
                 ui.mixes.isEmpty() && !ui.canList && !ui.loading -> Notice(R.string.ime_emoji_mix_pick_second)
                 else -> {
                     // One clock per first emoji: a new one replays the rise,
                     // and a cell scrolled to later finds it already run out.
-                    val rise = rememberGridRise(ui.left, motion)
+                    val rise = rememberGridRise(ui.left.ifEmpty { ui.right }, motion)
                     LazyVerticalGrid(
                         columns = GridCells.Adaptive(cellSize),
                         modifier = Modifier.fillMaxSize(),
@@ -252,13 +287,18 @@ internal fun EmojiMixPanel(
             }
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(kb.divider))
+        if (tabsInside) EmojiMixTabs(state, callbacks.onTab, Modifier.fillMaxWidth().height(EmojiTabHeight))
+        val picker = ui.byTab[ui.tab] ?: ui.emoji
+        // A fresh scroll for each tab: a new category starts at its first emoji.
+        val pickerScroll = remember(ui.tab) { LazyGridState() }
         LazyHorizontalGrid(
             rows = GridCells.Fixed(2),
+            state = pickerScroll,
             modifier = Modifier.fillMaxWidth().height(PickerCell * 2 + 8.dp),
             contentPadding = PaddingValues(4.dp),
         ) {
-            items(ui.emoji.size, key = { ui.emoji[it] }) { i ->
-                val emoji = ui.emoji[i]
+            items(picker.size, key = { picker[it] }) { i ->
+                val emoji = picker[i]
                 PickerEmoji(emoji, chosen = emoji == ui.left || emoji == ui.right, motion) { callbacks.onPickEmoji(emoji) }
             }
         }
@@ -268,8 +308,11 @@ internal fun EmojiMixPanel(
 /**
  * One of the two emoji. A new emoji rolls up into it; one that arrived by a
  * swap slides across instead, the two passing each other. The slot the next
- * pick will fill glows softly while it waits for one.
+ * pick will fill glows softly while it waits for one. The slot the panel is
+ * on wears a small cross while it holds an emoji, which takes the emoji out;
+ * a hold on either slot does the same.
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun MixSlot(
     emoji: String,
@@ -278,11 +321,13 @@ private fun MixSlot(
     selected: Boolean,
     motion: Boolean,
     description: Int,
+    onClear: () -> Unit,
     onClick: () -> Unit,
 ) {
     val kb = LocalKbTheme.current
     val shape = kb.chipShape()
     val label = stringResource(description)
+    val clearLabel = stringResource(R.string.ime_emoji_mix_clear_desc)
     val glow = if (motion && selected) {
         val pulse = rememberInfiniteTransition(label = "slotGlow")
         pulse.animateFloat(
@@ -294,27 +339,57 @@ private fun MixSlot(
     } else {
         1f
     }
-    Box(
-        modifier = Modifier
-            .size(SlotSize)
-            .clip(shape)
-            .background(if (selected) kb.chipActive else kb.chip)
-            .then(
-                if (selected) {
-                    Modifier.border(2.dp, kb.accent.copy(alpha = if (emoji.isEmpty()) glow else 1f), shape)
-                } else {
-                    Modifier.chipBorder(kb, shape)
-                },
-            )
-            .clickable(role = Role.Tab, onClickLabel = label, onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        AnimatedContent(
-            targetState = emoji to swaps,
-            transitionSpec = { slotTransition(initialState, targetState, toStart, motion) },
-            label = "slotEmoji",
-        ) { (shown, _) ->
-            Text(shown.ifEmpty { "?" }, fontSize = 28.sp, color = if (selected) kb.chipActiveText else kb.chipText)
+    Box(Modifier.size(SlotSize)) {
+        Box(
+            modifier = Modifier
+                .size(SlotSize)
+                .clip(shape)
+                .background(if (selected) kb.chipActive else kb.chip)
+                .then(
+                    if (selected) {
+                        Modifier.border(2.dp, kb.accent.copy(alpha = if (emoji.isEmpty()) glow else 1f), shape)
+                    } else {
+                        Modifier.chipBorder(kb, shape)
+                    },
+                )
+                .combinedClickable(
+                    role = Role.Tab,
+                    onClickLabel = label,
+                    onLongClick = if (emoji.isNotEmpty()) onClear else null,
+                    onLongClickLabel = clearLabel,
+                    onClick = onClick,
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            AnimatedContent(
+                targetState = emoji to swaps,
+                transitionSpec = { slotTransition(initialState, targetState, toStart, motion) },
+                label = "slotEmoji",
+            ) { (shown, _) ->
+                Text(shown.ifEmpty { "?" }, fontSize = 28.sp, color = if (selected) kb.chipActiveText else kb.chipText)
+            }
+        }
+        AnimatedVisibility(
+            visible = selected && emoji.isNotEmpty(),
+            modifier = Modifier.align(Alignment.TopEnd).offset(x = 5.dp, y = (-5).dp),
+            enter = if (motion) scaleIn(PopSpring) + fadeIn(tween(90)) else fadeIn(tween(0)),
+            exit = if (motion) scaleOut(tween(120)) + fadeOut(tween(120)) else fadeOut(tween(0)),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(ClearBadge)
+                    .clip(CircleShape)
+                    .background(kb.enterKey)
+                    .clickable(role = Role.Button, onClickLabel = clearLabel, onClick = onClear),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    Icons.Outlined.Close,
+                    contentDescription = clearLabel,
+                    tint = kb.enterKeyText,
+                    modifier = Modifier.size(12.dp),
+                )
+            }
         }
     }
 }
@@ -469,14 +544,33 @@ private fun Sign(text: String, pulse: Any? = null, motion: Boolean = false) {
     )
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun HeaderIcon(icon: ImageVector, description: Int, turn: Float, onClick: () -> Unit) {
+private fun HeaderIcon(
+    icon: ImageVector,
+    description: Int,
+    turn: Float,
+    onLongClick: (() -> Unit)? = null,
+    onLongClickLabel: Int? = null,
+    onClick: () -> Unit,
+) {
     val kb = LocalKbTheme.current
+    val feedback = LocalKeyPressFeedback.current
     Box(
         modifier = Modifier
             .size(36.dp)
             .clip(RoundedCornerShape(18.dp))
-            .clickable(role = Role.Button, onClick = onClick),
+            .combinedClickable(
+                role = Role.Button,
+                onLongClick = onLongClick?.let { hold ->
+                    {
+                        feedback()
+                        hold()
+                    }
+                },
+                onLongClickLabel = onLongClickLabel?.let { stringResource(it) },
+                onClick = onClick,
+            ),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
@@ -485,6 +579,130 @@ private fun HeaderIcon(icon: ImageVector, description: Int, turn: Float, onClick
             tint = kb.toolbarIcon,
             modifier = Modifier.size(20.dp).graphicsLayer { rotationZ = turn },
         )
+    }
+}
+
+/**
+ * The picker's category tabs, the emoji panel's own: recent emoji first, then
+ * each category that has an emoji with a mix. Drawn in the full-bleed header,
+ * where the GIF and sticker panels have their search, or over the picker.
+ * Always takes its [modifier]'s room, so the header keeps its shape with one
+ * tab or none.
+ */
+@Composable
+internal fun EmojiMixTabs(state: KeyboardUiState, onTab: (String) -> Unit, modifier: Modifier = Modifier) {
+    val ui = state.emojiMix
+    Row(modifier.padding(horizontal = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+        if (!ui.usable || ui.tabs.size < 2) return@Row
+        for (tab in ui.tabs) {
+            EmojiTab(
+                slot = emojiTabSlot(tab, mostUsed = false),
+                description = emojiTabTitle(tab, mostUsed = false),
+                selected = tab == ui.tab,
+                onClick = { if (tab != ui.tab) onTab(tab) },
+            )
+        }
+    }
+}
+
+/**
+ * What a hold on the shuffle opens: a tick per category for each of the two
+ * emoji, so a shuffle can draw, say, an animal and a food. A column always
+ * keeps one tick; the top row ticks every category in it again.
+ */
+@Composable
+private fun ShuffleCategoriesMenu(
+    expanded: Boolean,
+    state: KeyboardUiState,
+    onChange: (Int, Set<String>) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val categories = state.emojiMix.tabs.filter { it != RECENT_TAB }
+    val settings = state.settings.emoji.mix
+    val chosen = listOf(settings.shuffleFirst, settings.shuffleSecond).map { it.intersect(categories.toSet()).ifEmpty { categories.toSet() } }
+    DropdownMenu(expanded = expanded && categories.isNotEmpty(), onDismissRequest = onDismiss) {
+        Row(
+            Modifier.padding(start = 16.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                stringResource(R.string.ime_emoji_mix_shuffle_title),
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier.weight(1f),
+            )
+            for (column in listOf(R.string.ime_emoji_mix_shuffle_first, R.string.ime_emoji_mix_shuffle_second)) {
+                Text(
+                    stringResource(column),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.width(ShuffleTickWidth),
+                )
+            }
+        }
+        ShuffleRow(
+            label = { Text(stringResource(R.string.ime_emoji_mix_shuffle_all), maxLines = 1) },
+            ticked = chosen.map { it.size == categories.size },
+            onTick = { slot -> onChange(slot, emptySet()) },
+        )
+        for (category in categories) {
+            ShuffleRow(
+                label = {
+                    SlotIcon(
+                        emojiTabSlot(category, mostUsed = false),
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    Text(emojiTabTitle(category, mostUsed = false), maxLines = 1)
+                },
+                ticked = chosen.map { category in it },
+                onTick = { slot ->
+                    val now = chosen[slot]
+                    val next = if (category in now) now - category else now + category
+                    // Never no category at all: the last tick stays.
+                    if (next.isNotEmpty()) onChange(slot, next)
+                },
+            )
+        }
+    }
+}
+
+private val ShuffleTickWidth = 56.dp
+
+/** A row of [ShuffleCategoriesMenu]: what it is, and a tick for each of the two emoji. */
+@Composable
+private fun ShuffleRow(
+    label: @Composable RowScope.() -> Unit,
+    ticked: List<Boolean>,
+    onTick: (Int) -> Unit,
+) {
+    Row(
+        Modifier.height(44.dp).padding(start = 16.dp, end = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, content = label)
+        for (slot in 0..1) {
+            val on = ticked[slot]
+            Box(
+                modifier = Modifier
+                    .width(ShuffleTickWidth)
+                    .height(44.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .clickable(role = Role.Checkbox) { onTick(slot) },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    if (on) Icons.Outlined.CheckBox else Icons.Outlined.CheckBoxOutlineBlank,
+                    contentDescription = stringResource(
+                        if (slot == 0) R.string.ime_emoji_mix_first_desc else R.string.ime_emoji_mix_second_desc,
+                    ),
+                    tint = if (on) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(22.dp),
+                )
+            }
+        }
     }
 }
 

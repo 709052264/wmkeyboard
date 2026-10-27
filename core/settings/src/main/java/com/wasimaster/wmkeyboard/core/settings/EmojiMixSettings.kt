@@ -37,6 +37,13 @@ data class EmojiMixSettings(
     /** Pairs the user starred, as `leftKey_rightKey`, newest first. */
     val favourites: List<String> = emptyList(),
     /**
+     * The emoji categories the panel's shuffle draws the first emoji from, by
+     * catalog name (`smileys`, `animals`…). Empty means every category.
+     */
+    val shuffleFirst: Set<String> = emptySet(),
+    /** The same for the second emoji. Empty means every category. */
+    val shuffleSecond: Set<String> = emptySet(),
+    /**
      * Bumped whenever an index file is rebuilt, imported or removed, so the
      * running keyboard reloads them. Not a preference; the trick
      * [EmojiSettings.keywordPackVersion] plays.

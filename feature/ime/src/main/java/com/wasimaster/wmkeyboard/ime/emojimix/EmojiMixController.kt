@@ -1,8 +1,11 @@
 package com.wasimaster.wmkeyboard.ime.emojimix
 
 import android.content.Context
+import com.wasimaster.wmkeyboard.core.emoji.EmojiCatalog
+import com.wasimaster.wmkeyboard.core.emoji.EmojiEntry
 import com.wasimaster.wmkeyboard.core.emoji.mix.EmojiMixer
 import com.wasimaster.wmkeyboard.core.emoji.mix.MixSeq
+import com.wasimaster.wmkeyboard.core.icons.IconSlots
 import com.wasimaster.wmkeyboard.core.media.MediaMime
 import com.wasimaster.wmkeyboard.core.settings.EmojiMixOrder
 import com.wasimaster.wmkeyboard.core.settings.EmojiMixSettings
@@ -13,6 +16,7 @@ import com.wasimaster.wmkeyboard.core.tools.GifSource
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.StickerOffer
 import com.wasimaster.wmkeyboard.ime.StickerOfferItem
+import com.wasimaster.wmkeyboard.ime.ui.RECENT_TAB
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -50,6 +54,7 @@ class EmojiMixController(
         fun endFetch()
         fun toast(message: Int)
         fun setFavourite(pairKey: String, starred: Boolean)
+        fun setShuffleCategories(slot: Int, categories: Set<String>)
         fun addToStickers(file: File, keywords: List<String>)
         fun saveToGallery(file: File)
         fun openPanel()
@@ -62,6 +67,13 @@ class EmojiMixController(
     private var sources: List<EmojiMixSource> = emptyList()
     private var loadedKey: Any? = null
     private var verifyJob: Job? = null
+
+    /** The catalog [places] was built from, so a new one rebuilds it. */
+    private var placesFor: List<EmojiEntry>? = null
+    private var placesCache: Map<String, CatalogPlace> = emptyMap()
+
+    /** Where an emoji sits in the emoji catalog: its place in the panel's order, and its category. */
+    private class CatalogPlace(val order: Int, val category: String)
 
     /** Whether a mix can be offered at all right now. */
     val usable: Boolean get() = mixer.usable
@@ -141,6 +153,8 @@ class EmojiMixController(
         val m = mixer
         val state = host.state
         val emoji = pickable(m, state)
+        val byTab = pickerTabs(emoji, state)
+        val tab = state.emojiMix.tab.takeIf { it in byTab } ?: byTab.keys.firstOrNull().orEmpty()
         val start = left?.takeIf { m.supports(it) }
             ?: state.emojiMix.left.takeIf { it.isNotEmpty() && m.supports(it) }
             ?: state.emojiRecents.firstOrNull { m.supports(it) }
@@ -151,6 +165,9 @@ class EmojiMixController(
                     usable = m.usable,
                     canList = m.canList,
                     emoji = emoji,
+                    tabs = byTab.keys.toList(),
+                    tab = tab,
+                    byTab = byTab,
                     previewsHeld = !host.previewsAllowed(),
                 ),
             )
@@ -159,19 +176,66 @@ class EmojiMixController(
         refreshFavourites(state.settings.emoji.mix)
     }
 
-    /** The emoji for the picker: what the indexes mix, or with only a mixer, the catalogue's. */
+    /**
+     * The emoji for the picker: what the indexes mix, or with only a mixer,
+     * the catalogue's. In the emoji panel's order, not the source's: a source
+     * may lead with an emoji that pairs with everything (the magic wand, whose
+     * mix redraws the other emoji in the old blob style), and at the front of
+     * the picker it looked like a button.
+     */
     private fun pickable(m: EmojiMixer, state: KeyboardUiState): List<String> {
-        if (m.canList) return m.supported()
-        return (state.emojiRecents + state.emojiCatalog.filter { it.parent.isNullOrEmpty() }.map { it.emoji })
-            .distinct()
-            .take(CATALOG_PICKER_LIMIT)
+        val places = places(state)
+        val raw = if (m.canList) m.supported() else state.emojiCatalog.filter { it.parent.isNullOrEmpty() }.map { it.emoji }
+        // One the catalog lacks goes last.
+        return raw.distinct().sortedBy { places[EmojiCatalog.matchKey(it)]?.order ?: Int.MAX_VALUE }
+    }
+
+    /** [emoji] by the picker's tabs: the recent ones first, then the categories in the emoji panel's order. */
+    private fun pickerTabs(emoji: List<String>, state: KeyboardUiState): Map<String, List<String>> {
+        val byKey = emoji.associateBy(EmojiCatalog::matchKey)
+        val tabs = LinkedHashMap<String, List<String>>()
+        val recent = state.emojiRecents.mapNotNull { byKey[EmojiCatalog.matchKey(it)] }.distinct()
+        if (recent.isNotEmpty()) tabs[RECENT_TAB] = recent
+        val grouped = emoji.groupBy { categoryOf(it, state) }
+        for (category in IconSlots.EMOJI_CATEGORIES + grouped.keys) {
+            grouped[category]?.let { tabs.putIfAbsent(category, it) }
+        }
+        return tabs
+    }
+
+    private fun categoryOf(emoji: String, state: KeyboardUiState): String =
+        places(state)[EmojiCatalog.matchKey(emoji)]?.category ?: OTHER_CATEGORY
+
+    private fun places(state: KeyboardUiState): Map<String, CatalogPlace> {
+        val catalog = state.emojiCatalog
+        if (catalog !== placesFor) {
+            placesFor = catalog
+            placesCache = HashMap<String, CatalogPlace>(catalog.size * 2).also { map ->
+                catalog.forEachIndexed { i, entry ->
+                    map.putIfAbsent(EmojiCatalog.matchKey(entry.emoji), CatalogPlace(i, entry.category))
+                }
+            }
+        }
+        return placesCache
+    }
+
+    /** A tab of the picker chosen. */
+    fun onTab(tab: String) {
+        host.publish { it.copy(emojiMix = it.emojiMix.copy(tab = tab)) }
     }
 
     /** An emoji picked in the panel's picker: it fills the slot the panel is on. */
     fun onPickEmoji(emoji: String) {
         host.haptic()
         val ui = host.state.emojiMix
-        if (ui.slot == 0 || ui.left.isEmpty()) setPair(emoji, ui.right, slot = 1) else setPair(ui.left, emoji, slot = 1)
+        if (ui.slot == 0) setPair(emoji, ui.right, slot = 1) else setPair(ui.left, emoji, slot = 1)
+    }
+
+    /** A slot's emoji taken out; the next pick fills that slot. */
+    fun onClearSlot(slot: Int) {
+        host.haptic()
+        val ui = host.state.emojiMix
+        if (slot == 0) setPair("", ui.right, slot = 0) else setPair(ui.left, "", slot = 1)
     }
 
     /** One of the two slots tapped: the next pick goes there. */
@@ -187,16 +251,50 @@ class EmojiMixController(
         setPair(ui.right, ui.left, ui.slot)
     }
 
-    /** A random emoji and one of its mixes, the way a shuffle button in such a panel works. */
+    /**
+     * A random emoji and one of its mixes, the way a shuffle button in such a
+     * panel works, each drawn from the categories the user ticked for its slot.
+     */
     fun onShuffle() {
         host.haptic()
         val m = mixer
-        val emoji = host.state.emojiMix.emoji
-        if (emoji.isEmpty()) return
-        val left = emoji.random()
-        val self = MixSeq.canonicalOf(left)
-        val partner = m.partners(left).randomOrNull()?.let { if (MixSeq.canonicalOf(it.left) == self) it.right else it.left }
-        setPair(left, partner ?: emoji.random(), slot = 1)
+        val state = host.state
+        val all = state.emojiMix.emoji
+        if (all.isEmpty()) return
+        val settings = state.settings.emoji.mix
+        fun allowed(emoji: String, categories: Set<String>) = categories.isEmpty() || categoryOf(emoji, state) in categories
+        val firsts = all.filter { allowed(it, settings.shuffleFirst) }.ifEmpty { all }
+        val seconds = all.filter { allowed(it, settings.shuffleSecond) }.ifEmpty { all }
+        // A few draws: a first emoji may mix with nothing in the second's categories.
+        repeat(SHUFFLE_TRIES) {
+            val left = firsts.random()
+            val partner = if (m.canList) {
+                val self = MixSeq.canonicalOf(left)
+                m.partners(left)
+                    .map { if (MixSeq.canonicalOf(it.left) == self) it.right else it.left }
+                    .filter { allowed(it, settings.shuffleSecond) }
+                    .randomOrNull()
+            } else {
+                seconds.random()
+            }
+            if (partner != null) {
+                setPair(left, partner, slot = 1)
+                return
+            }
+        }
+        setPair(firsts.random(), seconds.random(), slot = 1)
+    }
+
+    /**
+     * The categories the shuffle draws emoji [slot] from. Every category, or
+     * none, is stored as no choice at all, so a category a later source adds
+     * is in the draw.
+     */
+    fun onShuffleCategories(slot: Int, categories: Set<String>) {
+        host.haptic()
+        val available = host.state.emojiMix.tabs.filter { it != RECENT_TAB }.toSet()
+        val chosen = categories intersect available
+        host.setShuffleCategories(slot, if (chosen.containsAll(available)) emptySet() else chosen)
     }
 
     /** A mix in the panel tapped: send it. */
@@ -231,7 +329,9 @@ class EmojiMixController(
     private fun setPair(left: String, right: String, slot: Int) {
         val m = mixer
         val result = if (left.isNotEmpty() && right.isNotEmpty()) m.mix(left, right) else null
-        val mixes = if (left.isNotEmpty() && m.canList) ordered(m.partners(left), left) else emptyList()
+        // The grid lists the first emoji's mixes, or the second's while the first slot is empty.
+        val anchor = left.ifEmpty { right }
+        val mixes = if (anchor.isNotEmpty() && m.canList) ordered(m.partners(anchor), anchor) else emptyList()
         host.publish {
             it.copy(
                 emojiMix = it.emojiMix.copy(
@@ -248,7 +348,7 @@ class EmojiMixController(
         // A mixer no index backs: the pair is only real if its image is not the placeholder.
         verifyJob?.cancel()
         val unverified = listOfNotNull(result?.takeIf { !it.verified }) +
-            if (!m.canList && left.isNotEmpty()) mixerGuesses(left) else emptyList()
+            if (!m.canList && anchor.isNotEmpty()) mixerGuesses(anchor) else emptyList()
         if (unverified.isEmpty() || !host.previewsAllowed()) {
             if (result != null && !result.verified) host.publish { it.copy(emojiMix = it.emojiMix.copy(loading = false)) }
             return
@@ -344,7 +444,10 @@ class EmojiMixController(
 
     private companion object {
         const val OFFER_LIMIT = 40
-        const val CATALOG_PICKER_LIMIT = 600
+        const val SHUFFLE_TRIES = 8
+
+        /** The picker's tab for emoji the catalog has no category for. */
+        const val OTHER_CATEGORY = "other"
         const val MIXER_GUESSES = 12
     }
 }

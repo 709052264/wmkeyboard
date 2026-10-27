@@ -519,6 +519,12 @@
     <string name="ime_emoji_mix_none">No mix</string>
     <string name="ime_emoji_mix_swap_desc">Swap the two emoji</string>
     <string name="ime_emoji_mix_shuffle_desc">A random mix</string>
+    <string name="ime_emoji_mix_shuffle_hold_desc">Choose what the shuffle picks from</string>
+    <string name="ime_emoji_mix_shuffle_title">Shuffle from</string>
+    <string name="ime_emoji_mix_shuffle_first">First</string>
+    <string name="ime_emoji_mix_shuffle_second">Second</string>
+    <string name="ime_emoji_mix_shuffle_all">Every category</string>
+    <string name="ime_emoji_mix_clear_desc">Take this emoji out</string>
     <string name="ime_emoji_mix_previews_held">Data saver holds the pictures on this connection.</string>
     <string name="ime_emoji_mix_pick_first">Pick an emoji below.</string>
     <string name="ime_emoji_mix_pick_second">Pick a second emoji to try them together.</string>

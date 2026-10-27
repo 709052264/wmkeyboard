@@ -38,8 +38,17 @@ data class EmojiMixUi(
     val noMix: Boolean = false,
     /** Every mix of [left], in the order the settings ask for. */
     val mixes: List<EmojiMixCell> = emptyList(),
-    /** The emoji there are to pick from. */
+    /** The emoji there are to pick from, in the emoji catalog's order. */
     val emoji: List<String> = emptyList(),
+    /**
+     * The picker's tabs: recent emoji when any of them mix, then each emoji
+     * category that has an emoji here, in the emoji panel's order.
+     */
+    val tabs: List<String> = emptyList(),
+    /** The tab the picker shows. */
+    val tab: String = "",
+    /** Each tab's emoji. */
+    val byTab: Map<String, List<String>> = emptyMap(),
     /** The mixes the user starred, newest first. */
     val favourites: List<EmojiMixCell> = emptyList(),
     /** Previews wait: data saving holds them on this connection. */

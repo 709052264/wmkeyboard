@@ -11337,6 +11337,8 @@ class SettingsRepository(private val context: Context) {
         // Newline-joined: a pair is two keys and an underscore, never a newline.
         private val EMOJI_MIX_FAVOURITES = stringPreferencesKey("emoji_mix_favourites")
         private val EMOJI_MIX_INDEX_VERSION = intPreferencesKey("emoji_mix_index_version")
+        private val EMOJI_MIX_SHUFFLE_FIRST = stringSetPreferencesKey("emoji_mix_shuffle_first")
+        private val EMOJI_MIX_SHUFFLE_SECOND = stringSetPreferencesKey("emoji_mix_shuffle_second")
         /** `KaomojiStore.FILE_PATH`; spelled out, as this module does for the other stores. */
         private const val KAOMOJI_FILE = "kaomoji/kaomoji.json"
         private val EMOJI_KEYWORD_PACK_VERSION = intPreferencesKey("emoji_keyword_pack_version")
@@ -13728,6 +13730,8 @@ class SettingsRepository(private val context: Context) {
             cellSize = p[EMOJI_MIX_CELL_SIZE]?.coerceIn(EmojiMixCellSizeRange) ?: defaults.cellSize,
             autoRefresh = p[EMOJI_MIX_AUTO_REFRESH] ?: defaults.autoRefresh,
             favourites = p[EMOJI_MIX_FAVOURITES]?.split('\n')?.filter { it.isNotBlank() } ?: defaults.favourites,
+            shuffleFirst = p[EMOJI_MIX_SHUFFLE_FIRST] ?: defaults.shuffleFirst,
+            shuffleSecond = p[EMOJI_MIX_SHUFFLE_SECOND] ?: defaults.shuffleSecond,
             indexVersion = p[EMOJI_MIX_INDEX_VERSION] ?: defaults.indexVersion,
         )
 
@@ -21878,6 +21882,20 @@ class SettingsRepository(private val context: Context) {
             val now = prefs[EMOJI_MIX_FAVOURITES]?.split('\n')?.filter { it.isNotBlank() }.orEmpty()
             val next = (if (starred) listOf(pair) else emptyList()) + now.filter { it != pair }
             prefs[EMOJI_MIX_FAVOURITES] = next.take(EmojiMixFavouritesMax).joinToString("\n")
+        }
+
+    /**
+     * The categories the Mixes panel's shuffle picks emoji [slot] (0 the
+     * first, 1 the second) from; empty for every category.
+     */
+    suspend fun setEmojiMixShuffleCategories(slot: Int, categories: Set<String>) =
+        editPrefs {
+            val key = if (slot == 0) EMOJI_MIX_SHUFFLE_FIRST else EMOJI_MIX_SHUFFLE_SECOND
+            if (categories.isEmpty()) {
+                it.remove(key)
+            } else {
+                it[key] = categories
+            }
         }
 
     /** Tells the running keyboard that an emoji-mix index file changed under it. */

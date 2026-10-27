@@ -14676,21 +14676,14 @@ private fun KeyboardBody(
                     }
                 }
                 // Emoji mixes: laid out like the GIF and sticker panels, the
-                // switch and the keys around the mixes.
+                // switch and the keys around the mixes. The header holds the
+                // picker's category tabs, where those panels have their search.
                 PanelMode.EMOJI_MIX -> MediaPanelHost(
                     state,
                     panelCallbacks,
-                    headerSearch = {
-                        Text(
-                            stringResource(R.string.ime_tool_emoji_mix),
-                            color = LocalKbTheme.current.toolbarIcon,
-                            fontSize = 15.sp,
-                            maxLines = 1,
-                            modifier = Modifier.weight(1f).padding(horizontal = 12.dp),
-                        )
-                    },
-                ) { _, _, switcher ->
-                    EmojiMixPanel(state, toolHold.emojiMix, switcher)
+                    headerSearch = { EmojiMixTabs(state, toolHold.emojiMix.onTab, Modifier.weight(1f)) },
+                ) { fullBleed, _, switcher ->
+                    EmojiMixPanel(state, toolHold.emojiMix, switcher, tabsInside = !fullBleed)
                 }
                 // Image search is this panel's Images tab (#879); the service
                 // never leaves IMAGE_SEARCH up, but it draws the same if it did.
