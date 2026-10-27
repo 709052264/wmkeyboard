@@ -17473,6 +17473,59 @@ private fun spacebarArrowsShown(state: KeyboardUiState): Boolean {
 }
 
 /**
+ * The spacebar's face between its language-cycle arrows. The arrows go first
+ * when the key is too narrow for all three: a short spacebar (a symbols layer,
+ * a split half) kept the arrows and ellipsized its own legend down to nothing.
+ */
+@Composable
+private fun SpacebarArrowsRow(
+    showArrows: Boolean,
+    tint: Color,
+    arrowSize: Dp,
+    content: @Composable RowScope.() -> Unit,
+) {
+    val face = @Composable {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            content = content,
+        )
+    }
+    if (!showArrows) {
+        face()
+        return
+    }
+    Layout(
+        content = {
+            Icon(Icons.AutoMirrored.Outlined.ArrowLeft, null, tint = tint, modifier = Modifier.size(arrowSize))
+            face()
+            Icon(Icons.AutoMirrored.Outlined.ArrowRight, null, tint = tint, modifier = Modifier.size(arrowSize))
+        },
+    ) { (left, middle, right), constraints ->
+        val gap = 6.dp.roundToPx()
+        val loose = constraints.copy(minWidth = 0, minHeight = 0)
+        val leftP = left.measure(loose)
+        val rightP = right.measure(loose)
+        val arrowsWidth = leftP.width + rightP.width + gap * 2
+        val fits = middle.maxIntrinsicWidth(constraints.maxHeight) + arrowsWidth <= constraints.maxWidth
+        val middleP = middle.measure(
+            if (fits) loose.copy(maxWidth = (constraints.maxWidth - arrowsWidth).coerceAtLeast(0)) else loose,
+        )
+        val width = if (fits) middleP.width + arrowsWidth else middleP.width
+        val height = maxOf(middleP.height, if (fits) maxOf(leftP.height, rightP.height) else 0)
+        layout(width, height) {
+            if (fits) {
+                leftP.place(0, (height - leftP.height) / 2)
+                middleP.place(leftP.width + gap, (height - middleP.height) / 2)
+                rightP.place(width - rightP.width, (height - rightP.height) / 2)
+            } else {
+                middleP.place(0, (height - middleP.height) / 2)
+            }
+        }
+    }
+}
+
+/**
  * Every key on the board, resolved in one pass: the digit row (null when it is
  * not shown) and the body blocks, each with its own height and centring pad.
  *
@@ -26954,17 +27007,11 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                     softWrap = false,
                 )
             } else if (showText || namedIcon != null) {
-                val showArrows = visual.spaceArrows
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                SpacebarArrowsRow(
+                    showArrows = visual.spaceArrows,
+                    tint = contentColor.copy(alpha = 0.35f),
+                    arrowSize = (14 * fontScale).dp,
                 ) {
-                    if (showArrows) Icon(
-                        Icons.AutoMirrored.Outlined.ArrowLeft,
-                        contentDescription = null,
-                        tint = contentColor.copy(alpha = 0.35f),
-                        modifier = Modifier.size((14 * fontScale).dp),
-                    )
                     if (namedIcon != null) {
                         // Beside the name it is read at the name's weight; alone
                         // it is the key's face, like an icon on any other key.
@@ -26988,12 +27035,6 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                     // Issue #752: the speed of the last few words, on its own
                     // scope, so a new reading redraws this text and nothing else.
                     if (showText) SpacebarLiveWpm(contentColor, fontScale)
-                    if (showArrows) Icon(
-                        Icons.AutoMirrored.Outlined.ArrowRight,
-                        contentDescription = null,
-                        tint = contentColor.copy(alpha = 0.35f),
-                        modifier = Modifier.size((14 * fontScale).dp),
-                    )
                 }
             }
         }
