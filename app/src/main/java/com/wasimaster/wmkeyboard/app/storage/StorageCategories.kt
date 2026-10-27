@@ -84,6 +84,7 @@ import com.wasimaster.wmkeyboard.core.tools.yomichan.YomichanDictionaries
 import com.wasimaster.wmkeyboard.core.vocab.VocabDownloadManager
 import com.wasimaster.wmkeyboard.core.vocab.VocabPacks
 import com.wasimaster.wmkeyboard.core.voice.StrongDenoise
+import com.wasimaster.wmkeyboard.core.voice.vad.VadModels
 import com.wasimaster.wmkeyboard.core.voice.punctuation.DictationPunctuation
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtCatalog
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtDownloadManager
@@ -270,6 +271,7 @@ internal object StorageCategories {
     private const val ET_ITEM_PREFIX = "et:"
     private const val MMS_ITEM_PREFIX = "mms:"
     private const val DENOISE_ITEM_ID = "denoise"
+    private const val VAD_ITEM_ID = "vad"
     private const val PUNCTUATION_ITEM_ID = "punctuation"
 
     fun byId(id: String): StorageCategory? = all.firstOrNull { it.id == id }
@@ -508,7 +510,7 @@ internal object StorageCategories {
                     WhistleModelStore.rootDir(it.files),
                 ) + EtEngine.entries.map { engine -> EtStore.rootDir(it.files, engine) } +
                     MmsVoices.rootDir(it.files) + StrongDenoise.rootDir(it.files) +
-                    DictationPunctuation.rootDir(it.files)
+                    DictationPunctuation.rootDir(it.files) + VadModels.rootDir(it.files)
             },
             itemsOf = { env ->
                 childrenOf(WhisperStore.rootDir(env.roots.files)).map { dir ->
@@ -558,6 +560,15 @@ internal object StorageCategories {
                             files = listOf(dir),
                         )
                     },
+                    // The phrase end detectors' models (#976) and an imported one.
+                    VadModels.rootDir(env.roots.files).takeIf { it.isDirectory }?.let { dir ->
+                        StorageItem(
+                            id = VAD_ITEM_ID,
+                            label = "Phrase end detectors (Silero, FireRedVAD, Smart Turn)",
+                            bytes = diskUsage(dir, env.roots.blockSize),
+                            files = listOf(dir),
+                        )
+                    },
                 ) + childrenOf(MmsVoices.rootDir(env.roots.files)).map { dir ->
                     // Read back's offline voices, one folder per language code.
                     StorageItem(
@@ -575,6 +586,8 @@ internal object StorageCategories {
                     StrongDenoise.delete(env.roots.files)
                 } else if (item.id == PUNCTUATION_ITEM_ID) {
                     DictationPunctuation.delete(env.roots.files)
+                } else if (item.id == VAD_ITEM_ID) {
+                    VadModels.deleteAll(env.roots.files)
                 } else if (item.id.startsWith(ET_ITEM_PREFIX)) {
                     EtCatalog.byId(item.id.removePrefix(ET_ITEM_PREFIX))
                         ?.let { EtDownloadManager.delete(env.roots.files, it) }
@@ -598,6 +611,7 @@ internal object StorageCategories {
                 emptyOut(MmsVoices.rootDir(env.roots.files))
                 StrongDenoise.delete(env.roots.files)
                 DictationPunctuation.delete(env.roots.files)
+                VadModels.deleteAll(env.roots.files)
             },
         ),
         StorageCategory(

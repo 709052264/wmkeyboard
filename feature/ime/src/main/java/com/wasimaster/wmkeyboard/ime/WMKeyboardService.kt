@@ -722,6 +722,8 @@ import com.wasimaster.wmkeyboard.core.voice.punctuation.DictationPunctuation
 import com.wasimaster.wmkeyboard.core.voice.sherpa.OmnilingualEngine
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaEngine
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative
+import com.wasimaster.wmkeyboard.core.voice.vad.SmartTurn
+import com.wasimaster.wmkeyboard.core.voice.vad.VoiceVad
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleEngine
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleLanguages
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelStore
@@ -9566,6 +9568,8 @@ open class WMKeyboardService : InputMethodService() {
         }
         // Strong noise reduction's idle model; a clip recording now keeps its own.
         StrongDenoise.release()
+        // Smart Turn's model; the next pause opens it again.
+        SmartTurn.release()
         // Reloads on the next translation; the panel's state is untouched.
         if (translateEngineLoaded) OfflineTranslation.release()
         // Vocabulary cards: read back from the pack files on demand.
@@ -31400,19 +31404,24 @@ open class WMKeyboardService : InputMethodService() {
         if (engine.onnx) SherpaNative.dispatcher else EtNative.dispatcher
 
     /**
-     * A fresh streaming utterance on [model]. Sherpa and Omnilingual end it by
-     * themselves after the pause set in "Stop after a pause". Sherpa listens
-     * for [words] ([liveBias]). On [liveDispatcher] only.
+     * A fresh streaming utterance on [model], which ends by itself after the
+     * pause set in "Stop after a pause", heard by the phrase end detector the
+     * user picked (#976). Sherpa listens for [words] ([liveBias]). On
+     * [liveDispatcher] only.
      */
-    private fun newLiveStream(model: EtModel, words: List<String>): VoiceStream = when (model.engine) {
-        EtEngine.SHERPA -> SherpaEngine.newStream(filesDir, model, _uiState.value.settings.voiceBar.silenceStopMs, words)
-        EtEngine.OMNILINGUAL -> OmnilingualEngine.newStream(
-            filesDir,
-            model,
-            _uiState.value.settings.voiceBar.silenceStopMs,
-            voiceLanguageIds(),
-        )
-        else -> Asr4AllEngine.newStream(filesDir, model)
+    private fun newLiveStream(model: EtModel, words: List<String>): VoiceStream {
+        val settings = _uiState.value.settings
+        val pauseMs = settings.voiceBar.silenceStopMs
+        val vad = VoiceVad.Setup(settings.whisper.vad, settings.whisper.vadThreshold, settings.whisper.smartTurn)
+        return when (model.engine) {
+            EtEngine.SHERPA -> SherpaEngine.newStream(filesDir, model, pauseMs, words, vad)
+            EtEngine.OMNILINGUAL -> OmnilingualEngine.newStream(filesDir, model, pauseMs, voiceLanguageIds(), vad)
+            // Its model carries no Silero; the detector picks from what is here.
+            else -> VoiceVad.endpointed(
+                Asr4AllEngine.newStream(filesDir, model),
+                VoiceVad.phraseEnd(filesDir, vad, null, pauseMs),
+            )
+        }
     }
 
     /**
@@ -31717,7 +31726,10 @@ open class WMKeyboardService : InputMethodService() {
         // at a pause, and nothing said after the window is lost, so there is
         // nothing to count down to either.
         val rolls = !live && voiceChains()
-        val silenceStopMs = _uiState.value.settings.voiceBar.silenceStopMs
+        // An engine that decodes as it hears ends the clip by its own phrase
+        // end detector (#976); the recorder's loudness stop would cut in
+        // ahead of a model the user picked over it.
+        val silenceStopMs = if (live) 0 else _uiState.value.settings.voiceBar.silenceStopMs
         val denoiseLevel = _uiState.value.settings.whisper.denoise
         val setup = CaptureSetup(
             mic = mic,
@@ -31855,8 +31867,9 @@ open class WMKeyboardService : InputMethodService() {
      * stream, and what it has heard so far goes on the line under the
      * microphone. When the clip ends, [finishAsr4All] needs only decode the
      * last moment. A model that will not load is left for [finishAsr4All] to
-     * report. Sherpa also hears the phrase end (Silero), and ends the clip
-     * there the way the recorder's own silence stop would.
+     * report. The stream also hears the phrase end (the detector picked in
+     * settings, #976), and ends the clip there the way the recorder's own
+     * silence stop does for the engines that record a whole clip.
      *
      * In block voice typing the words also go into the field as composing
      * text, underlined and rewritten as they grow, exactly like the system

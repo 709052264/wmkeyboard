@@ -463,6 +463,16 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                 scope.launch { repository.setVoiceSilenceStopMs((picked / 250f).roundToInt() * 250) }
             }
         }
+        // Only the engines that decode as they hear end a phrase by a detector
+        // of their own (#976); the others keep the recorder's loudness stop.
+        val liveListed = etListed.any {
+            it == com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine.ASR4ALL ||
+                it == com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine.SHERPA ||
+                it == com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine.OMNILINGUAL
+        }
+        if (liveListed) item(level = SettingLevel.ADVANCED) {
+            VoicePhraseEndSetting(repository, settings, scope)
+        }
         if (typingMode != com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.TYPING_PLAIN) item {
             ToggleSetting(
                 R.string.voice_punctuation_title,

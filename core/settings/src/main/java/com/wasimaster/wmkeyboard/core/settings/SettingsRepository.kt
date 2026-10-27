@@ -60,6 +60,7 @@ import com.wasimaster.wmkeyboard.core.prediction.SuggestionEngine
 import com.wasimaster.wmkeyboard.core.prediction.SlipFixes
 import com.wasimaster.wmkeyboard.core.prediction.UndoMemory
 import com.wasimaster.wmkeyboard.core.voice.VoiceDenoise
+import com.wasimaster.wmkeyboard.core.voice.vad.VoiceVad
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCompute
 import com.wasimaster.wmkeyboard.prediction.R as PredictionR
 import com.wasimaster.wmkeyboard.core.snippets.MultiExpandMode
@@ -6181,6 +6182,29 @@ data class WhisperSettings(
      */
     val denoise: String = VoiceDenoise.OFF,
     /**
+     * Phrase end detector (#976): how the engines that decode while the user
+     * speaks (Asr4All, Sherpa, Omnilingual) hear the pause in "Stop after a
+     * pause", and where Omnilingual cuts its phrases. One of
+     * [VoiceVad.CHOICES]: [VoiceVad.AUTO] (Silero where it can run, else
+     * loudness), Silero, FireRedVAD, loudness alone, or a model the user
+     * imported. The engines that record a whole clip keep the recorder's own
+     * loudness stop.
+     */
+    val vad: String = VoiceVad.AUTO,
+    /**
+     * The detector's speech threshold, [VoiceVad.THRESHOLD_RANGE]: the
+     * probability a model must give a frame for it to count as speech, and
+     * for loudness, how loud (0.5 is the recorder's own level). Lower hears
+     * softer speech and keeps going through noise; higher stops sooner.
+     */
+    val vadThreshold: Float = VoiceVad.DEFAULT_THRESHOLD,
+    /**
+     * Smart Turn: at each pause, ask a model whether the speaker sounds
+     * finished, and end the phrase then if so; otherwise the whole pause is
+     * waited out. Needs its model and ONNX Runtime; off by default.
+     */
+    val smartTurn: Boolean = false,
+    /**
      * Add punctuation and capitals: full stops, commas, question marks and
      * sentence capitals for the offline engines that write bare words
      * (`DictationPunctuation` in `:core:voice`). On by default; it only acts
@@ -11455,6 +11479,9 @@ class SettingsRepository(private val context: Context) {
         // A switch before the level: on read as Light, the only level it had.
         private val VOICE_DENOISE = booleanPreferencesKey("voice_denoise")
         private val VOICE_DENOISE_LEVEL = stringPreferencesKey("voice_denoise_level")
+        private val VOICE_VAD = stringPreferencesKey("voice_vad")
+        private val VOICE_VAD_THRESHOLD = floatPreferencesKey("voice_vad_threshold")
+        private val VOICE_SMART_TURN = booleanPreferencesKey("voice_smart_turn")
         private val VOICE_PUNCTUATE = booleanPreferencesKey("voice_punctuate")
         private val VOICE_SERVER_URL = stringPreferencesKey("voice_server_url")
         private val VOICE_SERVER_KEY = stringPreferencesKey("voice_server_key")
@@ -13876,6 +13903,9 @@ class SettingsRepository(private val context: Context) {
             denoise = p[VOICE_DENOISE_LEVEL]?.takeIf { it in VoiceDenoise.LEVELS }
                 ?: p[VOICE_DENOISE]?.let { if (it) VoiceDenoise.LIGHT else VoiceDenoise.OFF }
                 ?: defaults.whisper.denoise,
+            vad = p[VOICE_VAD]?.takeIf { it in VoiceVad.CHOICES } ?: defaults.whisper.vad,
+            vadThreshold = p[VOICE_VAD_THRESHOLD]?.coerceIn(VoiceVad.THRESHOLD_RANGE) ?: defaults.whisper.vadThreshold,
+            smartTurn = p[VOICE_SMART_TURN] ?: defaults.whisper.smartTurn,
             punctuate = p[VOICE_PUNCTUATE] ?: defaults.whisper.punctuate,
             serverUrl = p[VOICE_SERVER_URL] ?: defaults.whisper.serverUrl,
             serverKey = p[VOICE_SERVER_KEY] ?: defaults.whisper.serverKey,
@@ -15429,6 +15459,15 @@ class SettingsRepository(private val context: Context) {
             it[VOICE_DENOISE_LEVEL] = value
             it.remove(VOICE_DENOISE)
         }
+
+    suspend fun setVoiceVad(value: String) =
+        editPrefs { it[VOICE_VAD] = value }
+
+    suspend fun setVoiceVadThreshold(value: Float) =
+        editPrefs { it[VOICE_VAD_THRESHOLD] = value.coerceIn(VoiceVad.THRESHOLD_RANGE) }
+
+    suspend fun setVoiceSmartTurn(value: Boolean) =
+        editPrefs { it[VOICE_SMART_TURN] = value }
 
     suspend fun setVoicePunctuate(value: Boolean) =
         editPrefs { it[VOICE_PUNCTUATE] = value }

@@ -727,6 +727,25 @@ private val bundledAttributions: List<Attribution> = buildList {
                 "https://github.com/snakers4/silero-vad",
             ),
         )
+        // Phrase end detector (#976): models the phone downloads on request.
+        add(
+            Attribution(
+                "FireRedVAD",
+                R.string.about_bundled_firered_vad_used,
+                "Copyright 2026 Xiaohongshu (FireRedTeam)",
+                "Apache-2.0", "apache-2.0.txt",
+                "https://github.com/FireRedTeam/FireRedVAD",
+            ),
+        )
+        add(
+            Attribution(
+                "Smart Turn",
+                R.string.about_bundled_smart_turn_used,
+                "Copyright (c) 2024-2025, Daily",
+                "BSD-2-Clause", "bsd-2-clause-smart-turn.txt",
+                "https://github.com/pipecat-ai/smart-turn",
+            ),
+        )
     }
     add(
         Attribution(
