@@ -200,6 +200,8 @@
     <string name="keypress_custom_repeat_title">Repeating key interval</string>
     <string name="keypress_custom_repeat_subtitle">How fast a key you set to repeat fires while you hold it</string>
     <string name="keypress_custom_repeat_info">This is the speed of the keys you turned Repeat while held on for in the key layout editor, such as a row of arrow keys. Delete and space keep their own speeds above. Lower values repeat faster.</string>
+    <string name="keypress_flicks_repeat_title">Hold a flick to repeat it</string>
+    <string name="keypress_flicks_repeat_subtitle">A letter flicked out and held there types again and again until you lift, at the repeating key interval</string>
 
     <string name="keypress_caps_lock_title">Caps lock double press</string>
     <string name="keypress_caps_lock_subtitle">How fast a second press of shift turns on caps lock</string>

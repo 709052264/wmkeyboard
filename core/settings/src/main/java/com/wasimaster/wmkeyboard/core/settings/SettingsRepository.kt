@@ -566,6 +566,12 @@ data class KeyRepeatSettings(
      */
     val customKeyMs: Int = 50,
     /**
+     * A flick arm that types held out past the repeat delay types again and
+     * again until the finger lifts, at [customKeyMs] (#970), the way a held
+     * arrow or delete arm already repeats. Off: an arm types once, on the lift.
+     */
+    val flicksRepeat: Boolean = false,
+    /**
      * How long a key is held before it starts repeating.
      *
      * Its own value rather than [KeyboardSettings.longPressDelayMs], which is
@@ -11122,6 +11128,7 @@ class SettingsRepository(private val context: Context) {
         private val KEY_REPEAT_WORD_DELETE = intPreferencesKey("key_repeat_word_delete")
         private val KEY_REPEAT_SPACE = intPreferencesKey("key_repeat_space")
         private val KEY_REPEAT_CUSTOM = intPreferencesKey("key_repeat_custom")
+        private val KEY_REPEAT_FLICKS = booleanPreferencesKey("key_repeat_flicks")
         private val KEY_REPEAT_START_DELAY = intPreferencesKey("key_repeat_start_delay")
         private val LONG_PRESS_HINTS = booleanPreferencesKey("long_press_hints")
         private val LONG_PRESS_A_SELECT_ALL = booleanPreferencesKey("long_press_a_select_all")
@@ -13275,6 +13282,7 @@ class SettingsRepository(private val context: Context) {
             spaceMs = p[KEY_REPEAT_SPACE] ?: p[KEY_REPEAT_INTERVAL]
                 ?: defaults.keyRepeat.spaceMs,
             customKeyMs = p[KEY_REPEAT_CUSTOM] ?: defaults.keyRepeat.customKeyMs,
+            flicksRepeat = p[KEY_REPEAT_FLICKS] ?: defaults.keyRepeat.flicksRepeat,
             startDelayMs = p[KEY_REPEAT_START_DELAY] ?: defaults.keyRepeat.startDelayMs,
         )
 
@@ -21383,6 +21391,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setCustomKeyRepeatIntervalMs(value: Int) =
         editPrefs { it[KEY_REPEAT_CUSTOM] = value.coerceIn(20, 200) }
+
+    suspend fun setFlicksRepeat(value: Boolean) =
+        editPrefs { it[KEY_REPEAT_FLICKS] = value }
 
     suspend fun setKeyRepeatStartDelayMs(value: Int) =
         editPrefs { it[KEY_REPEAT_START_DELAY] = value.coerceIn(150, 800) }

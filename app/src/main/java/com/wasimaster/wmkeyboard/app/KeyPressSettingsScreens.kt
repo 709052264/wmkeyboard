@@ -1124,6 +1124,14 @@ internal fun KeyPressSettings(
                 default = SettingsDefaults.keyRepeat.customKeyMs.toFloat(),
             ) { scope.launch { repository.setCustomKeyRepeatIntervalMs(it.toInt()) } }
         }
+        item(level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.keypress_flicks_repeat_title,
+                stringResource(R.string.keypress_flicks_repeat_subtitle),
+                settings.watch { it.keyRepeat.flicksRepeat },
+                default = SettingsDefaults.keyRepeat.flicksRepeat,
+            ) { scope.launch { repository.setFlicksRepeat(it) } }
+        }
         item(level = SettingLevel.STANDARD) {
             SliderSetting(
                 R.string.keypress_caps_lock_title,

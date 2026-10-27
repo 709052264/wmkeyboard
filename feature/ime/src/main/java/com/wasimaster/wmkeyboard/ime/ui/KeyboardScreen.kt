@@ -28821,8 +28821,14 @@ private fun Modifier.pointerInputKey(
                                 onKeyHaptic()
                             }
                             armRepeat?.cancel()
-                            armRepeat = dir?.let { key.flickKey(it) }?.takeIf { it.flickArmRepeats() }?.let { arm ->
+                            // A typing arm too, when the user asked for held
+                            // flicks to repeat (#970).
+                            val typingArm: (Key) -> Boolean = { arm ->
+                                keyRepeat.flicksRepeat && arm.action == KeyAction.Text
+                            }
+                            armRepeat = dir?.let { key.flickKey(it) }?.takeIf { it.flickArmRepeats() || typingArm(it) }?.let { arm ->
                                 val intervalMs = when {
+                                    typingArm(arm) -> keyRepeat.customKeyMs
                                     arm.action is KeyAction.Edit && !arm.action.deletesBackward() &&
                                         !arm.action.deletesForward() -> textEditing.repeatMs
                                     else -> keyRepeat.deleteMs
