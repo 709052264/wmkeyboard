@@ -499,6 +499,7 @@ import com.wasimaster.wmkeyboard.ime.ui.SymbolRowAction
 import com.wasimaster.wmkeyboard.ime.ui.activeSymbolSet
 import com.wasimaster.wmkeyboard.ime.ui.trimMediaImageMemory
 import com.wasimaster.wmkeyboard.ime.ui.keyboardHintPlan
+import com.wasimaster.wmkeyboard.ime.ui.keyRowsUnderPanel
 import com.wasimaster.wmkeyboard.ime.ui.functionKeysPressToolbar
 import com.wasimaster.wmkeyboard.ime.ui.suggestionDisplayOrder
 import com.wasimaster.wmkeyboard.ime.ui.visibleEmojiBarItems
@@ -8965,8 +8966,13 @@ open class WMKeyboardService : InputMethodService() {
         _uiState.update { it.copy(autofillChips = emptyList(), smartReplyChips = emptyList()) }
     }
 
-    /** The hide-keyboard tool and the toolbar swipe-down: close the keyboard. */
+    /**
+     * The hide-keyboard tool and the toolbar and spacebar swipe-downs: close
+     * the keyboard. With a tool field's keys up under its panel, only those
+     * go down (#961), and the panel stays to be read.
+     */
     fun onHideKeyboard() {
+        if (lowerCaptureKeys()) return
         requestHideSelf(0)
     }
 
@@ -11510,6 +11516,8 @@ open class WMKeyboardService : InputMethodService() {
         val key = state.panelFieldKey() ?: return
         if (state.panelFieldTarget()?.handsKeysToApp != true) return
         vibrate()
+        // Either way the rows come back up (#961): the switch is about where they type.
+        if (state.captureKeysLowered) _uiState.update { it.copy(captureLowered = null) }
         if (state.captureHandedToApp) {
             takeCaptureKeysBack()
             return
@@ -11531,6 +11539,46 @@ open class WMKeyboardService : InputMethodService() {
         _uiState.update { it.copy(captureToApp = null) }
     }
 
+    /**
+     * Whether a tool field has its key rows up under the panel, so they can be
+     * put down (#961). What Back, the hide-keyboard gestures and the strip's
+     * button all ask before they do anything else.
+     */
+    private fun captureKeysLowerable(state: KeyboardUiState): Boolean =
+        state.panel != PanelMode.NONE && state.panelFieldTarget()?.lowersKeys == true &&
+            keyRowsUnderPanel(state)
+
+    /**
+     * The tool field's key rows go down (#961) and the panel takes their
+     * height back, so what it holds can be seen: a translation, the clips a
+     * search found. The field keeps its text and its caret, and a tap on it
+     * brings the rows up again. False when no field had rows up.
+     *
+     * The media panels' search boxes (Translate, GIFs, Wikipedia, the web
+     * search) have always had a box that holds a query without being typed
+     * into, and their panels draw their results around that state, so they
+     * go back to it; every other field is marked put down, the way the focus
+     * switch marks one (#665).
+     */
+    private fun lowerCaptureKeys(): Boolean {
+        val state = _uiState.value
+        if (!captureKeysLowerable(state)) return false
+        val key = state.panelFieldKey() ?: return false
+        // A dictation would go on with nothing on screen to say it is listening.
+        if (state.voice.field == key) endFieldVoice()
+        if (state.panelFieldTarget() == CaptureTarget.MEDIA_SEARCH) {
+            _uiState.update { it.copy(mediaSearchActive = false) }
+        } else {
+            _uiState.update { it.copy(captureLowered = key) }
+        }
+        return true
+    }
+
+    /** The button at the end of a tool field's strip (#961). */
+    fun onCaptureKeysLower() {
+        if (lowerCaptureKeys()) vibrate()
+    }
+
     /** The caret put where a tap landed in the field's text. */
     fun onCaptureCaretTap(index: Int) {
         // A tap on a tool field that handed its keys to the app is a tap to
@@ -11539,6 +11587,9 @@ open class WMKeyboardService : InputMethodService() {
             takeCaptureKeysBack()
             return
         }
+        // A field whose keys were put down brings them up (#961), and the
+        // caret goes where the tap landed, as on any field.
+        if (_uiState.value.captureKeysLowered) _uiState.update { it.copy(captureLowered = null) }
         val state = _uiState.value
         val target = state.captureTarget() ?: return
         if (!target.movableCaret) return
@@ -11560,6 +11611,7 @@ open class WMKeyboardService : InputMethodService() {
             takeCaptureKeysBack()
             return
         }
+        if (_uiState.value.captureKeysLowered) _uiState.update { it.copy(captureLowered = null) }
         val state = _uiState.value
         val target = state.captureTarget() ?: return
         if (!target.movableCaret) return
@@ -11953,6 +12005,15 @@ open class WMKeyboardService : InputMethodService() {
                 .map { it.panelFieldKey() == null && it.captureToApp != null }
                 .distinctUntilChanged()
                 .collect { stale -> if (stale) _uiState.update { it.copy(captureToApp = null) } }
+        }
+        // Keys put down (#961) are about the box they were put down from too:
+        // focus another box, or close this one, and the next box opens with
+        // its keys up.
+        serviceScope.launch {
+            _uiState
+                .map { it.captureLowered != null && it.captureLowered != it.panelFieldKey() }
+                .distinctUntilChanged()
+                .collect { stale -> if (stale) _uiState.update { it.copy(captureLowered = null) } }
         }
     }
 
@@ -29966,8 +30027,9 @@ open class WMKeyboardService : InputMethodService() {
                 // A fresh open reads the text again (see [scanForLearning]).
                 learnFromText = if (next == PanelMode.LEARN_FROM_TEXT) LearnFromTextUi() else null,
                 textEditSelecting = false,
-                // Every tool's fields open with the keys (#665).
+                // Every tool's fields open with the keys (#665), and up (#961).
                 captureToApp = null,
+                captureLowered = null,
                 emojiSearchActive = false,
                 emojiQuery = "",
                 emojiResults = emptyList(),
@@ -35545,6 +35607,7 @@ open class WMKeyboardService : InputMethodService() {
             onKdeSend = ::kdeSendComposed,
             onVoice = ::onCaptureVoice,
             onFocusSwitch = ::onCaptureFocusSwitch,
+            onKeysLower = ::onCaptureKeysLower,
             onEmojiQueryClear = ::onEmojiQueryClear,
         )
     }
@@ -50389,6 +50452,14 @@ open class WMKeyboardService : InputMethodService() {
             // The spelling bar is the innermost layer of all: back leaves the
             // respelling and puts the word card that opened it up again.
             state.wordSpellActive -> ({ cancelWordSpell() })
+            // A tool field's key rows go down before anything of the tool
+            // closes (#961): the box keeps its text and the panel shows what
+            // it holds. The next Back does what it always did. Not the chat
+            // composer or a plugin's box, whose own Back below already puts
+            // the keys away and keeps what was typed.
+            state.panelFieldTarget() != CaptureTarget.AI_CHAT &&
+                state.panelFieldTarget() != CaptureTarget.PLUGIN &&
+                captureKeysLowerable(state) -> ({ lowerCaptureKeys() })
             // Inner layers close before their panel, like the media sheet: a
             // half-typed AI instruction backs out to the action list, and a
             // focused plugin box gives the keys back, both leaving the panel up.

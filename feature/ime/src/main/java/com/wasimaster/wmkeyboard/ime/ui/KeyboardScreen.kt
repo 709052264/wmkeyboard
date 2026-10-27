@@ -142,6 +142,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ChevronRight
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCut
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardArrowDown
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardArrowUp
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardHide
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DragHandle
@@ -13506,7 +13507,8 @@ internal val FullBleedHeaderHeight = 46.dp
  * "Everything else" is the rows above the panel when it is not standing in
  * for them, the key rows and their strip when one of the keyboard's own
  * fields has them under the panel ([keyRowsUnderPanel]), and the padding
- * under the lot.
+ * under the lot. A field whose keys were put down (#961) adds their rows to
+ * the panel instead.
  */
 @Composable
 internal fun toolPanelHeight(state: KeyboardUiState, wanted: Dp, floor: Dp): Dp {
@@ -13515,7 +13517,11 @@ internal fun toolPanelHeight(state: KeyboardUiState, wanted: Dp, floor: Dp): Dp 
     val around = (if (rowsStandIn) 0.dp else fullBleedHiddenRows(state, macroRowAtPanelOpen(state))) +
         (if (keyRowsUnderPanel(state)) keyRowsHeight(state) + captureStripHeight(state) else 0.dp) +
         bottomPaddingDp(state.settings).dp
-    return fitToolPanelHeight(wanted, floor, LocalConfiguration.current.screenHeightDp.dp, around)
+    // Keys put down (#961): the panel takes their rows, so the keyboard keeps
+    // its height and what the tool holds gets the room. The field's strip
+    // comes back the same way, through [captureStripHeight] going to zero.
+    val lowered = if (state.captureKeysLowered) keyRowsHeight(state) else 0.dp
+    return fitToolPanelHeight(wanted + lowered, floor + lowered, LocalConfiguration.current.screenHeightDp.dp, around)
 }
 
 /**
@@ -13578,6 +13584,8 @@ internal fun captureStripShown(state: KeyboardUiState): Boolean {
     // The tool's field, keys or not: the focus switch (#665) leaves the row
     // standing, empty, rather than resizing the panel on every press.
     val target = state.panelFieldTarget() ?: return false
+    // Put down with the keys (#961): its row goes back to the panel.
+    if (state.captureKeysLowered) return false
     return target.takesWords &&
         target != CaptureTarget.TYPING_TEST &&
         target != CaptureTarget.WORD_SPELL &&
@@ -13642,6 +13650,35 @@ private fun CaptureStrip(state: KeyboardUiState, capture: CaptureCallbacks) {
                 capture.onVoice(CaptureVoiceAction.TOGGLE)
             }
         }
+        // The keys go down to show the panel under them (#961); a tap on the
+        // field brings them back. Last, where a keyboard's strip keeps its own
+        // hide button.
+        if (state.panelFieldTarget()?.lowersKeys == true) CaptureKeysLowerButton(capture.onKeysLower)
+    }
+}
+
+/** The put-the-keys-down button at the end of a keyboard-owned field's strip (#961). */
+@Composable
+private fun CaptureKeysLowerButton(onLower: () -> Unit) {
+    val kb = LocalKbTheme.current
+    val description = stringResource(R.string.ime_capture_keys_lower_desc)
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .padding(start = 2.dp, end = 4.dp)
+            .size(28.dp)
+            .clip(CircleShape)
+            .frostGlass(kb, CircleShape, FrostSurface.CHIPS)
+            .background(kb.chip)
+            // The service buzzes for this press itself.
+            .clickable(onClickLabel = description) { onLower() },
+    ) {
+        Icon(
+            Icons.Outlined.KeyboardHide,
+            contentDescription = description,
+            tint = kb.chipText,
+            modifier = Modifier.size(16.dp),
+        )
     }
 }
 
@@ -23639,7 +23676,12 @@ internal fun barClipboardSearching(state: KeyboardUiState): Boolean =
  * to type into it. Asked by the body, which draws them, and by
  * [FullBleedTool], which has to leave them room.
  */
-internal fun keyRowsUnderPanel(state: KeyboardUiState): Boolean = when (state.panelFieldTarget()) {
+internal fun keyRowsUnderPanel(state: KeyboardUiState): Boolean =
+    // The field's keys were put down to see the panel (#961) until it is tapped.
+    !state.captureKeysLowered && keyRowsUnderPanelRaised(state)
+
+/** [keyRowsUnderPanel] for a field whose keys are up. */
+private fun keyRowsUnderPanelRaised(state: KeyboardUiState): Boolean = when (state.panelFieldTarget()) {
     // No field of the keyboard's own: the keys stay under the clipboard only
     // when it is stacked over them (#414), and then they type into the app.
     null -> clipboardStacked(state)

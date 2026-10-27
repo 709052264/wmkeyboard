@@ -106,6 +106,8 @@ data class CaptureCallbacks(
     val onVoice: (com.wasimaster.wmkeyboard.ime.CaptureVoiceAction) -> Unit = {},
     /** The focus switch on the field (#665): its keys to the app's field, or back. */
     val onFocusSwitch: () -> Unit = {},
+    /** The button at the end of the field's strip: its key rows go down to show the panel (#961). */
+    val onKeysLower: () -> Unit = {},
 )
 
 /**

@@ -483,6 +483,15 @@ enum class CaptureTarget(
             this != TOOLBOX_FOLDER_NAME && this != LAUNCHER_FOLDER_NAME
 
     /**
+     * Whether the field's key rows can be put down to see the panel under them
+     * (#961). The same fields as [handsKeysToApp]: the typing test's keys are
+     * the test, the word card's spelling bar sits on its own row, and the
+     * toolbox's boxes and an app folder's name take the whole keyboard and
+     * have Back to close them.
+     */
+    val lowersKeys: Boolean get() = handsKeysToApp
+
+    /**
      * Whether the field's own strip carries a microphone that dictates into it
      * (#353). Every field that holds words, less three: the typing test scores
      * keystrokes, and the word card's spelling and the Learn speller each hold

@@ -4222,6 +4222,14 @@ data class KeyboardUiState(
      * keys again without anything having to remember to clear this.
      */
     val captureToApp: String? = null,
+    /**
+     * The tool field whose key rows were put down (#961), as its
+     * [panelFieldKey], or null while every focused field has its keys up.
+     * The field keeps its text and its caret, and the panel gets the rows'
+     * height back to show what it holds; a tap on the field brings the keys
+     * up again. Keyed to the field for the same reason as [captureToApp].
+     */
+    val captureLowered: String? = null,
 ) {
     /**
      * Whether incognito is in force right now, from either source: the
@@ -4712,6 +4720,14 @@ data class KeyboardUiState(
      */
     val captureHandedToApp: Boolean
         get() = captureToApp != null && captureToApp == panelFieldKey()
+
+    /**
+     * The open tool's field has had its key rows put down (#961): no rows
+     * under the panel, which takes their height back. Only the layout asks;
+     * the field is still the one a physical keyboard types into.
+     */
+    val captureKeysLowered: Boolean
+        get() = captureLowered != null && captureLowered == panelFieldKey()
 
     /** What is in the focused keyboard-owned buffer right now. */
     fun captureBuffer(): String = when (captureTarget()) {

@@ -270,6 +270,7 @@
     <string name="ime_undo_correction_desc">Put back the word you typed</string>
     <string name="ime_capture_undo_desc">Undo the last change</string>
     <string name="ime_capture_redo_desc">Redo the change you undid</string>
+    <string name="ime_capture_keys_lower_desc">Put the keys down</string>
     <!-- Screen reader names of the focus switch on a tool's own field (#665),
          which sends the keys to the app's field or back. Each says what a
          press does. -->
