@@ -25051,6 +25051,17 @@ open class WMKeyboardService : InputMethodService() {
         _uiState.update { it.copy(panel = PanelMode.CANDIDATES, expandedCandidates = (words + emoji + fancy).distinct()) }
     }
 
+    /**
+     * The pages behind the strip a glide just filled with [words] (#979). A
+     * swipe commits its word, so nothing composes afterwards, and the last
+     * suggestion pass, the openers or next words from before the swipe, was
+     * for that same empty buffer: a swipe down or up on the strip showed
+     * those instead of the stroke's alternates.
+     */
+    private fun glideStripPages(words: List<String>) {
+        suggestionPages = "" to words
+    }
+
     /** The grid's emoji and fancy entries (#970), which a tap commits their own way, not as a word. */
     private var pagesEmoji: Set<String> = emptySet()
     private var pagesFancy: Set<String> = emptySet()
@@ -29001,6 +29012,7 @@ open class WMKeyboardService : InputMethodService() {
             consumeShift()
             val floating = nextWordOctopus()
             val chips = nextWordEmoji()
+            glideStripPages(strip)
             _uiState.update {
                 it.copy(suggestions = strip, octopus = floating, emojiSuggestions = chips)
             }
@@ -29573,6 +29585,7 @@ open class WMKeyboardService : InputMethodService() {
                 consumeShift()
                 val floating = nextWordOctopus()
                 val chips = nextWordEmoji()
+                glideStripPages(lastWords)
                 _uiState.update {
                     it.copy(suggestions = lastWords, octopus = floating, emojiSuggestions = chips)
                 }

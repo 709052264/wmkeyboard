@@ -1492,6 +1492,11 @@ class SuggestionEngine(
             romanization.walkSources()
         }
         if (sources.isEmpty()) return emptyList()
+        // The leader's slips (#979) are for the strip after an ordinary
+        // decode. A deep search is the stroke's own longer list, a sandboxed
+        // one must not reach past the user's words, and a check-up replay
+        // compares readings, not strips.
+        val slips = !deep && tiers == null && tuning == null
         // The other engines read the layout's own spellings only, so never
         // on a phonetic layout, where the answer is the romanization's own.
         val neural = externalGlide?.takeIf { romanization.isEmpty && tuning == null }?.decode(
@@ -1509,7 +1514,7 @@ class SuggestionEngine(
         if (neural != null) {
             return finishGlide(
                 withApostrophes(neural, romanization), romanization, limit,
-                previousWord, previousWord2, previousWord3, recentWords,
+                previousWord, previousWord2, previousWord3, recentWords, slips,
             )
         }
         val beam = when {
@@ -1536,7 +1541,7 @@ class SuggestionEngine(
         )
         return finishGlide(
             withApostrophes(decoded, romanization), romanization, limit,
-            previousWord, previousWord2, previousWord3, recentWords,
+            previousWord, previousWord2, previousWord3, recentWords, slips,
         )
     }
 
@@ -1585,7 +1590,7 @@ class SuggestionEngine(
         if (partial) return decoded.take(limit)
         return finishGlide(
             withApostrophes(decoded, romanization), romanization, limit,
-            previousWord, previousWord2, previousWord3, recentWords,
+            previousWord, previousWord2, previousWord3, recentWords, slips = true,
         )
     }
 
@@ -1599,6 +1604,8 @@ class SuggestionEngine(
         previousWord2: String?,
         previousWord3: String?,
         recentWords: List<String>,
+        /** Whether the leader's nearest slips join the strip ([withLeaderSlips]). */
+        slips: Boolean,
     ): List<GlideBeam.Candidate> {
         // On a phonetic layout the stroke spelled a romanization; the words it
         // stands for are what the rest of this — the blacklist, the reranker,
@@ -1607,7 +1614,7 @@ class SuggestionEngine(
         val filtered = words.filterNot { suppressed(it.word) }
         if (filtered.isEmpty()) return filtered
         val reranked = rerankGlide(filtered, previousWord, previousWord2, previousWord3, recentWords)
-        return shiftGlideScores(reranked)
+        val ranked = shiftGlideScores(reranked)
             // One word per spelling, whatever source it came from (#172). The
             // decoder keys its results on each trie's own spelling, and the
             // platform dictionary stores "boston" where a word list may store
@@ -1616,7 +1623,10 @@ class SuggestionEngine(
             // identical chips. Folded here, before the slice, so the strip is
             // not left a word short; first wins, which is the better score.
             .distinctBy { WordKey.of(it.word) }
-            .take(limit)
+        // Never on a phonetic layout, where the leader is a word in another
+        // script and a slip of it is not a key the finger was near.
+        val sliced = if (slips && romanization.isEmpty) withLeaderSlips(ranked, limit) else ranked.take(limit)
+        return sliced
             // The whole complaint behind #44: a swipe knew the word but not
             // the capital, so every proper noun had to be re-picked off the
             // strip. Applied after the rerank, which — like the decoder and
@@ -1629,6 +1639,40 @@ class SuggestionEngine(
                     GlideBeam.Candidate(display, c.score, c.shapeCost, c.tier, c.ahead)
                 }
             }
+    }
+
+    /**
+     * [ranked] cut to [limit], with the leader's nearest slips from
+     * [GLIDE_SLIP_SLOT] on (#979): a gliding `is` also offers `us`.
+     *
+     * A confident stroke filled the strip with its own readings, and a word
+     * one key off the leader never got a slot. The decoder anchors a word's
+     * first and last letters to where the finger went down and lifted, so a
+     * start or end one key over, the commonest miss on a short word, is what
+     * it ranks lowest or cannot read at all. Typing has kept a known word's
+     * nearest slips since [knownWordSlips]; this is the same walk on the
+     * leader, kept to words of its own length, the ones a key off.
+     *
+     * The leader and the decoder's runner-up keep their places. A slip has no
+     * decoder score: it carries negative infinity, so neither the lift nor
+     * the preview's steadiness gate can ever type one, and the ambiguity
+     * picker's gap is measured as before. Not after a guess the decoder made
+     * ahead of the stroke, whose letters were never drawn.
+     */
+    private fun withLeaderSlips(ranked: List<GlideBeam.Candidate>, limit: Int): List<GlideBeam.Candidate> {
+        val top = ranked.take(limit)
+        val leader = top.firstOrNull() ?: return top
+        val at = minOf(GLIDE_SLIP_SLOT, top.size)
+        if (at >= limit || leader.ahead != 0) return top
+        val lower = leader.word.lowercase()
+        val shown = top.mapTo(HashSet()) { WordKey.of(it.word) }
+        val slips = slipsOf(lower, rankedFor(lower, limit, touch = null))
+            .filter { it.word.length == leader.word.length && WordKey.of(it.word) !in shown }
+            .take(KNOWN_WORD_SLIPS)
+            .map { GlideBeam.Candidate(it.word, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, it.tier) }
+            .toList()
+        if (slips.isEmpty()) return top
+        return (top.take(at) + slips + top.drop(at)).take(limit)
     }
 
     /**
@@ -2320,6 +2364,12 @@ class SuggestionEngine(
 
         /** Nats a known word's slip stays under it at best: ln 2, half as likely. */
         private val KNOWN_WORD_SLIP_GAP = ln(2.0)
+
+        /**
+         * Where a glided leader's slips go on the strip ([withLeaderSlips]):
+         * after the leader and the decoder's runner-up.
+         */
+        private const val GLIDE_SLIP_SLOT = 2
 
         /**
          * Where a secondary list with real frequencies tops out, as a share of
@@ -3104,14 +3154,24 @@ class SuggestionEngine(
         val typed = walked.firstOrNull { it.edits == 0 && it.completedChars == 0 && it.word.lowercase() == lower }
             ?.score ?: return
         val ceiling = typed - KNOWN_WORD_SLIP_GAP
-        var added = 0
-        for (c in walked) {
-            if (added == KNOWN_WORD_SLIPS) break
-            if (c.edits != 1 || c.completedChars != 0 || WordKey.of(c.word) == WordKey.of(lower)) continue
-            if (suppressed(c.word)) continue
+        for (c in slipsOf(lower, walked).take(KNOWN_WORD_SLIPS)) {
             merged.merge(c.word, minOf(c.score, ceiling), ::maxOf)
-            added++
         }
+    }
+
+    /**
+     * The words one edit from [lower] in [walked], best first, less [lower]
+     * itself and anything the user has hidden: what [knownWordSlips] and a
+     * glide's [withLeaderSlips] offer beside a word already known.
+     */
+    private fun slipsOf(
+        lower: String,
+        walked: List<FuzzyBeamSearch.ScoredCandidate>,
+    ): Sequence<FuzzyBeamSearch.ScoredCandidate> {
+        val key = WordKey.of(lower)
+        return walked.asSequence()
+            .filter { it.edits == 1 && it.completedChars == 0 && WordKey.of(it.word) != key }
+            .filterNot { suppressed(it.word) }
     }
 
     /**
