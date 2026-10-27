@@ -9974,6 +9974,15 @@ data class SuggestionStripSettings(
      */
     val phoneticEnglishSwitch: Boolean = true,
     /**
+     * Whether Khipro commits keys that spell an English word, and no Bangla
+     * word, as that English word (#487). Its own switch, apart from Avro's
+     * [phoneticEnglishLangs], and off by default (#986): Khipro's keys spell
+     * one exact Bangla word, so English that takes over the field there gets
+     * in the way of typing, and the strip already offers it as a chip. Needs
+     * English among Bangla's secondary languages, like Avro's.
+     */
+    val khiproEnglish: Boolean = false,
+    /**
      * The languages whose phonetic layout keeps the strip's first two chips
      * in place: the word as typed in Latin letters on the left, the rules'
      * reading of it (Avro's letter-for-letter Bengali) beside it, and the
@@ -10104,6 +10113,9 @@ data class SuggestionStripSettings(
 
     /** Whether [langId]'s phonetic layout commits English words as English; null is no phonetic layout. */
     fun phoneticEnglishFor(langId: String?): Boolean = langId != null && langId in phoneticEnglishLangs
+
+    /** Whether a Khipro layout of [langId] commits English words as English; see [khiproEnglish]. */
+    fun khiproEnglishFor(langId: String?): Boolean = langId == "bn" && khiproEnglish
 
     /** Whether a layout of [langId] writes ANSI now: allowed, switched on, and Bengali. */
     fun bengaliAnsiFor(langId: String?): Boolean = langId == "bn" && bengaliAnsiAllowed && bengaliAnsiOn
@@ -10685,6 +10697,7 @@ class SettingsRepository(private val context: Context) {
         private val PHONETIC_AUTO_ENGLISH = booleanPreferencesKey("phonetic_auto_english")
         private val PHONETIC_ENGLISH_LANGS = stringSetPreferencesKey("phonetic_english_langs")
         private val PHONETIC_ENGLISH_SWITCH = booleanPreferencesKey("phonetic_english_switch")
+        private val KHIPRO_ENGLISH = booleanPreferencesKey("khipro_english")
         private val PHONETIC_FIXED_STRIP_LANGS = stringSetPreferencesKey("phonetic_fixed_strip_langs")
         private val BENGALI_ANSI_ALLOWED = booleanPreferencesKey("bengali_ansi_allowed")
         private val BENGALI_VOWEL_TWICE = booleanPreferencesKey("bengali_vowel_twice")
@@ -13407,6 +13420,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.suggestionStrip.phoneticEnglishLangs,
             phoneticEnglishSwitch = p[PHONETIC_ENGLISH_SWITCH]
                 ?: defaults.suggestionStrip.phoneticEnglishSwitch,
+            khiproEnglish = p[KHIPRO_ENGLISH] ?: defaults.suggestionStrip.khiproEnglish,
             phoneticFixedStripLangs = p[PHONETIC_FIXED_STRIP_LANGS]
                 ?: defaults.suggestionStrip.phoneticFixedStripLangs,
             bengaliAnsiAllowed = p[BENGALI_ANSI_ALLOWED] ?: defaults.suggestionStrip.bengaliAnsiAllowed,
@@ -19250,6 +19264,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setPhoneticEnglishSwitch(value: Boolean) =
         editPrefs { it[PHONETIC_ENGLISH_SWITCH] = value }
+
+    suspend fun setKhiproEnglish(value: Boolean) =
+        editPrefs { it[KHIPRO_ENGLISH] = value }
 
     suspend fun setBengaliAnsiAllowed(value: Boolean) =
         editPrefs { it[BENGALI_ANSI_ALLOWED] = value }

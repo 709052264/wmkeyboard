@@ -5874,11 +5874,7 @@ open class WMKeyboardService : InputMethodService() {
                     .mapNotNull { id -> customTries[id]?.let { SecondaryDictionary(id, it) } }
                 englishAsSecondary = "en" in secondaryIds && !lang.isEnglish
                 secondaryEnglishNgramPack = if (englishAsSecondary) loadNgramPack("en") else NgramPack.EMPTY
-                phoneticAutoEnglish = _uiState.value.let {
-                    it.settings.suggestionStrip.phoneticEnglishFor(
-                        it.composer.phoneticLanguage ?: it.composer.completionLanguage,
-                    )
-                }
+                phoneticAutoEnglish = _uiState.value.let { typesEnglishAsEnglish(it.settings, it.composer) }
                 phoneticSiblingsOff = _uiState.value.settings.suggestionStrip.phoneticSiblingsOffLangs
                 phoneticContextOff = _uiState.value.settings.suggestionStrip.phoneticContextOffLangs
                 phoneticFixedStrip = _uiState.value.let {
@@ -14405,11 +14401,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun syncPhoneticAutoEnglish(settings: KeyboardSettings, spec: LayoutSpec) {
         val engine = suggestionEngine ?: return
-        // A layout that spells its words outright (Khipro) reads the same
-        // switch its language's phonetic layout does (#487).
-        val language = spec.resolvedComposer()
-            .let { it.phoneticLanguage ?: it.completionLanguage }
-        val next = settings.suggestionStrip.phoneticEnglishFor(language)
+        val next = typesEnglishAsEnglish(settings, spec.resolvedComposer())
         val siblingsOff = settings.suggestionStrip.phoneticSiblingsOffLangs
         val contextOff = settings.suggestionStrip.phoneticContextOffLangs
         if (engine.phoneticAutoEnglish == next && engine.phoneticSiblingsOff == siblingsOff &&
@@ -14430,6 +14422,15 @@ open class WMKeyboardService : InputMethodService() {
         currentInputConnection?.let { updateComposingText(it) }
         refreshSuggestions()
     }
+
+    /**
+     * Whether [composer]'s layout commits English words as English. A layout
+     * that spells its words outright (Khipro, #487) has a switch of its own,
+     * apart from its language's phonetic layout, and off by default (#986).
+     */
+    private fun typesEnglishAsEnglish(settings: KeyboardSettings, composer: Composer): Boolean =
+        composer.completionLanguage?.let { settings.suggestionStrip.khiproEnglishFor(it) }
+            ?: settings.suggestionStrip.phoneticEnglishFor(composer.phoneticLanguage)
 
     /**
      * Picks the legacy encoding for the layout now on screen ([spec]): ANSI

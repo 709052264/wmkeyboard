@@ -1444,8 +1444,22 @@ internal fun LanguageDetailScreen(
         // English typed on this language's phonetic layout (Avro, Hindi
         // phonetic). Only with English picked just above: without it the rule
         // has no English to weigh, and these would be switches that do nothing.
-        if (PhoneticSchemes.forLanguage(langId) != null && "en" in secondaries) {
+        // Khipro has a switch of its own here (#986), shown while a Khipro
+        // layout is on.
+        val khiproEnglish = khipro && langId == "bn"
+        if ((PhoneticSchemes.forLanguage(langId) != null || khiproEnglish) && "en" in secondaries) {
             SettingsGroup(stringResource(R.string.languages_phonetic_english_group)) {
+                if (khiproEnglish) {
+                    item(level = SettingLevel.STANDARD) {
+                        ToggleSetting(
+                            R.string.languages_khipro_english_title,
+                            stringResource(R.string.languages_khipro_english_subtitle),
+                            settings.watch { it.suggestionStrip.khiproEnglish },
+                            info = stringResource(R.string.languages_khipro_english_info),
+                            default = SettingsDefaults.suggestionStrip.khiproEnglish,
+                        ) { scope.launch { repository.setKhiproEnglish(it) } }
+                    }
+                }
                 item(level = SettingLevel.STANDARD) {
                     ToggleSetting(
                         R.string.languages_phonetic_english_title,
