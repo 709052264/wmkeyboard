@@ -1799,6 +1799,15 @@ open class WMKeyboardService : InputMethodService() {
     private var readingRegionStart = -1
 
     /**
+     * The caret a Chinese reading kept on the strip sits at, where its pick
+     * will land, or -1 until [updateComposingText] reads it (#973). There is
+     * no region in the field to tell a tap from the keyboard's own edits, so
+     * a caret anywhere else is the user's, and ends the reading
+     * ([hiddenReadingLeft]), as fcitx5 resets one.
+     */
+    private var hiddenReadingCaret = -1
+
+    /**
      * The carets [updateComposingText] put inside the reading whose echoes
      * have not arrived, oldest first. Each rewrite's own echo, with the caret
      * at the region's end, comes ahead of its caret and must not be taken for
@@ -2000,6 +2009,8 @@ open class WMKeyboardService : InputMethodService() {
         // And to the one about a paste, which no longer sits behind the caret.
         if (_uiState.value.zawgyiOffer is ZawgyiOffer.Pasted) clearZawgyiOffer()
         if (composing.isEmpty()) {
+            // A new reading is read afresh for where it sits (#973).
+            hiddenReadingCaret = -1
             val state = _uiState.value
             // A sentence's first word takes a capital because it opens the
             // sentence, whoever put the shift up. Somebody who writes with
@@ -8547,8 +8558,11 @@ open class WMKeyboardService : InputMethodService() {
             compositionCannotPrecedeCaret(
                 oldSelStart, newSelStart, newSelEnd, candidatesStart, composedText.length,
             )
+        // A Chinese reading kept on the strip has no region to step out of
+        // (#973): a caret moved off where it sits ends it all the same.
+        val readingLeft = wasComposing && hiddenReadingLeft(newSelStart, newSelEnd, candidatesStart)
         val composingDropped = wasComposing &&
-            (cursorOutsideCandidates || cursorInsideCandidates || compositionVanished)
+            (cursorOutsideCandidates || cursorInsideCandidates || compositionVanished || readingLeft)
         if (composingDropped) {
             if ((cursorOutsideCandidates || cursorInsideCandidates) && newSelStart == newSelEnd &&
                 candidatesEnd >= 0 && isWebEditField()
@@ -15393,6 +15407,28 @@ open class WMKeyboardService : InputMethodService() {
         return true
     }
 
+    /** The editor's caret as it is now, read live; null for a range or an editor that will not say. */
+    private fun liveCollapsedCaret(ic: InputConnection): Int? {
+        val extracted = ic.getExtractedText(ExtractedTextRequest(), 0) ?: return null
+        if (extracted.selectionStart < 0 || extracted.selectionStart != extracted.selectionEnd) return null
+        return extracted.startOffset + extracted.selectionStart
+    }
+
+    /**
+     * Whether a selection update moved the caret off a reading kept on the
+     * strip (#973). An echo at [hiddenReadingCaret] is the keyboard's own; one
+     * anywhere else may only be an older echo queued behind it, so the live
+     * caret decides, and an editor that will not say where its caret is is
+     * taken at the echo's word.
+     */
+    private fun hiddenReadingLeft(newSelStart: Int, newSelEnd: Int, candidatesStart: Int): Boolean {
+        val at = hiddenReadingCaret
+        if (at < 0 || candidatesStart >= 0 || !_uiState.value.readingInKeyboard()) return false
+        if (newSelStart == at && newSelEnd == at) return false
+        val ic = currentInputConnection ?: return false
+        return liveCollapsedCaret(ic) != at
+    }
+
     /**
      * Whether [reportedSelStart] is still where the editor's caret actually
      * sits. Selection updates queue behind fast keystrokes and backspaces, so
@@ -17523,6 +17559,13 @@ open class WMKeyboardService : InputMethodService() {
         // the setting changed, and a pick's commitText then lands at the caret.
         val inKeyboard = _uiState.value.readingInKeyboard()
         ic.setComposingText(if (inKeyboard) "" else segmentMarked(preview), 1)
+        if (!inKeyboard || composing.isEmpty()) {
+            hiddenReadingCaret = -1
+        } else if (hiddenReadingCaret < 0) {
+            // Read once per reading and once per pick, never per key: the
+            // field does not change while the reading is typed.
+            hiddenReadingCaret = liveCollapsedCaret(ic) ?: expectedSelStart.takeIf { it == expectedSelEnd } ?: -1
+        }
         // Mid-reading, setComposingText left the caret at the region's end:
         // back to where the next key goes (#960).
         val caret = readingCaret
@@ -19849,6 +19892,9 @@ open class WMKeyboardService : InputMethodService() {
         val written = piece ?: if (index >= 0) composer.committedText(buf, index, chosen) else chosen
         if (index >= 0 && piece == null && learningAllowed) composer.learnChoice(buf, index)
         ic.commitText(written, 1)
+        // The rest of a reading kept on the strip now sits after the pick: read
+        // again by the [updateComposingText] below (#973).
+        hiddenReadingCaret = -1
         composing.delete(0, consumed)
         val rest = composer.remainderAfterCommit(composing.toString())
         if (rest.length != composing.length) composing = StringBuilder(rest)
