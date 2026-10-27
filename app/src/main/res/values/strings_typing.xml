@@ -1054,6 +1054,10 @@
     <string name="typing_punctuation_marks_hint">One mark per character, in the order you want them. Leave empty for . , ? ! \'</string>
 
     <string name="typing_suggestion_pages_title">Swipe down for more suggestions</string>
+    <string name="typing_suggestion_pages_emoji_title">Emoji in the grid</string>
+    <string name="typing_suggestion_pages_emoji_subtitle">After the words, the emoji that match the word you are typing</string>
+    <string name="typing_suggestion_pages_fancy_title">Fancy text in the grid</string>
+    <string name="typing_suggestion_pages_fancy_subtitle">Last, the word in every fancy text style, to pick by how it looks</string>
     <string name="typing_suggestion_pages_subtitle">Swipe down on the suggestions to see every word the keyboard ranked</string>
     <string name="typing_suggestion_swipe_up_title">Swipe up for more suggestions</string>
     <string name="typing_suggestion_swipe_up_subtitle">Swipe up on the suggestions, then slide onto a word and lift to use it</string>

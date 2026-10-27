@@ -24975,9 +24975,54 @@ open class WMKeyboardService : InputMethodService() {
         }
         if (state.panel != PanelMode.NONE) return
         val (forWord, words) = suggestionPages ?: return
-        if (forWord != composing.toString() || words.size <= state.settings.suggestionStrip.slotCount) return
+        if (forWord != composing.toString()) return
+        // After the words, what else the word could become (#970): the emoji
+        // that match it, more than the strip has room for, and the word in
+        // every fancy style, so the look can be picked by looking at it.
+        val strip = state.settings.suggestionStrip
+        val emoji = if (strip.pagesEmoji && state.allowsTypingIntelligence && forWord.length >= 2) {
+            emojiSearch?.search(forWord, limit = PAGES_EMOJI_MAX).orEmpty()
+                .map { it.emoji }
+                .filterNot { it in state.hiddenEmoji }
+                .map { applyEmojiTone(it) }
+                .distinct()
+        } else {
+            emptyList()
+        }
+        val fancy = if (strip.pagesFancy && ToolbarTool.FANCY in state.settings.enabledTools && !state.secureField) {
+            FancyStyles.all.asSequence()
+                .filter { it.id != FancyStyles.NORMAL_ID }
+                .map { FancyStyles.transform(forWord, it) }
+                .filter { it != forWord }
+                .distinct()
+                .toList()
+        } else {
+            emptyList()
+        }
+        if (words.size <= strip.slotCount && emoji.isEmpty() && fancy.isEmpty()) return
+        pagesEmoji = emoji.toHashSet()
+        pagesFancy = fancy.toHashSet()
         vibrate()
-        _uiState.update { it.copy(panel = PanelMode.CANDIDATES, expandedCandidates = words) }
+        _uiState.update { it.copy(panel = PanelMode.CANDIDATES, expandedCandidates = (words + emoji + fancy).distinct()) }
+    }
+
+    /** The grid's emoji and fancy entries (#970), which a tap commits their own way, not as a word. */
+    private var pagesEmoji: Set<String> = emptySet()
+    private var pagesFancy: Set<String> = emptySet()
+
+    /**
+     * A fancy form of the word picked off the grid (#970): it goes in where
+     * the word was, and nothing is learned from it, since the styled letters
+     * are not a word of any language.
+     */
+    private fun commitFancyCandidate(text: String) {
+        vibrate()
+        val ic = currentInputConnection ?: return
+        lastGestureWord = null
+        ic.commitText(text, 1)
+        composing = StringBuilder()
+        _uiState.update { it.copy(composingPreview = "", suggestions = emptyList(), octopus = emptyMap(), emojiSuggestions = emptyList()) }
+        refreshSuggestions()
     }
 
     /**
@@ -25028,7 +25073,11 @@ open class WMKeyboardService : InputMethodService() {
             if (_uiState.value.panel == PanelMode.CANDIDATES) {
                 _uiState.update { it.copy(panel = PanelMode.NONE, expandedCandidates = emptyList()) }
             }
-            onSuggestionTapped(candidate)
+            when (candidate) {
+                in pagesEmoji -> onEmojiSuggestionTapped(candidate)
+                in pagesFancy -> commitFancyCandidate(candidate)
+                else -> onSuggestionTapped(candidate)
+            }
             return
         }
         // The same tick a word picked from the strip gets in onSuggestionTapped,
@@ -53728,6 +53777,9 @@ private const val SUGGEST_PAGES_POOL = 24
 
 /** The most words the swipe-up popup over the strip offers: four rows of three at the default slot count. */
 private const val MORE_SUGGESTIONS_MAX = 12
+
+/** How many matching emoji the swipe-down grid adds after the words (#970). */
+private const val PAGES_EMOJI_MAX = 24
 
 /**
  * The chips a fixed phonetic strip keeps in place ahead of its suggestions:

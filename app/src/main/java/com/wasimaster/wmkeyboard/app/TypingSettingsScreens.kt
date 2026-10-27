@@ -825,6 +825,8 @@ internal fun TypingSuggestionsSettings(
     val scrollable = settings.watch { it.suggestionStrip.scrollable }
     val contactEmailsOn = settings.watch { it.suggestionSources.contactEmails }
     val moreSuggestionsOn = settings.watch { it.suggestionStrip.swipeForMore || it.suggestionStrip.swipeUpForMore }
+    // The grid a swipe down, or a scrolling strip's arrow, opens (#970).
+    val pagesGridOn = settings.watch { it.suggestionStrip.swipeForMore || it.suggestionStrip.scrollable }
     SettingsGroup(stringResource(R.string.typing_group_suggestions_title)) {
         item(level = SettingLevel.STANDARD) {
             ToggleSetting(
@@ -874,6 +876,23 @@ internal fun TypingSuggestionsSettings(
                 info = stringResource(R.string.typing_suggestion_pages_info),
                 default = SettingsDefaults.suggestionStrip.swipeForMore,
             ) { scope.launch { repository.setSuggestionsSwipeForMore(it) } }
+        }
+        // #970: what else the grid offers after the words.
+        item(visible = pagesGridOn, level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.typing_suggestion_pages_emoji_title,
+                stringResource(R.string.typing_suggestion_pages_emoji_subtitle),
+                settings.watch { it.suggestionStrip.pagesEmoji },
+                default = SettingsDefaults.suggestionStrip.pagesEmoji,
+            ) { scope.launch { repository.setSuggestionPagesEmoji(it) } }
+        }
+        item(visible = pagesGridOn, level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.typing_suggestion_pages_fancy_title,
+                stringResource(R.string.typing_suggestion_pages_fancy_subtitle),
+                settings.watch { it.suggestionStrip.pagesFancy },
+                default = SettingsDefaults.suggestionStrip.pagesFancy,
+            ) { scope.launch { repository.setSuggestionPagesFancy(it) } }
         }
         item(level = SettingLevel.ADVANCED) {
             // HeliBoard's popup: swipe up, keep the finger down, lift on a word.

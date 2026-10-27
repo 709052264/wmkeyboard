@@ -9469,6 +9469,10 @@ data class SuggestionStripSettings(
      * downward swipe on the strip otherwise hides the keyboard when that is on.
      */
     val swipeForMore: Boolean = false,
+    /** The swipe-down grid adds the emoji that match the word, after its words (#970). */
+    val pagesEmoji: Boolean = true,
+    /** The swipe-down grid adds the word in every fancy-text style, last (#970). */
+    val pagesFancy: Boolean = false,
     /**
      * Swipe up on the word suggestions for more of them, HeliBoard's way: the
      * engine's deeper list opens in a popup over the text, above the strip,
@@ -11531,6 +11535,8 @@ class SettingsRepository(private val context: Context) {
         private val MISTYPE_TOLERANCE = intPreferencesKey("mistype_tolerance")
         private val SLIP_FIXES = stringPreferencesKey("slip_fixes")
         private val SUGGESTIONS_SWIPE_FOR_MORE = booleanPreferencesKey("suggestions_swipe_for_more")
+        private val SUGGESTION_PAGES_EMOJI = booleanPreferencesKey("suggestion_pages_emoji")
+        private val SUGGESTION_PAGES_FANCY = booleanPreferencesKey("suggestion_pages_fancy")
         private val SUGGESTIONS_SWIPE_UP_FOR_MORE = booleanPreferencesKey("suggestions_swipe_up_for_more")
         private val SUGGESTIONS_EXPANDED_GRID = booleanPreferencesKey("suggestions_expanded_grid")
         private val CORRECTIONS_VERSION = intPreferencesKey("corrections_version")
@@ -13128,6 +13134,8 @@ class SettingsRepository(private val context: Context) {
                 ?.let { runCatching { SlipFixes.valueOf(it) }.getOrNull() }
                 ?: defaults.suggestionStrip.slipFixes,
             swipeForMore = p[SUGGESTIONS_SWIPE_FOR_MORE] ?: defaults.suggestionStrip.swipeForMore,
+            pagesEmoji = p[SUGGESTION_PAGES_EMOJI] ?: defaults.suggestionStrip.pagesEmoji,
+            pagesFancy = p[SUGGESTION_PAGES_FANCY] ?: defaults.suggestionStrip.pagesFancy,
             swipeUpForMore = p[SUGGESTIONS_SWIPE_UP_FOR_MORE] ?: defaults.suggestionStrip.swipeUpForMore,
             expandedGrid = p[SUGGESTIONS_EXPANDED_GRID] ?: defaults.suggestionStrip.expandedGrid,
             correctionsVersion = p[CORRECTIONS_VERSION]
@@ -15763,6 +15771,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSuggestionsSwipeForMore(value: Boolean) =
         editPrefs { it[SUGGESTIONS_SWIPE_FOR_MORE] = value }
+
+    suspend fun setSuggestionPagesEmoji(value: Boolean) =
+        editPrefs { it[SUGGESTION_PAGES_EMOJI] = value }
+
+    suspend fun setSuggestionPagesFancy(value: Boolean) =
+        editPrefs { it[SUGGESTION_PAGES_FANCY] = value }
 
     suspend fun setSuggestionsSwipeUpForMore(value: Boolean) =
         editPrefs { it[SUGGESTIONS_SWIPE_UP_FOR_MORE] = value }
