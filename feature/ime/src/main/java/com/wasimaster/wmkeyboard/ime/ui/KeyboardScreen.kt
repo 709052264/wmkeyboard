@@ -26855,19 +26855,52 @@ private fun ShiftKeyLabel(visual: KeyVisual, settings: KeyboardSettings, fontSca
             visual.label.length > 1 -> ModeLabelSp
             else -> LetterLabelSp
         }
-        var scale by remember(visual.label, baseSize, fontScale) { mutableFloatStateOf(1f) }
+        val fit = remember(visual.label, baseSize, fontScale) { LabelFit() }
         Text(
             text = visual.label,
-            fontSize = (baseSize * fontScale * scale).sp,
+            fontSize = (baseSize * fontScale * fit.scale).sp,
             fontWeight = if (visual.bold ?: settings.accessibility.boldLabels) FontWeight.Bold else FontWeight.Medium,
             color = tint,
             maxLines = 1,
             softWrap = false,
             overflow = TextOverflow.Ellipsis,
-            onTextLayout = {
-                if (it.hasVisualOverflow && scale > 0.5f) scale -= 0.08f
-            },
+            onTextLayout = fit::onLayout,
         )
+    }
+}
+
+/**
+ * A key label's shrink-to-fit: one step down per layout that overflows, floored
+ * so a label nothing could fit ellipsises rather than shrinking to nothing.
+ *
+ * The step used to be the whole of it, and nothing ever stepped back up (#979).
+ * A key laid out once in less room than it ends with (a panel growing in, the
+ * board measured before its height settles) kept the label it shrank to there:
+ * a `1` on the number pad at under half size, sitting off its centre. So the
+ * room each step was taken for is kept, and a layout given more room than that
+ * starts again from full size and steps down only as far as the new room needs.
+ * Read in the layout callback alone, so a label that fits pays nothing.
+ */
+@Stable
+private class LabelFit {
+    var scale by mutableFloatStateOf(1f)
+        private set
+    private var shrunkForWidth = Int.MAX_VALUE
+    private var shrunkForHeight = Int.MAX_VALUE
+
+    fun onLayout(result: TextLayoutResult) {
+        val room = result.layoutInput.constraints
+        if (scale < 1f && (room.maxWidth > shrunkForWidth || room.maxHeight > shrunkForHeight)) {
+            scale = 1f
+            shrunkForWidth = Int.MAX_VALUE
+            shrunkForHeight = Int.MAX_VALUE
+            return
+        }
+        if (result.hasVisualOverflow && scale > 0.5f) {
+            scale -= 0.08f
+            shrunkForWidth = room.maxWidth
+            shrunkForHeight = room.maxHeight
+        }
     }
 }
 
@@ -27160,7 +27193,7 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                 // exactly the labels that never needed it. Asking the finished
                 // layout whether it overflowed is script-agnostic, costs the
                 // ordinary one-glyph key nothing, and settles in a frame or two.
-                var scale by remember(text, baseSize, fontScale) { mutableFloatStateOf(1f) }
+                val fit = remember(text, baseSize, fontScale) { LabelFit() }
                 // Arms drawn on the face (issue #410) take the edges, so the
                 // label is held in from whichever edges carry one and the
                 // overflow rule below shrinks it clear of them. The corners
@@ -27184,7 +27217,7 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                             horizontal = if (sideArms) FlickArmInsetDp else 0.dp,
                             vertical = if (endArms) FlickArmInsetDp else 0.dp,
                         ),
-                    fontSize = (baseSize * fontScale * scale).sp,
+                    fontSize = (baseSize * fontScale * fit.scale).sp,
                     fontWeight = if (visual.bold ?: settings.accessibility.boldLabels) {
                         FontWeight.Bold
                     } else {
@@ -27194,11 +27227,7 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                     maxLines = 1,
                     softWrap = false,
                     overflow = TextOverflow.Ellipsis,
-                    onTextLayout = {
-                        // Floored, so a label nothing could fit ellipsises rather
-                        // than shrinking to nothing.
-                        if (it.hasVisualOverflow && scale > 0.5f) scale -= 0.08f
-                    },
+                    onTextLayout = fit::onLayout,
                 )
             }
             // Corner hint: a named icon if the key carries one, otherwise the
