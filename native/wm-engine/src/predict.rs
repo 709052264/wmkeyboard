@@ -40,6 +40,10 @@ pub fn is_sentinel(word: &str) -> bool {
 const USER_WORD_WEIGHT: f64 = 500.0;
 const CUSTOM_WORD_WEIGHT: f64 = 100.0;
 const SECONDARY_WORD_WEIGHT: f64 = 40.0;
+/// How many one-edit words a known word keeps on the strip (`known_word_slips`).
+const KNOWN_WORD_SLIPS: usize = 2;
+/// Nats a known word's slip stays under it at best: ln 2, half as likely.
+const KNOWN_WORD_SLIP_GAP: f64 = std::f64::consts::LN_2;
 const SECONDARY_SCALE_SHARE: f64 = 0.5;
 const REFERENCE_TOP_FREQUENCY: f64 = 10_000.0;
 const SCALE_TOLERANCE: f64 = 1.01;
@@ -1230,6 +1234,29 @@ impl Predictor {
 
     // ---- the strip ----
 
+    /// A known word's nearest slips, below it on the strip (#979): up to
+    /// `KNOWN_WORD_SLIPS` one-edit words, best first, each at its own score
+    /// but never above `KNOWN_WORD_SLIP_GAP` under the word typed. The phone's
+    /// `SuggestionEngine.knownWordSlips`; autocorrect still leaves the word alone.
+    fn known_word_slips(&self, lower: &str, walked: &[ScoredCandidate]) -> Vec<(String, f64)> {
+        let Some(typed) = walked
+            .iter()
+            .find(|c| c.edits == 0 && c.completed_chars == 0 && c.word.to_lowercase() == lower)
+            .map(|c| c.score)
+        else {
+            return Vec::new();
+        };
+        let ceiling = typed - KNOWN_WORD_SLIP_GAP;
+        let key = key_of(lower);
+        walked
+            .iter()
+            .filter(|c| c.edits == 1 && c.completed_chars == 0 && key_of(&c.word) != key)
+            .filter(|c| !self.suppressed(&c.word))
+            .take(KNOWN_WORD_SLIPS)
+            .map(|c| (c.word.clone(), c.score.min(ceiling)))
+            .collect()
+    }
+
     /// The strip for `composing`, `previous` nearest first. Next words when
     /// nothing is being typed.
     pub fn suggest(&mut self, composing: &str, previous: &[&str], limit: usize) -> Vec<String> {
@@ -1246,7 +1273,13 @@ impl Predictor {
             let e = merged.entry(w).or_insert(f64::NEG_INFINITY);
             *e = e.max(s);
         };
-        for c in self.ranked(&lower, limit) {
+        let walked = self.ranked(&lower, limit);
+        if known {
+            for (word, score) in self.known_word_slips(&lower, &walked) {
+                put(&mut merged, word, score);
+            }
+        }
+        for c in walked {
             if c.edits > 0 && known {
                 continue;
             }

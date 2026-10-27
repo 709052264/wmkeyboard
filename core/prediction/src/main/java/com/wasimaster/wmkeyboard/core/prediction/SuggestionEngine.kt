@@ -2315,6 +2315,12 @@ class SuggestionEngine(
         /** Imported secondary-language lists rank below the primary custom list. */
         private const val SECONDARY_WORD_WEIGHT = 40
 
+        /** How many one-edit words a known word keeps on the strip ([knownWordSlips]). */
+        private const val KNOWN_WORD_SLIPS = 2
+
+        /** Nats a known word's slip stays under it at best: ln 2, half as likely. */
+        private val KNOWN_WORD_SLIP_GAP = ln(2.0)
+
         /**
          * Where a secondary list with real frequencies tops out, as a share of
          * the primary's commonest word (see [SourceScales]). Half, like
@@ -2896,13 +2902,16 @@ class SuggestionEngine(
         if (!ambiguous) compoundTailCandidates(lower, limit, touch, merged)
 
         // One fuzzy walk covers completions AND corrections over every trie
-        // source. Corrections (edited paths) are admitted only when the typed
-        // word is unknown, matching the historical gate; pure completions
-        // (edits == 0) always participate.
-        for (c in rankedFor(lower, limit, touch, keys)) {
+        // source. Corrections (edited paths) are admitted in full only when the
+        // typed word is unknown, matching the historical gate; pure completions
+        // (edits == 0) always participate, and a known word keeps its nearest
+        // slips ([knownWordSlips]).
+        val walked = rankedFor(lower, limit, touch, keys)
+        for (c in walked) {
             if (c.edits > 0 && known) continue
             merged.merge(c.word, c.score, ::maxOf)
         }
+        if (known) knownWordSlips(lower, walked, merged)
         // A word typed without its apostrophe — "thats" for that's, "cest"
         // for c'est — reads as the spelling that has one. The lists cannot
         // offer it themselves: they were tokenised at the apostrophe, so they
@@ -3071,6 +3080,38 @@ class SuggestionEngine(
             // re-cased to follow what they have typed so far — the typed
             // pattern still wins, so a deliberate "BOSTON" is not undone.
             .map { if (it.contains('@')) it else matchCase(composing, displayForm(it)) }
+    }
+
+    /**
+     * A known word's nearest slips, on the strip below it (#979).
+     *
+     * A word typed in full that some list holds used to close the strip to
+     * corrections outright: `is` never showed `us`, one key over, however
+     * common `us` is. That is the wrong trade on a big list. A 210,000-word
+     * Arabic download holds so many spellings that a one-letter slip is a word
+     * more often than not, so the word meant, in a secondary language's list or
+     * the primary's, never got a slot.
+     *
+     * So up to [KNOWN_WORD_SLIPS] one-edit words come back, best first, each at
+     * its own score but never above [KNOWN_WORD_SLIP_GAP] under the word typed.
+     * Only the strip changes. Autocorrect still leaves a known word alone.
+     */
+    private fun knownWordSlips(
+        lower: String,
+        walked: List<FuzzyBeamSearch.ScoredCandidate>,
+        merged: HashMap<String, Double>,
+    ) {
+        val typed = walked.firstOrNull { it.edits == 0 && it.completedChars == 0 && it.word.lowercase() == lower }
+            ?.score ?: return
+        val ceiling = typed - KNOWN_WORD_SLIP_GAP
+        var added = 0
+        for (c in walked) {
+            if (added == KNOWN_WORD_SLIPS) break
+            if (c.edits != 1 || c.completedChars != 0 || WordKey.of(c.word) == WordKey.of(lower)) continue
+            if (suppressed(c.word)) continue
+            merged.merge(c.word, minOf(c.score, ceiling), ::maxOf)
+            added++
+        }
     }
 
     /**
