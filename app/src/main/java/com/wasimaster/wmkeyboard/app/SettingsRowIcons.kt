@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.app
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.InvertColors
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.TrendingUp
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.VolumeOff
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Alarm
@@ -2250,6 +2251,27 @@ internal object SettingsRowIcons {
         put(R.string.home_screen_blacklist_title) { Icons.Outlined.VisibilityOff }
         put(R.string.home_screen_debug_log_title) { Icons.AutoMirrored.Outlined.Article }
         put(R.string.home_screen_dictionary_title) { SymbolIcons.Dictionary }
+
+        // ---- Stepper, permission and icon-picker rows ----
+        put(R.string.tooldetail_repeat_chip_after_title) { Icons.Outlined.SmartButton }
+        put(R.string.typing_smart_repeat_after_title) { Icons.Outlined.SmartButton }
+        put(R.string.privacy_permissions_exact_alarms_title) { Icons.Outlined.Alarm }
+        put(R.string.privacy_permissions_full_screen_title) { Icons.Outlined.Fullscreen }
+        put(R.string.privacy_permissions_clock_ring_title) { Icons.Outlined.NotificationsActive }
+        put(R.string.layout_editor_icon_field_label) { Icons.Outlined.Image }
+        put(R.string.layout_editor_icon_hint_field_label) { Icons.Outlined.Lightbulb }
+
+        // ---- Frosted glass sliders ----
+        put(R.string.theme_glass_refraction_title) { Icons.Outlined.Waves }
+        put(R.string.theme_glass_dispersion_title) { Icons.Outlined.Gradient }
+        put(R.string.theme_glass_blur_strength_title) { Icons.Outlined.BlurOn }
+        put(R.string.theme_glass_fallback_title) { Icons.Outlined.Opacity }
+        put(R.string.theme_glass_backdrop_blur_title) { Icons.Outlined.BlurOn }
+        put(R.string.theme_glass_saturation_title) { Icons.Outlined.InvertColors }
+        put(R.string.theme_glass_brightness_title) { Icons.Outlined.LightMode }
+        put(R.string.theme_glass_rim_title) { Icons.Outlined.BorderStyle }
+        put(R.string.theme_glass_rim_color_title) { Icons.Outlined.ColorLens }
+        put(R.string.theme_glass_grain_title) { Icons.Outlined.Grain }
     }
 
     operator fun get(@StringRes id: Int): ImageVector? = map[id]?.invoke()
