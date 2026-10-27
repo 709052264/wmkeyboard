@@ -137,6 +137,13 @@ enum class ServiceRepo(
     /** The key-sound repository offered on a fresh install. */
     SOUNDS("sounds", RepoLocation(GitForge.GITHUB, "github.com", "wasi-master", "wmkeyboard-monkeytype-sounds")),
 
+    /**
+     * Themes and layouts people made and submitted, offered on a fresh install.
+     * Submissions go to this repository's GitHub issues whatever the mirror
+     * says, since that is where its bot runs.
+     */
+    COMMUNITY("community", RepoLocation(GitForge.GITHUB, "github.com", "wasi-master", "wmkeyboard-community-addons")),
+
     /** The Espanso Hub's package repository, for `hub.espanso.org/<package>` links. */
     ESPANSO_HUB("espanso_hub", RepoLocation(GitForge.GITHUB, "github.com", "espanso", "hub", "main")),
     ;

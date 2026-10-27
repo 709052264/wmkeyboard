@@ -70,6 +70,7 @@ object LayoutJsonDocs {
             "the bottom row under it.",
         "LayoutSpec.themeId" to "A theme of this layout's own, used while the layout is on screen. A layer's themeId beats it.",
         "LayoutSpec.version" to "The revision of the layout format. The app brings an older one up to date when it reads it.",
+        "LayoutSpec.basedOn" to "The repository addon this layout was installed from, so a copy edited from it still credits the original when shared. Set by the app.",
 
         "LayerSpec.rows" to "The rows of keys, top to bottom. Each row is a list of keys, left to right.",
         "LayerSpec.numberRow" to
@@ -149,6 +150,9 @@ object LayoutJsonDocs {
         "KeyAlternate.icon" to "The name of an icon to draw in place of the label.",
 
         "KeymanBinding.keyboardId" to "The id of the Keyman keyboard.",
+        "RemixCredit.key" to "The original's repository id and addon id, joined by a slash.",
+        "RemixCredit.name" to "The original's name.",
+        "RemixCredit.author" to "Who made the original.",
         "KeymanBinding.version" to "The version of the Keyman keyboard the layout came from.",
 
         "InputMethodBinding.id" to "The folder the imported input method's files are kept in.",

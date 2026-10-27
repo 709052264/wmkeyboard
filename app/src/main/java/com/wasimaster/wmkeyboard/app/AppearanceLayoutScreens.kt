@@ -1001,6 +1001,7 @@ internal fun LayoutSettings(
         }
         // "Make one" and "get one" are the same question answered two ways.
         item { AddonStoreRow(AddonType.Layout, onNavigate) }
+        item { CommunityAddonsRow(AddonType.Layout, onNavigate) }
     }
     SettingsGroup(stringResource(R.string.layout_number_row_title)) {
         item {

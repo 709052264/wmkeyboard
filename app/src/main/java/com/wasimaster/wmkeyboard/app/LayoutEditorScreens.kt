@@ -278,6 +278,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Lock
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FiberManualRecord
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardAlt
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MoreHoriz
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Public
 import com.wasimaster.wmkeyboard.core.ui.DensityScaled
 import com.wasimaster.wmkeyboard.core.ui.ScalablePreview
 import com.wasimaster.wmkeyboard.core.ui.ScrollRailBox
@@ -571,6 +572,9 @@ internal fun KeyLayoutsScreen(
     // CreateDocument cannot carry a payload, so the layout waiting to be written
     // is parked here between launching the picker and its result.
     var pendingExport by remember { mutableStateOf<LayoutSpec?>(null) }
+    // The layout the community publish dialog is open for.
+    var publishing by remember { mutableStateOf<LayoutSpec?>(null) }
+    publishing?.let { PublishLayoutDialog(it) { publishing = null } }
     val exportLauncher = rememberLauncherForActivityResult(
         CreateDocumentAt(LayoutFile.MIME_TYPE, PickerPlaces.LAYOUT_EXPORT),
     ) { uri ->
@@ -968,6 +972,7 @@ internal fun KeyLayoutsScreen(
                         onDuplicate = { duplicateAndEdit(layout) },
                         onDelete = { confirmDelete = layout },
                         deleteIsReset = false,
+                        onPublish = { publishing = layout },
                         expanded = layout.id in expandedLayouts,
                         onToggleLayers = { toggleLayers(layout.id) },
                     )
@@ -1000,6 +1005,7 @@ internal fun KeyLayoutsScreen(
                         onDuplicate = { duplicateAndEdit(layout) },
                         onDelete = { confirmDelete = layout },
                         deleteIsReset = false,
+                        onPublish = { publishing = layout },
                     )
                 }
             }
@@ -1540,6 +1546,8 @@ private fun LayoutRow(
      * secondary layout, which cannot be switched on at all.
      */
     onToggle: ((Boolean) -> Boolean)? = null,
+    /** Opens the community publish dialog; null for a shipped layout, which is not the user's to publish. */
+    onPublish: (() -> Unit)? = null,
 ) {
     val resources = LocalContext.current.resources
     val exportDesc = stringResource(R.string.layout_editor_export_desc, layout.name)
@@ -1608,6 +1616,13 @@ private fun LayoutRow(
                             leadingIcon = { Icon(Icons.Outlined.ContentCopy, contentDescription = null) },
                             onClick = { menu = false; onDuplicate() },
                         )
+                        if (onPublish != null) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.community_publish_layout_desc, layout.name)) },
+                                leadingIcon = { Icon(Icons.Outlined.Public, contentDescription = null) },
+                                onClick = { menu = false; onPublish() },
+                            )
+                        }
                         if (onDelete != null) {
                             DropdownMenuItem(
                                 text = { Text(deleteDesc) },

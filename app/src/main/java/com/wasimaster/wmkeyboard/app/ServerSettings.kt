@@ -301,6 +301,7 @@ private val ServiceRepo.labelRes: Int
         ServiceRepo.DATA -> R.string.servers_repo_data
         ServiceRepo.ADDONS -> R.string.servers_repo_addons
         ServiceRepo.SOUNDS -> R.string.servers_repo_sounds
+        ServiceRepo.COMMUNITY -> R.string.servers_repo_community
         ServiceRepo.ESPANSO_HUB -> R.string.servers_repo_espanso_hub
     }
 

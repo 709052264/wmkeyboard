@@ -87,6 +87,7 @@
     <string name="servers_repo_data">Language data</string>
     <string name="servers_repo_addons">Add-on repository</string>
     <string name="servers_repo_sounds">Key sound repository</string>
+    <string name="servers_repo_community">Community addon repository</string>
     <string name="servers_repo_espanso_hub">Espanso Hub</string>
 
     <!-- The fields that say where one repository is. -->

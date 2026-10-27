@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.layout
 
 import com.wasimaster.wmkeyboard.core.script.ComposerType
+import com.wasimaster.wmkeyboard.core.share.RemixCredit
 import com.wasimaster.wmkeyboard.core.script.LanguageDef
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.script.ScriptDef
@@ -381,6 +382,12 @@ data class LayoutSpec(
      * on than a mode is to be in, so the layout's theme wins.
      */
     val themeId: String? = null,
+    /**
+     * The repository addon this layout was installed from, so an edited copy
+     * still credits it when published; see `ThemeSpec.basedOn`. Defaulted, so
+     * no format-version bump, for the reason [tabletExpand] gives.
+     */
+    val basedOn: RemixCredit? = null,
     /** Format revision, bumped by [LayoutCodec] migrations. */
     val version: Int = CurrentLayoutSpecVersion,
 ) {

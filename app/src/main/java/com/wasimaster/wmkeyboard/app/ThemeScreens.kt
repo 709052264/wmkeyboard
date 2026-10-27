@@ -62,6 +62,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoLibrary
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PushPin
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Public
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Redo
@@ -1320,6 +1321,9 @@ fun ThemesScreen(
             }
         }
     }
+    // The custom theme the community publish dialog is open for.
+    var publishing by remember { mutableStateOf<ThemeSpec?>(null) }
+    publishing?.let { PublishThemeDialog(it) { publishing = null } }
     fun export(theme: ThemeSpec) {
         pendingExport = theme
         exportLauncher.launch("${theme.name.ifBlank { "theme" }}.${ThemeCodec.FILE_EXTENSION}")
@@ -1734,6 +1738,11 @@ fun ThemesScreen(
                                         else entry.copy(variants = emptyList(), familyName = null),
                                     )
                                 },
+                                // Shared the way it exports: the family, or the one look.
+                                onPublish = {
+                                    publishing = if (grouped) entry
+                                    else entry.copy(variants = emptyList(), familyName = null)
+                                },
                                 onDelete = {
                                     scope.launch {
                                         // Image files are always left to the sweep:
@@ -1837,7 +1846,10 @@ fun ThemesScreen(
     }
     // After the built-ins, where someone who has looked through everything the
     // app ships with is standing.
-    AddonStoreGroup(AddonType.Theme, onNavigate)
+    SettingsGroup {
+        item { AddonStoreRow(AddonType.Theme, onNavigate) }
+        item { CommunityAddonsRow(AddonType.Theme, onNavigate) }
+    }
     Spacer(Modifier.height(24.dp))
 
     message?.let { text ->
@@ -2125,6 +2137,8 @@ private fun ThemeCard(
     onExport: (() -> Unit)?,
     onDelete: (() -> Unit)?,
     subtitle: String? = null,
+    /** Opens the community publish dialog; null on built-ins, which are not the user's to publish. */
+    onPublish: (() -> Unit)? = null,
     /** Whether this theme sits on the keyboard Themes tool's shortlist; null hides the toggle. */
     panelShown: Boolean? = null,
     onTogglePanel: (() -> Unit)? = null,
@@ -2269,6 +2283,16 @@ private fun ThemeCard(
                         Icon(
                             Icons.Outlined.FileUpload,
                             contentDescription = stringResource(R.string.theme_export_desc, displayName),
+                            modifier = Modifier.size(17.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                if (onPublish != null) {
+                    IconButton(onClick = onPublish, modifier = Modifier.size(34.dp)) {
+                        Icon(
+                            Icons.Outlined.Public,
+                            contentDescription = stringResource(R.string.community_publish_theme_desc, displayName),
                             modifier = Modifier.size(17.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )

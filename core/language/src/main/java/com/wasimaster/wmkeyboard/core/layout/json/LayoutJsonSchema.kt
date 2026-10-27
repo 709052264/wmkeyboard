@@ -309,6 +309,8 @@ object LayoutJsonHints {
             "LayoutSpec.themeId" to PropertyHint(domain = JsonValueDomain.THEME),
             "LayoutSpec.baseMode" to PropertyHint(hidden = true),
             "LayoutSpec.version" to PropertyHint(hidden = true, examples = listOf(JsonValueExample(CurrentLayoutSpecVersion.toString()))),
+            // Written by the addon installer, never typed.
+            "LayoutSpec.basedOn" to PropertyHint(hidden = true),
             "LayoutSpec.layers" to PropertyHint(keys = layerNames),
             "LayerSpec.themeId" to PropertyHint(domain = JsonValueDomain.THEME),
             "LayerSpec.fontScale" to PropertyHint(examples = scale, range = LayoutFontScaleRange.toDoubles()),
