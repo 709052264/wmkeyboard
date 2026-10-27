@@ -45941,6 +45941,13 @@ open class WMKeyboardService : InputMethodService() {
             if (action == TextEditAction.BACKSPACE) onDelete() else onForwardDelete()
             return
         }
+        // A word at a time (#980): one step of the delete key's word swipe,
+        // which already copes with the keyboard's own boxes and a null field.
+        if (action == TextEditAction.DELETE_WORD || action == TextEditAction.DELETE_WORD_FORWARD) {
+            if (haptic) vibrate()
+            if (action == TextEditAction.DELETE_WORD) onDeleteWord() else onForwardDeleteWord()
+            return
+        }
         // Before the composing text is committed below: the word still being
         // typed is the one it ends without a space (#851).
         if (action == TextEditAction.NO_SPACE) {
@@ -46044,6 +46051,7 @@ open class WMKeyboardService : InputMethodService() {
             // Handled above, before the composing text was committed.
             TextEditAction.BACKSPACE, TextEditAction.FORWARD_DELETE, TextEditAction.RETYPE_WORD,
             TextEditAction.NO_SPACE, TextEditAction.NO_SPACE_NEXT,
+            TextEditAction.DELETE_WORD, TextEditAction.DELETE_WORD_FORWARD,
             -> Unit
             // Ctrl+Home / Ctrl+End are the editor's whole-text moves, the same
             // way Ctrl+Arrow is its word move; with select mode on they carry

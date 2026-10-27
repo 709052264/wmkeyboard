@@ -168,6 +168,8 @@ internal fun textEditActionTitle(op: TextEditAction): Int = when (op) {
     TextEditAction.RETYPE_WORD -> R.string.textedit_action_retype_word
     TextEditAction.NO_SPACE -> R.string.textedit_action_no_space
     TextEditAction.NO_SPACE_NEXT -> R.string.textedit_action_no_space_next
+    TextEditAction.DELETE_WORD -> R.string.textedit_action_delete_word
+    TextEditAction.DELETE_WORD_FORWARD -> R.string.textedit_action_delete_word_forward
 }
 
 /** The components a layout of [kind] may place; empty for the keys-only pad. */

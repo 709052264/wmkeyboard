@@ -827,6 +827,8 @@ private fun TextEditAction.fallbackGlyph(): String = when (this) {
     TextEditAction.RETYPE_WORD -> "↺"
     TextEditAction.NO_SPACE -> "⁀"
     TextEditAction.NO_SPACE_NEXT -> "⁀›"
+    TextEditAction.DELETE_WORD -> "^⌫"
+    TextEditAction.DELETE_WORD_FORWARD -> "^⌦"
 }
 
 /**
