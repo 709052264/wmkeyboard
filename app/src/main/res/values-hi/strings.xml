@@ -8669,7 +8669,6 @@
     <string name="toolai_memory_screen_title">मेमोरी</string>
     <string name="toolai_memory_source_chat">चैट से</string>
     <string name="toolai_memory_source_manual">आपके द्वारा जोड़ा गया</string>
-    <string name="toolai_models_group_title">मॉडल डाउनलोड हो रहे हैं</string>
     <string name="toolai_reply_after_title">उत्तर के बाद</string>
     <string name="toolai_reply_catch_shots_subtitle">एक तब लिया गया जब पैनल खुला हो, और खुलने पर पिछले दो मिनट का सबसे नया। आपकी छवियों को पढ़ने के लिए अनुमति की आवश्यकता है</string>
     <string name="toolai_reply_catch_shots_title">स्क्रीनशॉट स्वचालित रूप से जोड़ें</string>

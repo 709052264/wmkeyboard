@@ -8655,7 +8655,6 @@
     <string name="toolai_memory_screen_title">זיכרון</string>
     <string name="toolai_memory_source_chat">מתוך צ\'אט</string>
     <string name="toolai_memory_source_manual">נוסף על ידך</string>
-    <string name="toolai_models_group_title">מוריד מודלים</string>
     <string name="toolai_reply_after_title">אחרי תשובה</string>
     <string name="toolai_reply_catch_shots_subtitle">אחד שצולם בזמן שהלוח פתוח, והחדש ביותר משתי הדקות האחרונות כשהוא נפתח. דורש הרשאה לקריאת התמונות שלך</string>
     <string name="toolai_reply_catch_shots_title">הוסף צילומי מסך באופן אוטומטי</string>

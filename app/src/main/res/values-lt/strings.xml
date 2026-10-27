@@ -8654,7 +8654,6 @@
     <string name="toolai_memory_screen_title">Atmintis</string>
     <string name="toolai_memory_source_chat">Iš pokalbio</string>
     <string name="toolai_memory_source_manual">Jūsų pridėta</string>
-    <string name="toolai_models_group_title">Atsisiunčiami modeliai</string>
     <string name="toolai_reply_after_title">Po atsakymo</string>
     <string name="toolai_reply_catch_shots_subtitle">Vienas padarytas, kai skydelis atidarytas, ir naujausias iš paskutinių dviejų minučių, kai jis atsidaro. Reikalingas leidimas skaityti jūsų vaizdus</string>
     <string name="toolai_reply_catch_shots_title">Automatiškai pridėti ekrano kopijas</string>

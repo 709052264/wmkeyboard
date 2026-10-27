@@ -8648,7 +8648,6 @@
     <string name="toolai_memory_screen_title">Memoria</string>
     <string name="toolai_memory_source_chat">Da una chat</string>
     <string name="toolai_memory_source_manual">Aggiunto da te</string>
-    <string name="toolai_models_group_title">Download dei modelli</string>
     <string name="toolai_reply_after_title">Dopo una risposta</string>
     <string name="toolai_reply_catch_shots_subtitle">Uno scattato mentre il pannello è aperto e il più recente degli ultimi due minuti all\'apertura. Richiede il permesso di leggere le tue immagini</string>
     <string name="toolai_reply_catch_shots_title">Aggiungi screenshot automaticamente</string>

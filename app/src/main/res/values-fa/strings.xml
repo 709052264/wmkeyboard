@@ -8664,7 +8664,6 @@
     <string name="toolai_memory_screen_title">حافظه</string>
     <string name="toolai_memory_source_chat">از یک گفتگو</string>
     <string name="toolai_memory_source_manual">اضافه شده توسط شما</string>
-    <string name="toolai_models_group_title">در حال دانلود مدل‌ها</string>
     <string name="toolai_reply_after_title">پس از پاسخ</string>
     <string name="toolai_reply_catch_shots_subtitle">یکی هنگام باز بودن پنل گرفته می‌شود، و جدیدترین از دو دقیقه آخر هنگام باز شدن. برای خواندن تصاویر شما نیاز به اجازه دارد</string>
     <string name="toolai_reply_catch_shots_title">افزودن خودکار اسکرین‌شات‌ها</string>

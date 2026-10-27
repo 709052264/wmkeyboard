@@ -539,7 +539,7 @@
     <string name="toolai_delete_chats_subtitle">Remove every saved conversation from this device</string>
     <string name="toolai_delete_chats_confirm">Every saved conversation is deleted from this device. This cannot be undone.</string>
 
-    <string name="toolai_models_group_title">Downloading models</string>
+    <string name="toolai_continue_group_title">Carry-on actions</string>
     <string name="toolai_continue_context_title">How much the AI reads back</string>
     <string name="toolai_continue_context_subtitle">Characters before the cursor sent by a carry-on action</string>
     <string name="toolai_continue_context_info">Actions that carry on from what you wrote send the text before your cursor. More characters give the model more of your writing to follow, which helps in a long piece. It also costs more of your tokens and takes longer on every run. This only applies when you have not selected anything: a selection is always sent as it is.</string>

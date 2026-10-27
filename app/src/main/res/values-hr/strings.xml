@@ -8663,7 +8663,6 @@
     <string name="toolai_memory_screen_title">Memorija</string>
     <string name="toolai_memory_source_chat">Iz chata</string>
     <string name="toolai_memory_source_manual">Dodali ste vi</string>
-    <string name="toolai_models_group_title">Preuzimanje modela</string>
     <string name="toolai_reply_after_title">Nakon odgovora</string>
     <string name="toolai_reply_catch_shots_subtitle">Jedna snimljena dok je ploča otvorena, i najnovija od zadnje dvije minute kada se otvori. Potrebno dopuštenje za čitanje vaših slika</string>
     <string name="toolai_reply_catch_shots_title">Automatski dodaj snimke zaslona</string>

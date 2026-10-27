@@ -8655,7 +8655,6 @@
     <string name="toolai_memory_screen_title">Μνήμη</string>
     <string name="toolai_memory_source_chat">Από συνομιλία</string>
     <string name="toolai_memory_source_manual">Προστέθηκε από εσάς</string>
-    <string name="toolai_models_group_title">Λήψη μοντέλων</string>
     <string name="toolai_reply_after_title">Μετά από απάντηση</string>
     <string name="toolai_reply_catch_shots_subtitle">Μία λήψη όσο ο πίνακας είναι ανοιχτός και η πιο πρόσφατη από τα τελευταία δύο λεπτά όταν ανοίγει. Απαιτείται άδεια ανάγνωσης των εικόνων σας</string>
     <string name="toolai_reply_catch_shots_title">Αυτόματη προσθήκη στιγμιότυπων οθόνης</string>

@@ -8654,7 +8654,6 @@
     <string name="toolai_memory_screen_title">Memòria</string>
     <string name="toolai_memory_source_chat">Des d\'un xat</string>
     <string name="toolai_memory_source_manual">Afegit per tu</string>
-    <string name="toolai_models_group_title">Descarregant models</string>
     <string name="toolai_reply_after_title">Després d\'una resposta</string>
     <string name="toolai_reply_catch_shots_subtitle">Una feta mentre el tauler està obert, i la més nova dels últims dos minuts quan s\'obre. Necessita permís per llegir les teves imatges</string>
     <string name="toolai_reply_catch_shots_title">Afegeix captures de pantalla automàticament</string>

@@ -8655,7 +8655,6 @@
     <string name="toolai_memory_screen_title">Minni</string>
     <string name="toolai_memory_source_chat">Úr spjalli</string>
     <string name="toolai_memory_source_manual">Bætt við af þér</string>
-    <string name="toolai_models_group_title">Hleður niður gerðum</string>
     <string name="toolai_reply_after_title">Eftir svar</string>
     <string name="toolai_reply_catch_shots_subtitle">Einn tekinn á meðan spjaldið er opið, og sá nýjasti frá síðustu tveimur mínútum þegar það opnast. Þarf leyfi til að lesa myndirnar þínar</string>
     <string name="toolai_reply_catch_shots_title">Bæta við skjámyndum sjálfkrafa</string>

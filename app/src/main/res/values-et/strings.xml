@@ -8663,7 +8663,6 @@
     <string name="toolai_memory_screen_title">Mälu</string>
     <string name="toolai_memory_source_chat">Vestlusest</string>
     <string name="toolai_memory_source_manual">Sinu lisatud</string>
-    <string name="toolai_models_group_title">Mudelite allalaadimine</string>
     <string name="toolai_reply_after_title">Pärast vastust</string>
     <string name="toolai_reply_catch_shots_subtitle">Üks tehtud paneeli avamise ajal ja uusim viimase kahe minuti jooksul, kui see avaneb. Vajab luba teie piltide lugemiseks</string>
     <string name="toolai_reply_catch_shots_title">Lisa ekraanitõmmised automaatselt</string>

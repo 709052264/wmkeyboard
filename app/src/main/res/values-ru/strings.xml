@@ -8658,7 +8658,6 @@
     <string name="toolai_memory_screen_title">Память</string>
     <string name="toolai_memory_source_chat">Из чата</string>
     <string name="toolai_memory_source_manual">Добавлено вами</string>
-    <string name="toolai_models_group_title">Загрузка моделей</string>
     <string name="toolai_reply_after_title">После ответа</string>
     <string name="toolai_reply_catch_shots_subtitle">Один снимок делается при открытии панели, а самый новый — за последние две минуты при ее открытии. Требуется разрешение на чтение ваших изображений</string>
     <string name="toolai_reply_catch_shots_title">Добавлять скриншоты автоматически</string>

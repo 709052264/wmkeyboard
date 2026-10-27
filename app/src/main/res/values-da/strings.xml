@@ -8657,7 +8657,6 @@
     <string name="toolai_memory_screen_title">Hukommelse</string>
     <string name="toolai_memory_source_chat">Fra en chat</string>
     <string name="toolai_memory_source_manual">Tilføjet af dig</string>
-    <string name="toolai_models_group_title">Downloader modeller</string>
     <string name="toolai_reply_after_title">Efter et svar</string>
     <string name="toolai_reply_catch_shots_subtitle">Et taget mens panelet er åbent, og det nyeste fra de sidste to minutter, når det åbnes. Kræver tilladelse til at læse dine billeder</string>
     <string name="toolai_reply_catch_shots_title">Tilføj skærmbilleder automatisk</string>

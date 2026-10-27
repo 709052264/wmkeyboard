@@ -8657,7 +8657,6 @@
     <string name="toolai_memory_screen_title">Memorie</string>
     <string name="toolai_memory_source_chat">Dintr-o conversație</string>
     <string name="toolai_memory_source_manual">Adăugat de dvs.</string>
-    <string name="toolai_models_group_title">Se descarcă modelele</string>
     <string name="toolai_reply_after_title">După un răspuns</string>
     <string name="toolai_reply_catch_shots_subtitle">Una realizată în timp ce panoul este deschis și cea mai recentă din ultimele două minute când se deschide. Necesită permisiunea de a citi imaginile tale</string>
     <string name="toolai_reply_catch_shots_title">Adăugați automat capturi de ecran</string>

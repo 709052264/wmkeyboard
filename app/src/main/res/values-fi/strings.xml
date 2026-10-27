@@ -8649,7 +8649,6 @@
     <string name="toolai_memory_screen_title">Muisti</string>
     <string name="toolai_memory_source_chat">Keskustelusta</string>
     <string name="toolai_memory_source_manual">Itse lisäämäsi</string>
-    <string name="toolai_models_group_title">Ladataan malleja</string>
     <string name="toolai_reply_after_title">Vastauksen jälkeen</string>
     <string name="toolai_reply_catch_shots_subtitle">Yksi otetaan paneelin ollessa auki, ja uusin kahden viime minuutin ajalta, kun se avautuu. Vaatii luvan lukea kuviasi</string>
     <string name="toolai_reply_catch_shots_title">Lisää kuvakaappaukset automaattisesti</string>

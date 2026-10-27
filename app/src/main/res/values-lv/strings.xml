@@ -8659,7 +8659,6 @@
     <string name="toolai_memory_screen_title">Atmiņa</string>
     <string name="toolai_memory_source_chat">No tērzēšanas</string>
     <string name="toolai_memory_source_manual">Jūsu pievienots</string>
-    <string name="toolai_models_group_title">Notiek modeļu lejupielāde</string>
     <string name="toolai_reply_after_title">Pēc atbildes</string>
     <string name="toolai_reply_catch_shots_subtitle">Viens tiek uzņemts, kamēr panelis ir atvērts, un jaunākais no pēdējām divām minūtēm, kad tas atveras. Nepieciešama atļauja lasīt jūsu attēlus</string>
     <string name="toolai_reply_catch_shots_title">Automātiski pievienot ekrānuzņēmumus</string>

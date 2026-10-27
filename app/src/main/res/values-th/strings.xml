@@ -8646,7 +8646,6 @@
     <string name="toolai_memory_screen_title">หน่วยความจำ</string>
     <string name="toolai_memory_source_chat">จากการแชท</string>
     <string name="toolai_memory_source_manual">เพิ่มโดยคุณ</string>
-    <string name="toolai_models_group_title">กำลังดาวน์โหลดโมเดล</string>
     <string name="toolai_reply_after_title">หลังจากตอบกลับ</string>
     <string name="toolai_reply_catch_shots_subtitle">ภาพที่ถ่ายขณะเปิดแผงควบคุม และภาพล่าสุดจากสองนาทีที่ผ่านมาเมื่อเปิดแผงควบคุม จำเป็นต้องได้รับอนุญาตให้อ่านรูปภาพของคุณ</string>
     <string name="toolai_reply_catch_shots_title">เพิ่มภาพหน้าจอโดยอัตโนมัติ</string>

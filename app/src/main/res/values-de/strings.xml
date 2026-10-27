@@ -8656,7 +8656,6 @@
     <string name="toolai_memory_screen_title">Speicher</string>
     <string name="toolai_memory_source_chat">Aus einem Chat</string>
     <string name="toolai_memory_source_manual">Von dir hinzugefügt</string>
-    <string name="toolai_models_group_title">Modelle werden heruntergeladen</string>
     <string name="toolai_reply_after_title">Nach einer Antwort</string>
     <string name="toolai_reply_catch_shots_subtitle">Einer wird aufgenommen, während das Bedienfeld geöffnet ist, und der neueste aus den letzten zwei Minuten, wenn es sich öffnet. Erfordert die Berechtigung zum Lesen Ihrer Bilder</string>
     <string name="toolai_reply_catch_shots_title">Screenshots automatisch hinzufügen</string>

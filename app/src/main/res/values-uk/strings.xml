@@ -8653,7 +8653,6 @@
     <string name="toolai_memory_screen_title">Пам\'ять</string>
     <string name="toolai_memory_source_chat">З чату</string>
     <string name="toolai_memory_source_manual">Додано вами</string>
-    <string name="toolai_models_group_title">Завантаження моделей</string>
     <string name="toolai_reply_after_title">Після відповіді</string>
     <string name="toolai_reply_catch_shots_subtitle">Один знімок робиться, коли панель відкрита, а найновіший — за останні дві хвилини після відкриття. Потрібен дозвіл на читання ваших зображень</string>
     <string name="toolai_reply_catch_shots_title">Додавати скриншоти автоматично</string>

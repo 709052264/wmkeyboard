@@ -8648,7 +8648,6 @@
     <string name="toolai_memory_screen_title">Memória</string>
     <string name="toolai_memory_source_chat">Csevegésből</string>
     <string name="toolai_memory_source_manual">Általad hozzáadva</string>
-    <string name="toolai_models_group_title">Modellek letöltése</string>
     <string name="toolai_reply_after_title">Válasz után</string>
     <string name="toolai_reply_catch_shots_subtitle">Egy kép készül a panel megnyitásakor, és a legújabb az elmúlt két percből, amikor megnyílik. Engedély szükséges a képek olvasásához</string>
     <string name="toolai_reply_catch_shots_title">Képernyőképek automatikus hozzáadása</string>

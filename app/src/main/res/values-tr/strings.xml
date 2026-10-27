@@ -8648,7 +8648,6 @@
     <string name="toolai_memory_screen_title">Hafıza</string>
     <string name="toolai_memory_source_chat">Bir sohbetten</string>
     <string name="toolai_memory_source_manual">Sizin tarafınızdan eklendi</string>
-    <string name="toolai_models_group_title">Modeller indiriliyor</string>
     <string name="toolai_reply_after_title">Yanıttan sonra</string>
     <string name="toolai_reply_catch_shots_subtitle">Biri panel açıkken çekilen, diğeri ise açıldığında son iki dakikadaki en yeni ekran görüntüsü. Resimlerinizi okumak için izin gerekir</string>
     <string name="toolai_reply_catch_shots_title">Ekran görüntülerini otomatik olarak ekle</string>

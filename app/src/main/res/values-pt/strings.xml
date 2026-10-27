@@ -8654,7 +8654,6 @@
     <string name="toolai_memory_screen_title">Memória</string>
     <string name="toolai_memory_source_chat">De um chat</string>
     <string name="toolai_memory_source_manual">Adicionado por você</string>
-    <string name="toolai_models_group_title">Baixando modelos</string>
     <string name="toolai_reply_after_title">Após uma resposta</string>
     <string name="toolai_reply_catch_shots_subtitle">Uma tirada enquanto o painel está aberto e a mais recente dos últimos dois minutos quando ele abre. Requer permissão para ler suas imagens</string>
     <string name="toolai_reply_catch_shots_title">Adicionar capturas de tela automaticamente</string>

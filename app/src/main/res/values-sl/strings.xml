@@ -8661,7 +8661,6 @@
     <string name="toolai_memory_screen_title">Pomnilnik</string>
     <string name="toolai_memory_source_chat">Iz klepeta</string>
     <string name="toolai_memory_source_manual">Dodali ste vi</string>
-    <string name="toolai_models_group_title">Prenašanje modelov</string>
     <string name="toolai_reply_after_title">Po odgovoru</string>
     <string name="toolai_reply_catch_shots_subtitle">Ena posneta, ko je plošča odprta, in najnovejša iz zadnjih dveh minut, ko se odpre. Potrebuje dovoljenje za branje vaših slik</string>
     <string name="toolai_reply_catch_shots_title">Samodejno dodaj posnetke zaslona</string>

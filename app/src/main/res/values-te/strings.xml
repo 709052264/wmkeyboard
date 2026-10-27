@@ -8660,7 +8660,6 @@
     <string name="toolai_memory_screen_title">మెమరీ</string>
     <string name="toolai_memory_source_chat">చాట్ నుండి</string>
     <string name="toolai_memory_source_manual">మీచే జోడించబడింది</string>
-    <string name="toolai_models_group_title">మోడళ్లను డౌన్‌లోడ్ చేస్తోంది</string>
     <string name="toolai_reply_after_title">రిప్లై తర్వాత</string>
     <string name="toolai_reply_catch_shots_subtitle">ప్యానెల్ తెరిచినప్పుడు ఒకటి తీసుకోబడింది మరియు అది తెరిచినప్పుడు గత రెండు నిమిషాల నుండి సరికొత్తది. మీ చిత్రాలను చదవడానికి అనుమతి అవసరం</string>
     <string name="toolai_reply_catch_shots_title">స్క్రీన్‌షాట్‌లను స్వయంచాలకంగా జోడించు</string>

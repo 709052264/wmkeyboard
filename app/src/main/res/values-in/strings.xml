@@ -8655,7 +8655,6 @@
     <string name="toolai_memory_screen_title">Memori</string>
     <string name="toolai_memory_source_chat">Dari obrolan</string>
     <string name="toolai_memory_source_manual">Ditambahkan oleh Anda</string>
-    <string name="toolai_models_group_title">Mengunduh model</string>
     <string name="toolai_reply_after_title">Setelah balasan</string>
     <string name="toolai_reply_catch_shots_subtitle">Satu diambil saat panel terbuka, dan yang terbaru dari dua menit terakhir saat panel terbuka. Memerlukan izin untuk membaca gambar Anda</string>
     <string name="toolai_reply_catch_shots_title">Tambahkan tangkapan layar secara otomatis</string>

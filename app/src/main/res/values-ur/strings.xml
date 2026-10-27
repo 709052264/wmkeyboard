@@ -8653,7 +8653,6 @@
     <string name="toolai_memory_screen_title">میموری</string>
     <string name="toolai_memory_source_chat">چیٹ سے</string>
     <string name="toolai_memory_source_manual">آپ کی طرف سے شامل کردہ</string>
-    <string name="toolai_models_group_title">ماڈلز ڈاؤن لوڈ ہو رہے ہیں</string>
     <string name="toolai_reply_after_title">جواب کے بعد</string>
     <string name="toolai_reply_catch_shots_subtitle">ایک تب لیا جاتا ہے جب پینل کھلا ہو، اور کھلنے پر پچھلے دو منٹ کا تازہ ترین۔ آپ کی تصاویر پڑھنے کی اجازت درکار ہے</string>
     <string name="toolai_reply_catch_shots_title">اسکرین شاٹس خود بخود شامل کریں</string>

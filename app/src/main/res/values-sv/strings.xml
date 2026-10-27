@@ -8662,7 +8662,6 @@
     <string name="toolai_memory_screen_title">Minne</string>
     <string name="toolai_memory_source_chat">Från en chatt</string>
     <string name="toolai_memory_source_manual">Tillagd av dig</string>
-    <string name="toolai_models_group_title">Laddar ner modeller</string>
     <string name="toolai_reply_after_title">Efter ett svar</string>
     <string name="toolai_reply_catch_shots_subtitle">En tagen medan panelen är öppen, och den nyaste från de senaste två minuterna när den öppnas. Kräver tillåtelse att läsa dina bilder</string>
     <string name="toolai_reply_catch_shots_title">Lägg till skärmdumpar automatiskt</string>

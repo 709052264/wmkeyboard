@@ -8659,7 +8659,6 @@
     <string name="toolai_memory_screen_title">Minne</string>
     <string name="toolai_memory_source_chat">Fra en chat</string>
     <string name="toolai_memory_source_manual">Lagt til av deg</string>
-    <string name="toolai_models_group_title">Laster ned modeller</string>
     <string name="toolai_reply_after_title">Etter et svar</string>
     <string name="toolai_reply_catch_shots_subtitle">Ett tatt mens panelet er åpent, og det nyeste fra de siste to minuttene når det åpnes. Trenger tillatelse til å lese bildene dine</string>
     <string name="toolai_reply_catch_shots_title">Legg til skjermbilder automatisk</string>

@@ -8656,7 +8656,6 @@
     <string name="toolai_memory_screen_title">Памет</string>
     <string name="toolai_memory_source_chat">От чат</string>
     <string name="toolai_memory_source_manual">Добавено от вас</string>
-    <string name="toolai_models_group_title">Изтегляне на модели</string>
     <string name="toolai_reply_after_title">След отговор</string>
     <string name="toolai_reply_catch_shots_subtitle">Една направена, докато панелът е отворен, и най-новата от последните две минути, когато се отвори. Изисква разрешение за четене на вашите изображения</string>
     <string name="toolai_reply_catch_shots_title">Автоматично добавяне на екранни снимки</string>

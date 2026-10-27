@@ -8661,7 +8661,6 @@
     <string name="toolai_memory_screen_title">الذاكرة</string>
     <string name="toolai_memory_source_chat">من دردشة</string>
     <string name="toolai_memory_source_manual">تمت إضافته بواسطتك</string>
-    <string name="toolai_models_group_title">جاري تنزيل النماذج</string>
     <string name="toolai_reply_after_title">بعد الرد</string>
     <string name="toolai_reply_catch_shots_subtitle">واحدة تم التقاطها أثناء فتح اللوحة، والأحدث من الدقيقتين الأخيرتين عند فتحها. يتطلب إذنًا لقراءة صورك</string>
     <string name="toolai_reply_catch_shots_title">إضافة لقطات الشاشة تلقائيًا</string>

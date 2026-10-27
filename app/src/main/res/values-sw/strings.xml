@@ -8668,7 +8668,6 @@
     <string name="toolai_memory_screen_title">Kumbukumbu</string>
     <string name="toolai_memory_source_chat">Kutoka kwa soga</string>
     <string name="toolai_memory_source_manual">Imeongezwa na wewe</string>
-    <string name="toolai_models_group_title">Inapakua miundo</string>
     <string name="toolai_reply_after_title">Baada ya jibu</string>
     <string name="toolai_reply_catch_shots_subtitle">Moja iliyopigwa wakati paneli imefunguliwa, na mpya zaidi kutoka dakika mbili zilizopita inapofunguka. Inahitaji ruhusa ya kusoma picha zako</string>
     <string name="toolai_reply_catch_shots_title">Ongeza picha za skrini kiotomatiki</string>

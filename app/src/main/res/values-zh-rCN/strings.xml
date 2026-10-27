@@ -8643,7 +8643,6 @@
     <string name="toolai_memory_screen_title">记忆</string>
     <string name="toolai_memory_source_chat">来自聊天</string>
     <string name="toolai_memory_source_manual">由您添加</string>
-    <string name="toolai_models_group_title">正在下载模型</string>
     <string name="toolai_reply_after_title">回复后</string>
     <string name="toolai_reply_catch_shots_subtitle">在面板打开时拍摄一张，并在打开时获取过去两分钟内最新的照片。需要读取您图片的权限</string>
     <string name="toolai_reply_catch_shots_title">自动添加截图</string>

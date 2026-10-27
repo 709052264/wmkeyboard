@@ -8647,7 +8647,6 @@
     <string name="toolai_memory_screen_title">메모리</string>
     <string name="toolai_memory_source_chat">채팅에서</string>
     <string name="toolai_memory_source_manual">사용자가 추가함</string>
-    <string name="toolai_models_group_title">모델 다운로드 중</string>
     <string name="toolai_reply_after_title">답장 후</string>
     <string name="toolai_reply_catch_shots_subtitle">패널이 열려 있을 때 촬영된 이미지 하나와 패널이 열릴 때 최근 2분 동안의 최신 이미지를 가져옵니다. 이미지 읽기 권한이 필요합니다.</string>
     <string name="toolai_reply_catch_shots_title">스크린샷 자동 추가</string>

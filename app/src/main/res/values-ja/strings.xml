@@ -8650,7 +8650,6 @@
     <string name="toolai_memory_screen_title">メモリ</string>
     <string name="toolai_memory_source_chat">チャットから</string>
     <string name="toolai_memory_source_manual">ユーザーが追加</string>
-    <string name="toolai_models_group_title">モデルのダウンロード</string>
     <string name="toolai_reply_after_title">返信後</string>
     <string name="toolai_reply_catch_shots_subtitle">パネルが開いている間に撮影されたものと、パネルを開いた際の過去2分以内の最新のものが対象です。画像へのアクセス許可が必要です。</string>
     <string name="toolai_reply_catch_shots_title">スクリーンショットを自動的に追加</string>

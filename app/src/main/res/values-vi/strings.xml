@@ -8648,7 +8648,6 @@
     <string name="toolai_memory_screen_title">Bộ nhớ</string>
     <string name="toolai_memory_source_chat">Từ một cuộc trò chuyện</string>
     <string name="toolai_memory_source_manual">Được bạn thêm vào</string>
-    <string name="toolai_models_group_title">Đang tải xuống các mô hình</string>
     <string name="toolai_reply_after_title">Sau khi trả lời</string>
     <string name="toolai_reply_catch_shots_subtitle">Một ảnh chụp khi bảng điều khiển đang mở và ảnh mới nhất từ hai phút trước khi nó mở. Cần quyền truy cập hình ảnh của bạn</string>
     <string name="toolai_reply_catch_shots_title">Tự động thêm ảnh chụp màn hình</string>

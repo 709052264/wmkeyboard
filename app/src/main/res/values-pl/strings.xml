@@ -8656,7 +8656,6 @@
     <string name="toolai_memory_screen_title">Pamięć</string>
     <string name="toolai_memory_source_chat">Z czatu</string>
     <string name="toolai_memory_source_manual">Dodane przez Ciebie</string>
-    <string name="toolai_models_group_title">Pobieranie modeli</string>
     <string name="toolai_reply_after_title">Po odpowiedzi</string>
     <string name="toolai_reply_catch_shots_subtitle">Jeden zrzut wykonany przy otwartym panelu, a najnowszy z ostatnich dwóch minut po jego otwarciu. Wymaga uprawnień do odczytu Twoich obrazów</string>
     <string name="toolai_reply_catch_shots_title">Dodawaj zrzuty ekranu automatycznie</string>

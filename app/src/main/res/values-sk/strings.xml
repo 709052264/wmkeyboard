@@ -8657,7 +8657,6 @@
     <string name="toolai_memory_screen_title">Pamäť</string>
     <string name="toolai_memory_source_chat">Z chatu</string>
     <string name="toolai_memory_source_manual">Pridané vami</string>
-    <string name="toolai_models_group_title">Sťahovanie modelov</string>
     <string name="toolai_reply_after_title">Po odpovedi</string>
     <string name="toolai_reply_catch_shots_subtitle">Jeden urobený, kým je panel otvorený, a najnovší z posledných dvoch minút, keď sa otvorí. Vyžaduje povolenie na čítanie vašich obrázkov</string>
     <string name="toolai_reply_catch_shots_title">Pridávať snímky obrazovky automaticky</string>
