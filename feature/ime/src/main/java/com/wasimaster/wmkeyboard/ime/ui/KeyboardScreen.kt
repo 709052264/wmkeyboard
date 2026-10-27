@@ -5302,6 +5302,7 @@ private fun RowScope.StripWords(
                 !state.fixedPhoneticStrip(),
             primaryColor = state.settings.suggestionStrip.primaryColor?.let { Color(it.toInt()) },
             leadWord = state.stripTyped.takeIf { state.settings.suggestionStrip.typedWordFirst && !glideStripOnly },
+            fitMore = state.settings.suggestionStrip.fitMoreWords && !glideStripOnly,
             autocorrectWord = state.autocorrectWord,
             // A fixed phonetic strip leads with the word as typed, not
             // with what a space writes; the bold follows the latter.
@@ -5465,6 +5466,31 @@ private fun RowScope.StripWords(
     }
 }
 
+/** How many slots past its count a strip of short words may grow to (#970). */
+internal const val FitMoreExtraSlots = 3
+
+/**
+ * The most slots, from [slotCount] up to [FitMoreExtraSlots] more, in which
+ * each of the first that many [candidates] fits its equal share of [width]
+ * unshrunk. [widthDp] measures a word at the strip's size, in dp.
+ */
+private fun slotsThatFit(
+    candidates: List<String>,
+    slotCount: Int,
+    width: Dp,
+    textPadding: Dp,
+    widthDp: (String) -> Float,
+): Int {
+    val most = minOf(candidates.size, slotCount + FitMoreExtraSlots)
+    if (most <= slotCount) return slotCount
+    val widths = candidates.take(most).map(widthDp)
+    for (n in most downTo slotCount + 1) {
+        val share = (width - SuggestionDividerWidth * (n - 1)) / n - textPadding * 2
+        if (widths.take(n).all { it <= share.value }) return n
+    }
+    return slotCount
+}
+
 /**
  * A scrolling row of inline-suggestion chips — the views another process
  * inflated for us. Shared by both lanes: password-manager chips, which take
@@ -5581,6 +5607,12 @@ internal fun RowScope.LatinSuggestionChips(
     primaryColor: Color? = null,
     /** A word to draw in the first slot, wherever it was ranked (#970): the word as typed. */
     leadWord: String? = null,
+    /**
+     * Up to [FitMoreExtraSlots] slots past [slotCount] while every word shown
+     * still fits its share at full size (#970). Ignored when [scrollable] or
+     * [fixedSlots] already decide the widths.
+     */
+    fitMore: Boolean = false,
     /** The word autocorrect has decided a space will put in, or null (#90). */
     autocorrectWord: String? = null,
     shiftState: ShiftState,
@@ -5648,9 +5680,32 @@ internal fun RowScope.LatinSuggestionChips(
             // and out as they leave (see [stripContentAlpha]).
             .graphicsLayer { this.alpha = alpha() },
     ) {
+        val measurer = LocalStripTextMeasurer.current ?: rememberTextMeasurer()
+        val density = LocalDensity.current
+        val baseStyle = LocalTextStyle.current
+        // The user's own text scale rides on whichever base is in force, so a
+        // theme that sets its own suggestion size is scaled rather than replaced.
+        val baseSize = (
+            if (baseStyle.fontSize.isSpecified) baseStyle.fontSize else SuggestionFontSize
+            ) * textScale
+        // Short words make room for more of them (#970).
+        val slots = if (fitMore && !scrollable && !fixedSlots && candidates.size > slotCount) {
+            remember(candidates, slotCount, maxWidth, textPadding, baseSize, baseStyle, shiftState) {
+                slotsThatFit(candidates, slotCount, maxWidth, textPadding) { word ->
+                    measurer.measure(
+                        text = displayCaseForShift(word, shiftState),
+                        style = baseStyle.merge(TextStyle(fontSize = baseSize, fontWeight = FontWeight.SemiBold)),
+                        maxLines = 1,
+                        softWrap = false,
+                    ).size.width / density.density
+                }
+            }
+        } else {
+            slotCount
+        }
         // A scrolling strip runs on through every word it was given (#516);
         // a fixed one shows what fits its slots.
-        val ranked = if (scrollable) candidates else candidates.take(slotCount)
+        val ranked = if (scrollable) candidates else candidates.take(slots)
         // Gboard convention: the primary candidate sits in the middle slot with
         // the runner-up on its left. The commit path still uses the engine's
         // order — this is display-only.
@@ -5684,14 +5739,6 @@ internal fun RowScope.LatinSuggestionChips(
             (maxWidth - SuggestionDividerWidth * (shares - 1)) / shares
         }
         val textWidth = (slotWidth - textPadding * 2).coerceAtLeast(0.dp)
-        val measurer = LocalStripTextMeasurer.current ?: rememberTextMeasurer()
-        val density = LocalDensity.current
-        val baseStyle = LocalTextStyle.current
-        // The user's own text scale rides on whichever base is in force, so a
-        // theme that sets its own suggestion size is scaled rather than replaced.
-        val baseSize = (
-            if (baseStyle.fontSize.isSpecified) baseStyle.fontSize else SuggestionFontSize
-            ) * textScale
         val shaper = LocalEmojiShaper.current
         // One slot: its divider, then the word. A lambda so the two row shapes
         // below draw identical slots.

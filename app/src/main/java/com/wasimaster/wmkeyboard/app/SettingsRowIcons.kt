@@ -1023,6 +1023,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_punctuation_suggestions_title) { Icons.Outlined.MoreHoriz }
         put(R.string.typing_suggestions_first_title) { Icons.Outlined.VerticalAlignTop }
         put(R.string.typing_suggestion_slots_title) { Icons.Outlined.Numbers }
+        put(R.string.typing_fit_more_words_title) { Icons.Outlined.ViewWeek }
         put(R.string.typing_suggestion_emoji_slot_title) { Icons.Outlined.EmojiEmotions }
         put(R.string.typing_suggestion_emoji_count_title) { Icons.Outlined.EmojiEmotions }
         put(R.string.typing_suggestion_fixed_slots_title) { Icons.Outlined.ViewColumn }

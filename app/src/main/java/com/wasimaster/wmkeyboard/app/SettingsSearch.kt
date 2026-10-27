@@ -478,6 +478,7 @@ private fun SearchStrings.typingSuggestionsRows(): List<SettingsSearchEntry> {
     return listOf(
         row(R.string.typing_suggestions_title, R.string.typing_suggestions_subtitle, weight = EntryWeight.PRIMARY),
         row(R.string.typing_suggestion_slots_title, R.string.typing_suggestion_slots_subtitle),
+        row(R.string.typing_fit_more_words_title, R.string.typing_fit_more_words_subtitle),
         row(R.string.typing_suggestion_pages_title, R.string.typing_suggestion_pages_subtitle),
         row(R.string.typing_suggestion_pages_emoji_title, R.string.typing_suggestion_pages_emoji_subtitle),
         row(R.string.typing_suggestion_pages_fancy_title, R.string.typing_suggestion_pages_fancy_subtitle),

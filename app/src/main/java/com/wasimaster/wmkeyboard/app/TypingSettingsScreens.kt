@@ -868,6 +868,15 @@ internal fun TypingSuggestionsSettings(
             ) { scope.launch { repository.setSuggestionSlotCount(it.toInt()) } }
         }
         item(level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.typing_fit_more_words_title,
+                stringResource(R.string.typing_fit_more_words_subtitle),
+                settings.watch { it.suggestionStrip.fitMoreWords },
+                info = stringResource(R.string.typing_fit_more_words_info),
+                default = SettingsDefaults.suggestionStrip.fitMoreWords,
+            ) { scope.launch { repository.setFitMoreWords(it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
             // Issue #385: the words the strip has no room for.
             ToggleSetting(
                 R.string.typing_suggestion_pages_title,

@@ -24429,7 +24429,13 @@ open class WMKeyboardService : InputMethodService() {
             // A strip that scrolls has room for every word the pass ranked,
             // not only the few that fit (#516): Avro's fourth reading is as
             // often the word as its first.
-            val stripDepth = if (state.settings.suggestionStrip.scrollable) SUGGEST_PAGES_POOL else SUGGEST_LIMIT
+            // More slots for short words (#970) needs words past the usual five.
+            val stripDepth = when {
+                state.settings.suggestionStrip.scrollable -> SUGGEST_PAGES_POOL
+                state.settings.suggestionStrip.fitMoreWords ->
+                    maxOf(SUGGEST_LIMIT, state.settings.suggestionStrip.slotCount + com.wasimaster.wmkeyboard.ime.ui.FitMoreExtraSlots)
+                else -> SUGGEST_LIMIT
+            }
             val askFor = if (octopusOn) {
                 maxOf(stripDepth, state.settings.octopus.density * OCTOPUS_POOL_DEPTH)
             } else {

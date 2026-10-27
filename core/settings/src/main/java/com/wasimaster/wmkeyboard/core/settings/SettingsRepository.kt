@@ -9594,6 +9594,14 @@ data class SuggestionStripSettings(
      */
     val typedWordFirst: Boolean = false,
     /**
+     * Short words make room for more of them (#970): the strip shows up to
+     * three words past [slotCount] while every one of them still fits its
+     * equal share at full size, so "a is it on" gets four slots where
+     * "international" keeps three. Off by default; no effect on a
+     * [scrollable] strip or with [fixedSlots], which already decide widths.
+     */
+    val fitMoreWords: Boolean = false,
+    /**
      * The recent words (#787, #814): the last words written in this field,
      * each one tap from what else it could have been. Off by default. A row
      * of its own over the strip, [BarRow.RECENT] in the row order, or at the
@@ -10796,6 +10804,7 @@ class SettingsRepository(private val context: Context) {
             stringSetPreferencesKey("space_after_suggestion_off_langs")
         private val SKIP_TYPED_WORD = booleanPreferencesKey("skip_typed_word")
         private val TYPED_WORD_FIRST = booleanPreferencesKey("typed_word_first")
+        private val FIT_MORE_WORDS = booleanPreferencesKey("fit_more_words")
         private val RECENT_WORD_BAR = booleanPreferencesKey("recent_word_bar")
         private val EXPAND_USER_DICT_SHORTCUTS = booleanPreferencesKey("expand_user_dict_shortcuts")
         private val USE_SYSTEM_DICTIONARY = booleanPreferencesKey("use_system_dictionary")
@@ -13188,6 +13197,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.suggestionStrip.spaceAfterSuggestionOffLangs,
             skipTypedWord = p[SKIP_TYPED_WORD] ?: defaults.suggestionStrip.skipTypedWord,
             typedWordFirst = p[TYPED_WORD_FIRST] ?: defaults.suggestionStrip.typedWordFirst,
+            fitMoreWords = p[FIT_MORE_WORDS] ?: defaults.suggestionStrip.fitMoreWords,
             recentWordBar = p[RECENT_WORD_BAR] ?: defaults.suggestionStrip.recentWordBar,
             expandUserDictShortcuts = p[EXPAND_USER_DICT_SHORTCUTS]
                 ?: defaults.suggestionStrip.expandUserDictShortcuts,
@@ -20115,6 +20125,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setTypedWordFirst(value: Boolean) =
         editPrefs { it[TYPED_WORD_FIRST] = value }
+
+    suspend fun setFitMoreWords(value: Boolean) =
+        editPrefs { it[FIT_MORE_WORDS] = value }
 
     suspend fun setRecentWordBar(value: Boolean) =
         editPrefs { it[RECENT_WORD_BAR] = value }
