@@ -19,4 +19,6 @@
     <string name="core_pred_wordlist_variant_europe_label">Eurooppa</string>
     <string name="core_pred_wordlist_variant_uk_label">Yhdistynyt kuningaskunta</string>
     <string name="core_pred_wordlist_variant_us_label">Yhdysvallat</string>
+    <string name="core_pred_wordlist_variant_canada_label">Kanada</string>
+    <string name="core_pred_wordlist_variant_australia_label">Australia</string>
 </resources>

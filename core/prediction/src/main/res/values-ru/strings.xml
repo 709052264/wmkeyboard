@@ -19,4 +19,6 @@
     <string name="core_pred_wordlist_variant_europe_label">Европа</string>
     <string name="core_pred_wordlist_variant_uk_label">Великобритания</string>
     <string name="core_pred_wordlist_variant_us_label">США</string>
+    <string name="core_pred_wordlist_variant_canada_label">Канада</string>
+    <string name="core_pred_wordlist_variant_australia_label">Австралия</string>
 </resources>

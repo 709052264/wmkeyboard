@@ -19,4 +19,6 @@
     <string name="core_pred_wordlist_variant_europe_label">ಯುರೋಪ್</string>
     <string name="core_pred_wordlist_variant_uk_label">ಯುನೈಟೆಡ್ ಕಿಂಗ್‌ಡಮ್</string>
     <string name="core_pred_wordlist_variant_us_label">ಯುನೈಟೆಡ್ ಸ್ಟೇಟ್ಸ್</string>
+    <string name="core_pred_wordlist_variant_canada_label">ಕೆನಡಾ</string>
+    <string name="core_pred_wordlist_variant_australia_label">ಆಸ್ಟ್ರೇಲಿಯಾ</string>
 </resources>

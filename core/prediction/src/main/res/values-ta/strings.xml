@@ -19,4 +19,6 @@
     <string name="core_pred_wordlist_variant_europe_label">ஐரோப்பா</string>
     <string name="core_pred_wordlist_variant_uk_label">ஐக்கிய இராச்சியம்</string>
     <string name="core_pred_wordlist_variant_us_label">அமெரிக்கா</string>
+    <string name="core_pred_wordlist_variant_canada_label">கனடா</string>
+    <string name="core_pred_wordlist_variant_australia_label">ஆஸ்திரேலியா</string>
 </resources>
