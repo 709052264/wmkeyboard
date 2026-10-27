@@ -387,6 +387,7 @@ import com.wasimaster.wmkeyboard.core.text.EmojiGraphemes
 import com.wasimaster.wmkeyboard.core.gesture.GesturePoint
 import com.wasimaster.wmkeyboard.core.gesture.GlideCase
 import com.wasimaster.wmkeyboard.core.gesture.GlideShiftDetour
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
 import com.wasimaster.wmkeyboard.core.theme.KEY_OVERRIDE_LABEL_SCALE_RANGE
@@ -20628,6 +20629,7 @@ private fun GlideOverlay(
                         leader = index == 0,
                         dimmed = cancelling,
                         theme = theme,
+                        glide = glide,
                         modifier = Modifier.layoutId(index),
                     )
                 }
@@ -20814,11 +20816,13 @@ private fun GlideWordPill(
     val textColor = promise
         ?: glide.wordPreviewTextColor?.let { Color(it.toInt()) }
         ?: theme.popupText
+    val fill = glide.wordPreviewBackground?.let { Color(it.toInt()) } ?: theme.popup
     Surface(
         modifier = modifier,
-        color = glide.wordPreviewBackground?.let { Color(it.toInt()) } ?: theme.popup,
+        color = fill,
         contentColor = textColor,
         shape = theme.popupShape(),
+        border = glideFloatBorder(fill, theme),
         shadowElevation = elevationFor(theme.popupShapeKind, 4.dp),
     ) {
         Text(
@@ -20834,6 +20838,25 @@ private fun GlideWordPill(
         )
     }
 }
+
+/**
+ * An outline for a floating glide word whose fill is close to the keys under
+ * it (#970): a theme whose popups are the keys' colour left the pill and the
+ * picker's words melting into the board. Null where the fill stands out.
+ */
+private fun glideFloatBorder(fill: Color, theme: KbTheme): BorderStroke? =
+    if (contrastRatio(fill.compositeOver(theme.board), theme.key.compositeOver(theme.board)) < GlideFloatContrastMin) {
+        BorderStroke(1.dp, theme.popupText.copy(alpha = GlideFloatOutlineAlpha))
+    } else {
+        null
+    }
+
+/** How far a hovered choice in the user's preview colour leans toward its text. */
+private const val GlidePickerHoverBlend = 0.22f
+
+/** Below this contrast against the keys a floating glide word gets its outline. */
+private const val GlideFloatContrastMin = 1.4f
+private const val GlideFloatOutlineAlpha = 0.4f
 
 /**
  * One of the words an ambiguous stroke is choosing between.
@@ -20853,21 +20876,32 @@ private fun GlidePickerTarget(
     leader: Boolean,
     dimmed: Boolean,
     theme: KbTheme,
+    /** The word preview's colours, which the choices wear too (#970). */
+    glide: GestureSettings,
     modifier: Modifier,
     /** What [word] expands to when it is a trigger (#205), drawn after it. */
     expansion: String? = null,
 ) {
+    val customFill = glide.wordPreviewBackground?.let { Color(it.toInt()) }
+    val fill = customFill ?: theme.popup
+    val text = glide.wordPreviewTextColor?.let { Color(it.toInt()) } ?: theme.popupText
     Surface(
         modifier = modifier
             .height(GlidePickerHeight)
             .alpha(if (dimmed) GlidePickerDimmedAlpha else 1f),
-        color = if (hovered) theme.pressedKey else theme.popup,
-        contentColor = theme.popupText,
+        // A preview colour of the user's own is pressed by leaning it toward
+        // its text; the theme's pressed key would be a third colour.
+        color = when {
+            !hovered -> fill
+            customFill != null -> lerp(customFill, text, GlidePickerHoverBlend)
+            else -> theme.pressedKey
+        },
+        contentColor = text,
         shape = theme.popupShape(),
         border = if (leader && !hovered) {
             BorderStroke(1.dp, theme.accent.copy(alpha = GlidePickerLeaderOutlineAlpha))
         } else {
-            null
+            glideFloatBorder(fill, theme)
         },
         shadowElevation = elevationFor(theme.popupShapeKind, if (hovered) 8.dp else 4.dp),
     ) {
@@ -20876,7 +20910,7 @@ private fun GlidePickerTarget(
                 text = if (expansion == null) {
                     AnnotatedString(word)
                 } else {
-                    glideExpansionLabel(word, expansion, theme.popupText)
+                    glideExpansionLabel(word, expansion, text)
                 },
                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
                 fontSize = 18.sp,
