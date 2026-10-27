@@ -112,6 +112,8 @@ class AddonShots {
             runBlocking {
                 repo.clearAllPreferences()
                 repo.setOnboardingDone(true)
+                // The toolbox's first-open drag hint would take a third of the tools shot.
+                repo.setToolboxHintDismissed(true)
             }
             when (type) {
                 "theme" -> {
