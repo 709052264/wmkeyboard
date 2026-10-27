@@ -12574,9 +12574,9 @@ open class WMKeyboardService : InputMethodService() {
         val isWordChar = singleWordChar || clusterContinuation
         // Avro is a transliterating input method: its composing must run even
         // in password fields and with the strip off, or the roman keys commit
-        // untransliterated and no Bengali is produced. English composing only
-        // exists to feed suggestions, so it stays gated on those
-        // ([KeyboardUiState.composesForSuggestions] — which is also what lets a
+        // untransliterated and no Bengali is produced. English composing
+        // exists to feed suggestions and autocorrect, so it stays gated on
+        // those ([KeyboardUiState.composesWords] — which is also what lets a
         // URL bar compose once the strip is on it, #98).
         //
         // Fancy Text composes plain letters and styles them on the way out
@@ -12591,7 +12591,7 @@ open class WMKeyboardService : InputMethodService() {
         // continues the one it was handed, and the next word boundary ends it.
         val composingMode = !fancyByKey &&
             (!state.composer.isClusterShaping || composing.isNotEmpty()) &&
-            (state.composer.isTransliterating || state.composesForSuggestions)
+            (state.composer.isTransliterating || state.composesWords)
 
         // Before any of the branches below, because three of them write text and
         // each used to answer this differently: the colon went to the emoji
@@ -18481,7 +18481,7 @@ open class WMKeyboardService : InputMethodService() {
     ): Boolean {
         if (composing.isNotEmpty() || secureFieldRefusesSnippets(state) || state.nullField) return false
         if (state.composer.isTransliterating || state.composer.isConversion) return false
-        val digitLedOnly = state.composesForSuggestions
+        val digitLedOnly = state.composesWords
         val prefixes = snippetStore.hasPrefixTriggers()
         if (digitLedOnly && !snippetStore.hasDigitLedTriggers() && !prefixes) return false
         if (snippetStore.expandingTriggers().isEmpty() && !prefixes) return false
@@ -19001,7 +19001,7 @@ open class WMKeyboardService : InputMethodService() {
     /**
      * Whether the field is one a snippet's chips may sit over: a text field,
      * or a browser's address bar (#471). The address bar composes once the
-     * strip is on it ([KeyboardUiState.composesForSuggestions]), and a trigger
+     * strip is on it ([KeyboardUiState.composesWords]), and a trigger
      * that asks first expands there the moment it is let in, as one that does
      * not ask already did. Asking only [KeyboardUiState.allowsTypingIntelligence]
      * left those triggers dead in every address bar: no chip, and no expansion
@@ -47698,7 +47698,7 @@ open class WMKeyboardService : InputMethodService() {
      * so nothing else hears of it. It keeps no alternatives of its own.
      */
     private fun noteUncomposedRecentWord(ic: InputConnection, state: KeyboardUiState) {
-        if (state.composesForSuggestions || !recentBarAllowed(state)) return
+        if (state.composesWords || !recentBarAllowed(state)) return
         val before = runCatching { ic.getTextBeforeCursor(RECENT_BAR_LOOKBEHIND, 0)?.toString() }.getOrNull() ?: return
         val word = before.takeLastWhile { isComposingWordChar(it) }
         if (word.any { it.isLetter() } && word.length < before.length) {
@@ -51927,7 +51927,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun hardwareIntercepts(state: KeyboardUiState): Boolean {
         val composingMode = (!state.composer.isClusterShaping || composing.isNotEmpty()) &&
-            (state.composer.isTransliterating || state.composesForSuggestions)
+            (state.composer.isTransliterating || state.composesWords)
         // One question for every keyboard-owned field, rather than the
         // hand-copied list of them this used to be: that list is how the AI
         // custom-instruction box shipped typing its physical keys into the

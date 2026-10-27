@@ -3907,7 +3907,7 @@ data class KeyboardUiState(
      * region put there is invisible until something ends it. Typing "echo"
      * showed nothing until the space after it, which then dumped the whole word
      * at once. Nothing composes in such a field
-     * ([composesForSuggestions]) and none of the prose rules run in it
+     * ([composesWords]) and none of the prose rules run in it
      * ([allowsTypingIntelligence]): a shell prompt is not prose, and a space
      * the keyboard types after a comma is a changed command line.
      *
@@ -3943,7 +3943,7 @@ data class KeyboardUiState(
      * keeps all of those. The
      * "Suggestions in every field" setting can override this for text and URL
      * fields; in a URL field the strip it shows is also what lets the words
-     * typed there compose ([composesForSuggestions]).
+     * typed there compose ([composesWords]).
      */
     val fieldNoSuggestions: Boolean = false,
     /**
@@ -4321,7 +4321,7 @@ data class KeyboardUiState(
      * Whether to run the full typing engine — autocorrect, apostrophe fixes,
      * phonetic (Avro) composing and lexicon learning. (Gesture typing and word
      * completion have their own, slightly wider gates: [allowsGestureTyping]
-     * and [composesForSuggestions].) These
+     * and [composesWords].) These
      * belong to prose entry, so they apply to plain text fields only and are
      * deliberately independent of [fieldNoSuggestions]: an app that hides the
      * suggestion strip (Instagram, Google Keep) must not also lose autocorrect
@@ -4362,8 +4362,12 @@ data class KeyboardUiState(
         get() = !secureField && !nullField && (fieldKind == FieldKind.TEXT || fieldKind == FieldKind.URI)
 
     /**
-     * Whether the letters typed here are gathered into a word for the strip to
-     * complete. Plain text fields, and a URL bar once "Suggestions in every
+     * Whether the letters typed here are gathered into a word, for the strip to
+     * complete or autocorrect to fix. Autocorrect reads nothing but this
+     * buffer, so in a text field it composes with the strip switched off too:
+     * gated on the strip alone, turning suggestions off silently turned
+     * autocorrect, apostrophe fixes and learning off with it. Plain text
+     * fields, and a URL bar once "Suggestions in every
      * field" has put the strip on it (#98): a browser's address bar is typed
      * as a search box as often as an address box, the same reading #37 gave
      * [allowsGestureTyping]. The word composed there feeds the strip and
@@ -4378,10 +4382,10 @@ data class KeyboardUiState(
      * the strip is doing: there the buffer is not merely unhelpful, it is
      * text the user typed and cannot see (issue #220).
      */
-    val composesForSuggestions: Boolean
-        get() = settings.suggestions && !secureField && !nullField && (
-            fieldKind == FieldKind.TEXT ||
-                (fieldKind == FieldKind.URI && !fieldNoSuggestions)
+    val composesWords: Boolean
+        get() = !secureField && !nullField && (
+            fieldKind == FieldKind.TEXT && (settings.suggestions || settings.correction.enabledFor(language.id)) ||
+                (fieldKind == FieldKind.URI && settings.suggestions && !fieldNoSuggestions)
             )
 
     /**
@@ -4395,7 +4399,7 @@ data class KeyboardUiState(
      * corrections that do stay on [allowsTypingIntelligence].
      */
     val resumesWords: Boolean
-        get() = allowsTypingIntelligence || (fieldKind == FieldKind.URI && composesForSuggestions)
+        get() = allowsTypingIntelligence || (fieldKind == FieldKind.URI && composesWords)
 
     /**
      * Whether the focused field takes any image at all through commitContent.
