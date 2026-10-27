@@ -5,7 +5,6 @@ import android.net.Uri
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -159,7 +158,8 @@ private fun WikipediaPanel(
             }
             is WikiUi.SearchResults -> {
                 if (wiki.results.isEmpty()) {
-                    WikiMessage(stringResource(R.string.ime_wiki_no_results_empty, wiki.query))
+                    // An offline Wikipedia such as Kiwix may have it (#970).
+                    WikiMessage(stringResource(R.string.ime_wiki_no_results_empty, wiki.query), lookupWord = wiki.query)
                 } else {
                     // Published from inside this branch, so the panel-local tab
                     // state never has to be hoisted to say what is on screen.
@@ -370,6 +370,8 @@ private fun WikiArticle(
                     (wiki.fullText?.takeIf { it.isNotBlank() } ?: wiki.summary.extract).trim(),
                 ) + "\n\n" + wiki.summary.url
             }
+            // The article in an offline reader such as Kiwix or Aard 2 (#970).
+            LookupAppChip { wiki.summary.title }
         }
         when (tab) {
             WikiTab.SUMMARY -> LazyColumn(
@@ -523,8 +525,12 @@ private fun WikiArticle(
 }
 
 @Composable
-private fun WikiMessage(text: String) {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+private fun WikiMessage(text: String, lookupWord: String? = null) {
+    Column(
+        Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
         Text(
             text,
             color = LocalKbTheme.current.secondaryText,
@@ -532,5 +538,6 @@ private fun WikiMessage(text: String) {
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 24.dp),
         )
+        if (lookupWord != null) LookupAppChip(Modifier.padding(top = 8.dp)) { lookupWord }
     }
 }

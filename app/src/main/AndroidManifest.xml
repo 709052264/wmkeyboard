@@ -250,6 +250,20 @@
         <intent>
             <action android:name="android.intent.action.TTS_SERVICE" />
         </intent>
+        <!-- Apps that look a word up, for the Dictionary and Wikipedia tools'
+             "Open in" chip (#970): Aard 2's own lookup, the ColorDict intent
+             most offline dictionaries answer, and the selection menu's
+             PROCESS_TEXT, which is how Kiwix and the rest offer themselves. -->
+        <intent>
+            <action android:name="aard2.lookup" />
+        </intent>
+        <intent>
+            <action android:name="colordict.intent.action.SEARCH" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.PROCESS_TEXT" />
+            <data android:mimeType="text/plain" />
+        </intent>
         <!-- Mail apps, for the bug-report and "report this generation" rows. -->
         <intent>
             <action android:name="android.intent.action.SENDTO" />
