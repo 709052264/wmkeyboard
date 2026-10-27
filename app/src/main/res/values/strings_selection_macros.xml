@@ -41,6 +41,11 @@
     <string name="selection_macros_actions_search_empty">No action matches %1$s</string>
     <string name="selection_macros_actions_results_title">Results</string>
     <string name="selection_macros_options_desc">Options</string>
+    <!-- #970: the pencil on each action's row, which renames it on the bar. -->
+    <string name="selection_macros_rename_desc">Rename on the bar</string>
+    <!-- %1$s = the action's shipped name. -->
+    <string name="selection_macros_rename_title">Rename “<xliff:g id="action" example="Copy">%1$s</xliff:g>”</string>
+    <string name="selection_macros_rename_label">Name on the bar</string>
     <string name="selection_macros_reorder_title">Order on the bar</string>
     <string name="selection_macros_reorder_info">Undo is always first. An action is only drawn where it applies, so the row you see is usually shorter than this.</string>
     <string name="selection_macros_reorder_desc">Reorder</string>

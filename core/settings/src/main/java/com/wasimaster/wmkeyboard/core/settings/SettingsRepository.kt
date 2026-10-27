@@ -5576,6 +5576,11 @@ data class SelectionMacroSettings(
      */
     val iconOnly: Set<SelectionMacro> = emptySet(),
     /**
+     * The user's own names for actions, drawn on the bar in place of the
+     * shipped word (#970). An action missing here keeps its word.
+     */
+    val labels: Map<SelectionMacro, String> = emptyMap(),
+    /**
      * "WM Keyboard" in other apps' text selection menus (#916): a sheet of
      * these actions, plus translate and the AI actions, for text selected
      * anywhere, typed with this keyboard or not. Separate from [enabled],
@@ -11744,6 +11749,9 @@ class SettingsRepository(private val context: Context) {
         /** [SelectionMacroSettings.iconOnly], by [SelectionMacro] name. */
         private val SELECTION_MACROS_ICON_ONLY = stringSetPreferencesKey("selection_macros_icon_only")
 
+        /** [SelectionMacroSettings.labels], as "NAME=label" per renamed action. */
+        private val SELECTION_MACROS_LABELS = stringSetPreferencesKey("selection_macros_labels")
+
         /**
          * The macros that are on, by [SelectionMacro] name.
          *
@@ -14161,6 +14169,14 @@ class SettingsRepository(private val context: Context) {
             iconOnly = p[SELECTION_MACROS_ICON_ONLY]
                 ?.mapNotNullTo(mutableSetOf()) { name -> runCatching { SelectionMacro.valueOf(name) }.getOrNull() }
                 ?: defaults.selectionMacros.iconOnly,
+            labels = p[SELECTION_MACROS_LABELS]
+                ?.mapNotNull { entry ->
+                    val name = entry.substringBefore('=')
+                    val label = entry.substringAfter('=', "")
+                    runCatching { SelectionMacro.valueOf(name) }.getOrNull()?.takeIf { label.isNotBlank() }?.let { it to label }
+                }
+                ?.toMap()
+                ?: defaults.selectionMacros.labels,
             systemMenu = p[SELECTION_MACROS_SYSTEM_MENU] ?: defaults.selectionMacros.systemMenu,
             systemMenuTranslate = p[SELECTION_MACROS_SYSTEM_MENU_TRANSLATE]
                 ?: defaults.selectionMacros.systemMenuTranslate,
@@ -22201,6 +22217,14 @@ class SettingsRepository(private val context: Context) {
     /** "WM Translate" in other apps' selection menus (#916). */
     suspend fun setSelectionMenuTranslate(value: Boolean) =
         editPrefs { it[SELECTION_MACROS_SYSTEM_MENU_TRANSLATE] = value }
+
+    /** [macro]'s own name on the bar, or null for the shipped one (#970). */
+    suspend fun setSelectionMacroLabel(macro: SelectionMacro, label: String?) =
+        editPrefs {
+            val rest = it[SELECTION_MACROS_LABELS].orEmpty().filterNot { entry -> entry.substringBefore('=') == macro.name }
+            val name = label?.trim().orEmpty()
+            it[SELECTION_MACROS_LABELS] = if (name.isEmpty()) rest.toSet() else rest.toSet() + "${macro.name}=$name"
+        }
 
     /** Whether [macro] draws as its icon alone on the bar (#679). */
     suspend fun setSelectionMacroIconOnly(macro: SelectionMacro, on: Boolean) =

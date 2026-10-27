@@ -286,6 +286,7 @@ internal fun SelectionMacroBar(
                                 reduceMotion = !motion,
                                 app = if (macro == SelectionMacro.OPEN) linkApp else null,
                                 iconOnly = macro in state.settings.selectionMacros.iconOnly,
+                                customLabel = state.settings.selectionMacros.labels[macro],
                                 onClick = {
                                     feedback()
                                     // The doors the service never sees: on prose
@@ -479,11 +480,17 @@ private fun MacroChip(
     reduceMotion: Boolean,
     app: MacroLinkApp? = null,
     iconOnly: Boolean = false,
+    /** The user's own name for it (#970), or null for the shipped word. */
+    customLabel: String? = null,
     onClick: () -> Unit,
 ) {
     val kb = LocalKbTheme.current
     val shape = kb.chipShape()
-    val label = if (speaking) stringResource(R.string.ime_selection_macro_stop_label) else stringResource(macro.labelRes)
+    val label = if (speaking) {
+        stringResource(R.string.ime_selection_macro_stop_label)
+    } else {
+        customLabel ?: stringResource(macro.labelRes)
+    }
     val icon = if (speaking) Icons.Outlined.StopCircle else selectionMacroIcon(macro)
     // Its icon alone when asked for (#679), so long as it has something to
     // show in place of the word; the description still names it.
