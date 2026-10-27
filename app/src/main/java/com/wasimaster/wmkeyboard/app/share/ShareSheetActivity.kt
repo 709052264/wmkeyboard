@@ -358,8 +358,7 @@ private fun SheetFrame(onDismiss: () -> Unit, content: @Composable () -> Unit) {
 
 @Composable
 private fun PreviewCard(preview: SharePreview) {
-    val title = when {
-        preview.subject != null -> preview.subject
+    val title = preview.subject ?: when {
         preview.files > 0 -> pluralStringResource(ImeR.plurals.ime_share_preview_files, preview.files, preview.files)
         else -> stringResource(ImeR.string.ime_share_preview_text)
     }

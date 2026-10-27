@@ -267,8 +267,7 @@ private fun PreviewLine(preview: SharePreview) {
     val kb = LocalKbTheme.current
     val files = preview.files
     val icon = if (files > 0) Icons.Outlined.AttachFile else Icons.Outlined.TextFields
-    val title = when {
-        preview.subject != null -> preview.subject
+    val title = preview.subject ?: when {
         files > 0 -> pluralStringResource(R.plurals.ime_share_preview_files, files, files)
         else -> stringResource(R.string.ime_share_preview_text)
     }

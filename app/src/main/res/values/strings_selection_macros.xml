@@ -6,7 +6,7 @@
   action names themselves are in :core:content, beside the engine that chooses
   them; these are the settings screen's own words.
 -->
-<resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 
     <string name="selection_macros_title">Selection actions</string>
     <string name="selection_macros_subtitle">Show a bar of actions for the text you select</string>
