@@ -16,6 +16,17 @@
     <!-- Name of the weaker results on the index beside a long list of results. See shell_search_results_stop. -->
     <string name="shell_search_mentions_stop">Mentions</string>
 
+    <!-- #970: the bar at the bottom of the settings screens after an update, walking through the settings the update added. -->
+    <plurals name="shell_new_settings_count">
+        <item quantity="one"><xliff:g id="count" example="1">%d</xliff:g> new setting in this version</item>
+        <item quantity="other"><xliff:g id="count" example="7">%d</xliff:g> new settings in this version</item>
+    </plurals>
+    <!-- %1$d = which new setting is open, %2$d = how many there are, %3$s = its name. -->
+    <string name="shell_new_settings_position"><xliff:g id="position" example="2">%1$d</xliff:g> of <xliff:g id="count" example="7">%2$d</xliff:g>: <xliff:g id="setting" example="More slots for short words">%3$s</xliff:g></string>
+    <string name="shell_new_settings_previous_desc">Previous new setting</string>
+    <string name="shell_new_settings_next_desc">Next new setting</string>
+    <string name="shell_new_settings_dismiss_desc">Stop showing the new settings</string>
+
     <!-- The path strip under the heading, on screens more than one step below the settings home. -->
     <!-- Name of the settings home in the path strip. The screen itself is titled with the app name. -->
     <string name="shell_breadcrumb_home">Home</string>

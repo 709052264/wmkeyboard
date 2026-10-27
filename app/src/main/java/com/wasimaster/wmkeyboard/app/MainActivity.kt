@@ -843,6 +843,18 @@ private fun SettingsNavHost(
     val navigate: (String) -> Unit = remember(navController) {
         { route -> navController.navigate(routeWithExtensions(route, settings.value.extensionsResolved())) }
     }
+    // The rows an update brought (#970), worked out once per launch. Off the
+    // main thread: it builds the whole search index.
+    LaunchedEffect(Unit) { kotlinx.coroutines.withContext(Dispatchers.Default) { NewSettings.load(context) } }
+    // As a search result opens one: flash the row, then go.
+    val openNewSetting: (SettingsSearchEntry) -> Unit = remember(navController) {
+        { entry ->
+            SettingsHighlight.request(entry.titleRes)
+            navController.navigate(routeWithExtensions(entry.route, settings.value.extensionsResolved())) {
+                launchSingleTop = true
+            }
+        }
+    }
     val screens: @Composable (SharedTransitionScope?) -> Unit = { shared ->
         val reduceMotion = settings.watch { it.reduceMotion }
         CompositionLocalProvider(
@@ -880,47 +892,54 @@ private fun SettingsNavHost(
                 still = reduceMotion,
             ),
         ) {
-            if (twoPane) {
-                SettingsTwoPane(
-                    list = {
-                        // One keyboard test button on the window: the list's
-                        // while the pane beside it is only the welcome panel,
-                        // the open screen's once there is one.
-                        CompositionLocalProvider(
-                            LocalKeyboardPreview provides
-                                LocalKeyboardPreview.current?.takeIf { topRoute == HomeRoute },
-                        ) {
-                            HomeScreen(
-                                settings = settings,
-                                selectedRoute = if (topRoute == HomeRoute) null else openedFrom,
-                                onNavigate = { wanted ->
-                                    val route = routeWithExtensions(wanted, settings.value.extensionsResolved())
-                                    openedFrom = route
-                                    // From the list pane the detail always replaces
-                                    // what is in it rather than stacking on top:
-                                    // the pane beside it *is* the step back, so a
-                                    // stack of home rows would be one the user
-                                    // never took.
-                                    navController.navigate(route) {
-                                        popUpTo(HomeRoute)
-                                        launchSingleTop = true
-                                    }
-                                },
+            // The bar over every screen that walks through what an update
+            // brought (#970), once onboarding is out of the way.
+            Box(modifier = Modifier.fillMaxSize()) {
+                if (twoPane) {
+                    SettingsTwoPane(
+                        list = {
+                            // One keyboard test button on the window: the list's
+                            // while the pane beside it is only the welcome panel,
+                            // the open screen's once there is one.
+                            CompositionLocalProvider(
+                                LocalKeyboardPreview provides
+                                    LocalKeyboardPreview.current?.takeIf { topRoute == HomeRoute },
+                            ) {
+                                HomeScreen(
+                                    settings = settings,
+                                    selectedRoute = if (topRoute == HomeRoute) null else openedFrom,
+                                    onNavigate = { wanted ->
+                                        val route = routeWithExtensions(wanted, settings.value.extensionsResolved())
+                                        openedFrom = route
+                                        // From the list pane the detail always replaces
+                                        // what is in it rather than stacking on top:
+                                        // the pane beside it *is* the step back, so a
+                                        // stack of home rows would be one the user
+                                        // never took.
+                                        navController.navigate(route) {
+                                            popUpTo(HomeRoute)
+                                            launchSingleTop = true
+                                        }
+                                    },
+                                )
+                            }
+                        },
+                        detail = {
+                            SettingsNavGraph(
+                                navController,
+                                repository,
+                                settings,
+                                pending,
+                                onPendingHandled,
                             )
-                        }
-                    },
-                    detail = {
-                        SettingsNavGraph(
-                            navController,
-                            repository,
-                            settings,
-                            pending,
-                            onPendingHandled,
-                        )
-                    },
-                )
-            } else {
-                SettingsNavGraph(navController, repository, settings, pending, onPendingHandled)
+                        },
+                    )
+                } else {
+                    SettingsNavGraph(navController, repository, settings, pending, onPendingHandled)
+                }
+                if (settings.watch { it.onboardingDone }) {
+                    NewSettingsBar(openNewSetting, Modifier.align(Alignment.BottomCenter))
+                }
             }
         }
     }
