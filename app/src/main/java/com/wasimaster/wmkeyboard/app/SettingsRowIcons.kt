@@ -1001,6 +1001,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_autocorrect_on_punctuation_title) { Icons.Outlined.Spellcheck }
         put(R.string.typing_dictionary_capitals_title) { Icons.Outlined.TextFields }
         put(R.string.typing_skip_typed_word_title) { Icons.Outlined.FilterList }
+        put(R.string.typing_typed_word_first_title) { Icons.Outlined.TextFields }
         put(R.string.typing_number_prediction_title) { Icons.Outlined.Numbers }
         put(R.string.typing_block_offensive_title) { Icons.Outlined.Block }
         put(R.string.typing_auto_apostrophe_title) { Icons.Outlined.Spellcheck }

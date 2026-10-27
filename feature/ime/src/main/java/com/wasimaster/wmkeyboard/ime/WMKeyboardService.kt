@@ -24820,9 +24820,11 @@ open class WMKeyboardService : InputMethodService() {
             // openers, which rest behind the toolbar like the ones at the start
             // of the field (#889).
             val openers = typed.isEmpty() && previousWord == WordContext.SENTENCE_START
+            val stripTyped = typed.takeIf { it.isNotEmpty() && !state.composer.isTransliterating }
             _uiState.update {
                 it.copy(
                     suggestions = results,
+                    stripTyped = stripTyped,
                     sentenceOpeners = if (openers) results else emptyList(),
                     phoneticCandidates = candidateBar,
                     emojiSuggestions = shownEmojis,
@@ -24901,6 +24903,7 @@ open class WMKeyboardService : InputMethodService() {
                 it.copy(
                     glideSearchChip = searchChip,
                     suggestions = results,
+                    stripTyped = null,
                     emojiSuggestions = emptyList(),
                     punctuationSuggestions = emptyList(),
                     inlineEmoji = false,

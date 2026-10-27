@@ -5300,6 +5300,7 @@ private fun RowScope.StripWords(
             centerPrimaryEnabled = state.settings.suggestionStrip.suggestionPrimaryCenter &&
                 !state.fixedPhoneticStrip(),
             primaryColor = state.settings.suggestionStrip.primaryColor?.let { Color(it.toInt()) },
+            leadWord = state.stripTyped.takeIf { state.settings.suggestionStrip.typedWordFirst && !glideStripOnly },
             autocorrectWord = state.autocorrectWord,
             // A fixed phonetic strip leads with the word as typed, not
             // with what a space writes; the bold follows the latter.
@@ -5577,6 +5578,8 @@ internal fun RowScope.LatinSuggestionChips(
     primaryWord: String? = null,
     /** The primary word's own colour (#90), or null for the strip's text colour. */
     primaryColor: Color? = null,
+    /** A word to draw in the first slot, wherever it was ranked (#970): the word as typed. */
+    leadWord: String? = null,
     /** The word autocorrect has decided a space will put in, or null (#90). */
     autocorrectWord: String? = null,
     shiftState: ShiftState,
@@ -5652,14 +5655,22 @@ internal fun RowScope.LatinSuggestionChips(
         // order — this is display-only.
         val centerPrimary = centerPrimaryEnabled && ranked.size >= 2
         val fixed = fixedSlots && !scrollable && ranked.isNotEmpty()
-        val shown: List<String?> = when {
+        val arranged: List<String?> = when {
             fixed -> fixedSlotOrder(ranked, slotCount, if (centerPrimaryEnabled) primarySlot else 0)
             centerPrimary -> listOf(ranked[1], ranked[0]) + ranked.drop(2)
             else -> ranked
         }
+        // The word as typed to the front when asked for (#970); the bold
+        // still goes on what a space commits, wherever that now sits.
+        val leadAt = leadWord?.let { lead -> arranged.indexOf(lead) } ?: -1
+        val shown: List<String?> = if (leadAt > 0) {
+            listOf(arranged[leadAt]) + arranged.filterIndexed { i, _ -> i != leadAt }
+        } else {
+            arranged
+        }
         val primaryIndex = when {
             primaryWord != null -> shown.indexOf(primaryWord)
-            fixed -> shown.indexOf(ranked.first())
+            fixed || leadAt > 0 -> shown.indexOf(ranked.first())
             centerPrimary -> 1
             else -> 0
         }
@@ -23336,7 +23347,15 @@ internal fun functionKeysPressToolbar(state: KeyboardUiState): Boolean =
 internal fun suggestionDisplayOrder(state: KeyboardUiState): List<Int> {
     val reorders = !state.composer.isConversion && !state.inlineEmoji &&
         state.settings.suggestionStrip.suggestionPrimaryCenter && !state.fixedPhoneticStrip()
-    return suggestionSlotOrder(state.suggestions.size, reorders)
+    val order = suggestionSlotOrder(state.suggestions.size, reorders)
+    // The word as typed drawn first (#970): its slot moves to the front here
+    // too, so its badge and its key stay the first.
+    val typed = state.stripTyped?.takeIf {
+        state.settings.suggestionStrip.typedWordFirst && !state.composer.isConversion && !state.inlineEmoji
+    } ?: return order
+    val rank = state.suggestions.indexOf(typed)
+    val at = order.indexOf(rank)
+    return if (rank < 0 || at <= 0) order else listOf(rank) + order.filterIndexed { i, _ -> i != at }
 }
 
 /**

@@ -1157,6 +1157,14 @@ internal fun TypingSuggestionsSettings(
                 default = SettingsDefaults.suggestionStrip.skipTypedWord,
             ) { scope.launch { repository.setSkipTypedWord(it) } }
         }
+        item(level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.typing_typed_word_first_title,
+                stringResource(R.string.typing_typed_word_first_subtitle),
+                settings.watch { it.suggestionStrip.typedWordFirst },
+                default = SettingsDefaults.suggestionStrip.typedWordFirst,
+            ) { scope.launch { repository.setTypedWordFirst(it) } }
+        }
         item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.typing_recent_word_bar_title,

@@ -9551,6 +9551,12 @@ data class SuggestionStripSettings(
      */
     val skipTypedWord: Boolean = false,
     /**
+     * The word as typed is drawn in the strip's first slot, whatever the
+     * engine ranked first (#970), the way Multiling O Keyboard lays it out.
+     * Display only: what a space commits does not change.
+     */
+    val typedWordFirst: Boolean = false,
+    /**
      * The recent words (#787, #814): the last words written in this field,
      * each one tap from what else it could have been. Off by default. A row
      * of its own over the strip, [BarRow.RECENT] in the row order, or at the
@@ -10746,6 +10752,7 @@ class SettingsRepository(private val context: Context) {
         private val SPACE_AFTER_SUGGESTION_OFF_LANGS =
             stringSetPreferencesKey("space_after_suggestion_off_langs")
         private val SKIP_TYPED_WORD = booleanPreferencesKey("skip_typed_word")
+        private val TYPED_WORD_FIRST = booleanPreferencesKey("typed_word_first")
         private val RECENT_WORD_BAR = booleanPreferencesKey("recent_word_bar")
         private val EXPAND_USER_DICT_SHORTCUTS = booleanPreferencesKey("expand_user_dict_shortcuts")
         private val USE_SYSTEM_DICTIONARY = booleanPreferencesKey("use_system_dictionary")
@@ -13132,6 +13139,7 @@ class SettingsRepository(private val context: Context) {
             spaceAfterSuggestionOffLangs = p[SPACE_AFTER_SUGGESTION_OFF_LANGS]
                 ?: defaults.suggestionStrip.spaceAfterSuggestionOffLangs,
             skipTypedWord = p[SKIP_TYPED_WORD] ?: defaults.suggestionStrip.skipTypedWord,
+            typedWordFirst = p[TYPED_WORD_FIRST] ?: defaults.suggestionStrip.typedWordFirst,
             recentWordBar = p[RECENT_WORD_BAR] ?: defaults.suggestionStrip.recentWordBar,
             expandUserDictShortcuts = p[EXPAND_USER_DICT_SHORTCUTS]
                 ?: defaults.suggestionStrip.expandUserDictShortcuts,
@@ -20031,6 +20039,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSkipTypedWord(value: Boolean) =
         editPrefs { it[SKIP_TYPED_WORD] = value }
+
+    suspend fun setTypedWordFirst(value: Boolean) =
+        editPrefs { it[TYPED_WORD_FIRST] = value }
 
     suspend fun setRecentWordBar(value: Boolean) =
         editPrefs { it[RECENT_WORD_BAR] = value }

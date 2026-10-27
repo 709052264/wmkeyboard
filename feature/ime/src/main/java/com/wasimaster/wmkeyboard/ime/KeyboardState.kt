@@ -3283,6 +3283,13 @@ data class KeyboardUiState(
     val moreSuggestions: List<String> = emptyList(),
     val suggestions: List<String> = emptyList(),
     /**
+     * The word being typed, as typed, beside [suggestions] it was ranked for,
+     * so the strip can draw it first ([com.wasimaster.wmkeyboard.core.settings.SuggestionStripSettings.typedWordFirst]).
+     * Null between words, and on a board that composes something other than
+     * its keys (Hangul, transliteration), where the keys are not the word.
+     */
+    val stripTyped: String? = null,
+    /**
      * What the next undecided syllable of a conversion reading could be, for a
      * reading column to offer (`Composer.readings`, issue #635). Empty for every
      * composer but T9 pinyin, and once every syllable is settled.
