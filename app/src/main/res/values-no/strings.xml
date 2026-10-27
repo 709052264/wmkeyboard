@@ -1144,7 +1144,6 @@
     <string name="backup_sync_keep_layouts_title">Språk og oppsett</string>
     <string name="backup_sync_keep_local_info">Innstillinger du merker av her forblir som de er på denne enheten. Endringer du gjør i dem her blir ikke sendt, og endringer fra dine andre enheter blir ikke hentet. Fjern merket senere, og denne enheten tar det dine andre enheter har.</string>
     <string name="backup_sync_keep_local_title">Behold på denne enheten</string>
-    <string name="backup_sync_keep_needs_settings">Krever at Innstillinger er krysset av i Hva synkroniseres</string>
     <string name="backup_sync_keep_toolbar_subtitle">Hvilke verktøy, i hvilken rekkefølge, og hvordan de ser ut</string>
     <string name="backup_sync_keep_toolbar_title">Verktøylinje og verktøykasse</string>
     <string name="backup_sync_local_note">Noen innstillinger forblir på hver enhet, fordi de kun passer til den enheten: tastaturstørrelse og -plassering, enhåndsmodus, det fysiske tastaturet, parede datamaskiner og app-låsen.</string>
@@ -1554,7 +1553,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">Slett ordlisten %1$s</string>
     <string name="customdict_delete_pack_desc">Slett emojipakken %1$s</string>
-    <string name="customdict_emoji_auto_download_blocked">Slått av, fordi «Last ned data automatisk» er slått av under Språk</string>
     <string name="customdict_emoji_auto_download_info">Når du slår på et språk, laster appen ned emojinøkkelordene i bakgrunnen. Dette er omtrent 100 KB, én gang. Hvis du slår dette av, er nedlastingsknappene nedenfor den eneste måten å få tak i nøkkelordene på.</string>
     <string name="customdict_emoji_auto_download_subtitle">Last ned nøkkelord for språkene du skriver</string>
     <string name="customdict_emoji_auto_download_title">Last ned automatisk</string>
@@ -3636,7 +3634,6 @@
     <string name="languages_ansi_version_subtitle">Velg den som din ANSI-skrifttype er laget for</string>
     <string name="languages_ansi_version_title">ANSI-versjon</string>
     <string name="languages_auto_pair_toast">%1$s og %2$s foreslår nå hverandres ord. Du kan endre dette på hvert språks side.</string>
-    <string name="languages_autocorrect_global_off_subtitle">Autokorrektur er av for alle språk i Skriving</string>
     <string name="languages_autocorrect_group">Autokorrektur</string>
     <string name="languages_autocorrect_info">Slå dette av for å beholde hvert ord du skriver på %1$s slik du skrev det, mens andre språk fortsatt blir rettet. Forslagslinjen viser fortsatt sine forslag, og du kan trykke på ett av dem. Autokorrekt-bryteren i Skriving slår av autokorrekt for alle språk.</string>
     <string name="languages_autocorrect_subtitle">Rett skrivefeil når du trykker på mellomrom</string>
@@ -3927,7 +3924,6 @@
     </plurals>
     <string name="languages_secondary_info">Tastaturet tilbyr ord fra disse språkene mens du skriver %1$s. Autokorrektur endrer dem aldri.</string>
     <string name="languages_secondary_title">Foreslå også fra</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">Mellomrom etter et forslag er slått av for alle språk i Skriving</string>
     <string name="languages_space_after_suggestion_info">Slå av dette for å skrive et ord du velger fra forslagslinjen i %1$s uten et mellomrom etter, slik at du kan legge til en endelse med en gang. Andre språk får fortsatt mellomrommet. Mellomrom etter forslag-bryteren i Skriving slår av mellomrommet for alle språk.</string>
     <string name="languages_space_after_suggestion_subtitle">Legg til et mellomrom når du velger et ord fra forslagslinjen</string>
     <string name="languages_space_after_suggestion_title">Mellomrom etter et forslag</string>
@@ -4622,7 +4618,6 @@
     <string name="layout_globe_guard_info">🌐-tasten ligger ved siden av mellomromstasten og kommaet, så en rask tommel kan komme borti den ved et uhell midt i et ord og endre språket. Angi et tidsintervall her, så vil et trykk på 🌐 som skjer før dette tidsrommet har gått etter et tastetrykk, ikke utføre noen handling. Et trykk etter en pause endrer språket som vanlig, og det gjør også raske trykk rett etter hverandre på selve 🌐-tasten. Hold inne 🌐 for å åpne språklisten når som helst. Bokstaver, mellomrom, slettetast og enter teller som skriving. Shift og modustastene gjør det ikke. Denne innstillingen er av som standard.</string>
     <string name="layout_globe_guard_subtitle">Et trykk på 🌐 rett etter en bokstav gjør ingenting</string>
     <string name="layout_globe_guard_title">Ignorer 🌐 rett etter skriving</string>
-    <string name="layout_globe_hidden_subtitle">Ingen effekt mens 🌐-tasten er skjult</string>
     <string name="layout_globe_in_one_place_info">Noen oppsett plasserer 🌐-tasten et annet sted, for eksempel helt til venstre, eller rett etter ?123-tasten. Dette flytter den til stedet der de innebygde oppsettene bruker den, slik at tommelen din finner den på samme plass uansett språk. Tastene til venstre for den blir bredere eller smalere for å gi plass, og mellomromstasten endres for å tilpasse seg. Et oppsett hvor dette ville gjort tastene for små, beholdes som det er, og det samme gjelder et ekstra oppsett du åpner fra en tast. Slå dette av for å se alle oppsett slik forfatteren laget dem.</string>
     <string name="layout_globe_in_one_place_subtitle">Samme sted på alle oppsett, ved siden av mellomromstasten</string>
     <string name="layout_globe_in_one_place_title">Hold 🌐-tasten på ett sted</string>

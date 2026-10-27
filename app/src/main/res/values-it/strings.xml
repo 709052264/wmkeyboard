@@ -1143,7 +1143,6 @@
     <string name="backup_sync_keep_layouts_title">Lingue e layout</string>
     <string name="backup_sync_keep_local_info">Le impostazioni che selezioni qui rimangono invariate su questo dispositivo. Le modifiche apportate qui non vengono inviate, e le modifiche dagli altri tuoi dispositivi non vengono applicate. Deselezionala in seguito e questo dispositivo adotterà ciò che hanno i tuoi altri dispositivi.</string>
     <string name="backup_sync_keep_local_title">Mantieni su questo dispositivo</string>
-    <string name="backup_sync_keep_needs_settings">Richiede che le Impostazioni siano spuntate in Cosa sincronizzare</string>
     <string name="backup_sync_keep_toolbar_subtitle">Quali strumenti, in che ordine e il loro aspetto</string>
     <string name="backup_sync_keep_toolbar_title">Barra degli strumenti e toolbox</string>
     <string name="backup_sync_local_note">Alcune impostazioni rimangono su ogni dispositivo, poiché sono specifiche per quel dispositivo: le dimensioni e la posizione della tastiera, la modalità a una mano, la tastiera hardware, i computer associati e il blocco app. Per conservarne altre su questo dispositivo, utilizza Mantieni su questo dispositivo qui sotto.</string>
@@ -1553,7 +1552,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">Elimina l\'elenco di parole %1$s</string>
     <string name="customdict_delete_pack_desc">Elimina il pacchetto emoji %1$s</string>
-    <string name="customdict_emoji_auto_download_blocked">Disattivato, perché \"Scarica dati automaticamente\" è disattivato in Lingue</string>
     <string name="customdict_emoji_auto_download_info">Quando attivi una lingua, l\'app scarica le sue parole chiave emoji in background. Si tratta di circa 100 KB, una sola volta. Se disattivi questa opzione, i pulsanti di download qui sotto sono l\'unico modo per ottenere le parole chiave.</string>
     <string name="customdict_emoji_auto_download_subtitle">Scarica parole chiave per le lingue che digiti</string>
     <string name="customdict_emoji_auto_download_title">Scarica automaticamente</string>
@@ -3624,7 +3622,6 @@
     <string name="languages_ansi_version_subtitle">Scegli quella per cui è stato creato il tuo font ANSI</string>
     <string name="languages_ansi_version_title">Versione ANSI</string>
     <string name="languages_auto_pair_toast">%1$s e %2$s ora suggeriscono le parole l\'uno dell\'altro. Puoi modificarlo nella pagina di ciascuna lingua.</string>
-    <string name="languages_autocorrect_global_off_subtitle">La correzione automatica è disattivata per tutte le lingue in Digitazione</string>
     <string name="languages_autocorrect_group">Correzione automatica</string>
     <string name="languages_autocorrect_info">Disattiva questa opzione per mantenere ogni parola digitata in %1$s esattamente come l\'hai scritta, mentre le altre lingue continueranno a essere corrette. La barra dei suggerimenti mostrerà comunque i suggerimenti e potrai toccarne uno. L\'interruttore di correzione automatica in Digitazione disattiva la correzione automatica per tutte le lingue.</string>
     <string name="languages_autocorrect_subtitle">Correggi gli errori di battitura quando premi spazio</string>
@@ -3917,7 +3914,6 @@
     </plurals>
     <string name="languages_secondary_info">La tastiera offre parole da queste lingue mentre digiti %1$s. La correzione automatica non le modifica mai.</string>
     <string name="languages_secondary_title">Suggerisci anche da</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">Lo spazio dopo un suggerimento è disattivato per tutte le lingue in Digitazione</string>
     <string name="languages_space_after_suggestion_info">Disattiva questa opzione per digitare una parola selezionata dalla barra dei suggerimenti in %1$s senza uno spazio dopo, così da poter aggiungere subito una desinenza. Le altre lingue continueranno ad avere lo spazio. L\'interruttore \"Spazio dopo un suggerimento\" in Digitazione disattiva lo spazio per tutte le lingue.</string>
     <string name="languages_space_after_suggestion_subtitle">Aggiungi uno spazio quando selezioni una parola dalla barra dei suggerimenti</string>
     <string name="languages_space_after_suggestion_title">Spazio dopo un suggerimento</string>
@@ -4611,7 +4607,6 @@
     <string name="layout_globe_guard_info">Il tasto 🌐 si trova accanto alla barra spaziatrice e alla virgola, quindi un pollice veloce può premerlo per errore nel mezzo di una parola e cambiare la lingua. Imposta un tempo qui e un tocco su 🌐 che avviene prima di questo intervallo dopo aver digitato un tasto non farà nulla. Un tocco dopo una pausa cambia la lingua come al solito, così come tocchi rapidi uno dopo l\'altro su 🌐 stesso. Tieni premuto 🌐 per aprire l\'elenco delle lingue in qualsiasi momento. Lettere, spazio, backspace e invio contano come digitazione. Maiusc e i tasti modalità no. Questa impostazione è disattivata per impostazione predefinita.</string>
     <string name="layout_globe_guard_subtitle">Un tocco su 🌐 subito dopo una lettera non fa nulla</string>
     <string name="layout_globe_guard_title">Ignora 🌐 subito dopo la digitazione</string>
-    <string name="layout_globe_hidden_subtitle">Nessun effetto mentre il tasto 🌐 è nascosto</string>
     <string name="layout_globe_in_one_place_info">Alcuni layout posizionano il tasto 🌐 in un posto diverso, ad esempio all\'estrema sinistra o subito dopo il tasto ?123. Questo lo sposta nel posto usato dai layout integrati, così il tuo pollice lo trova nello stesso posto in ogni lingua. I tasti alla sua sinistra diventano più larghi o più stretti per fare spazio e la barra spaziatrice si adatta. Un layout in cui ciò renderebbe i tasti troppo piccoli viene lasciato così com\'è, così come un secondo layout che apri da un tasto. Disattiva questa opzione per vedere ogni layout come è stato creato dal suo autore.</string>
     <string name="layout_globe_in_one_place_subtitle">Lo stesso posto su ogni layout, accanto alla barra spaziatrice</string>
     <string name="layout_globe_in_one_place_title">Mantieni il tasto 🌐 in un\'unica posizione</string>

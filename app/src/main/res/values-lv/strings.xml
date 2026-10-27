@@ -1145,7 +1145,6 @@
     <string name="backup_sync_keep_layouts_title">Valodas un izkārtojumi</string>
     <string name="backup_sync_keep_local_info">Šeit atzīmētie iestatījumi šajā ierīcē paliek nemainīgi. Izmaiņas, ko šeit veicat, netiek sūtītas, un izmaiņas no citām ierīcēm netiek piemērotas. Ja vēlāk noņemsit atzīmi, šī ierīce pārņems to, kas ir jūsu citās ierīcēs.</string>
     <string name="backup_sync_keep_local_title">Saglabāt šajā ierīcē</string>
-    <string name="backup_sync_keep_needs_settings">Nepieciešams atzīmēt Iestatījumus sadaļā \"Kas tiek sinhronizēts\"</string>
     <string name="backup_sync_keep_toolbar_subtitle">Kādi rīki, kādā secībā un kā tie izskatās</string>
     <string name="backup_sync_keep_toolbar_title">Rīkjosla un rīkkopa</string>
     <string name="backup_sync_local_note">Daži iestatījumi paliek katrā ierīcē, jo tie ir piemēroti tikai tai: tastatūras izmērs un novietojums, vienas rokas režīms, aparatūras tastatūra, savienotie datori un lietotnes bloķēšana. Lai saglabātu vairāk šajā ierīcē, izmantojiet zemāk esošo opciju \"Paturēt šajā ierīcē\".</string>
@@ -1555,7 +1554,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">Dzēst vārdu sarakstu %1$s</string>
     <string name="customdict_delete_pack_desc">Dzēst emocijzīmju pakotni %1$s</string>
-    <string name="customdict_emoji_auto_download_blocked">Izslēgts, jo sadaļā Valodas ir izslēgta opcija “Automātiski lejupielādēt datus”</string>
     <string name="customdict_emoji_auto_download_info">Kad ieslēdzat valodu, lietotne fonā lejupielādē tās emocijzīmju atslēgvārdus. Tas ir aptuveni 100 KB, vienu reizi. Ja izslēgsit šo funkciju, lejupielādes pogas zemāk būs vienīgais veids, kā iegūt atslēgvārdus.</string>
     <string name="customdict_emoji_auto_download_subtitle">Lejupielādēt atslēgvārdus valodām, kurās rakstāt</string>
     <string name="customdict_emoji_auto_download_title">Lejupielādēt automātiski</string>
@@ -3635,7 +3633,6 @@
     <string name="languages_ansi_version_subtitle">Izvēlieties to, kurai paredzēts jūsu ANSI fonts</string>
     <string name="languages_ansi_version_title">ANSI versija</string>
     <string name="languages_auto_pair_toast">%1$s un %2$s tagad iesaka viens otra vārdus. To var mainīt katras valodas lapā.</string>
-    <string name="languages_autocorrect_global_off_subtitle">Automātiskā labošana ir izslēgta visām valodām sadaļā Rakstīšana</string>
     <string name="languages_autocorrect_group">Automātiskā labošana</string>
     <string name="languages_autocorrect_info">Izslēdziet šo, lai saglabātu katru vārdu, ko rakstāt %1$s valodā, tieši tādu, kādu to uzrakstījāt, kamēr citas valodas joprojām tiek labotas. Ieteikumu josla joprojām rādīs savus ieteikumus, un jūs varat uz tiem uzspiest. Automātiskās labošanas slēdzis sadaļā Rakstīšana izslēdz automātisko labošanu visām valodām.</string>
     <string name="languages_autocorrect_subtitle">Labot pārrakstīšanās kļūdas, nospiežot atstarpi</string>
@@ -3927,7 +3924,6 @@
     </plurals>
     <string name="languages_secondary_info">Tastatūra piedāvā vārdus no šīm valodām, kamēr rakstāt %1$s. Automātiskā labošana tos nekad nemaina.</string>
     <string name="languages_secondary_title">Ieteikt arī no</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">Atstarpe pēc ieteikuma ir izslēgta visām valodām rakstīšanas laikā</string>
     <string name="languages_space_after_suggestion_info">Izslēdziet šo, lai %1$s valodā ierakstītu vārdu, kuru izvēlaties no ieteikumu joslas, bez atstarpes pēc tā, lai jūs varētu uzreiz pievienot galotni. Citas valodas joprojām iegūs atstarpi. Iestatījums \"Atstarpe pēc ieteikuma\" sadaļā \"Rakstīšana\" izslēdz atstarpes visām valodām.</string>
     <string name="languages_space_after_suggestion_subtitle">Pievienot atstarpi, izvēloties vārdu no ieteikumu joslas</string>
     <string name="languages_space_after_suggestion_title">Atstarpe pēc ieteikuma</string>
@@ -4621,7 +4617,6 @@
     <string name="layout_globe_guard_info">Taustiņš 🌐 atrodas blakus atstarpes taustiņam un komatam, tāpēc ātrs īkšķis var nejauši tam pieskarties vārda vidū un mainīt valodu. Iestatiet šeit laiku, un pieskāriens 🌐, kas notiek ātrāk par šo laiku pēc taustiņa nospiešanas, neko nedarīs. Pieskāriens pēc pauzes mainīs valodu kā parasti, tāpat kā ātri pieskārieni viens pēc otra pašam 🌐. Nospiediet un turiet 🌐, lai jebkurā laikā atvērtu valodu sarakstu. Burti, atstarpe, atpakaļatkāpe un ievade tiek skaitīti kā rakstīšana. Shift un režīmu taustiņi netiek skaitīti. Šis iestatījums pēc noklusējuma ir izslēgts.</string>
     <string name="layout_globe_guard_subtitle">Pieskāriens 🌐 uzreiz pēc burta neko nedara</string>
     <string name="layout_globe_guard_title">Ignorēt 🌐 uzreiz pēc rakstīšanas</string>
-    <string name="layout_globe_hidden_subtitle">Nav efekta, kamēr 🌐 taustiņš ir paslēpts</string>
     <string name="layout_globe_in_one_place_info">Dažos izkārtojumos 🌐 taustiņš ir novietots citur, piemēram, pavisam pa kreisi vai tieši pēc ?123 taustiņa. Šī opcija to pārvieto uz vietu, ko izmanto iebūvētie izkārtojumi, lai jūsu īkšķis to vienmēr atrastu vienā un tajā pašā vietā neatkarīgi no valodas. Taustiņi pa kreisi no tā kļūst platāki vai šaurāki, lai atbrīvotu vietu, un atstarpes taustiņš pielāgojas. Izkārtojums, kurā tas padarītu taustiņus pārāk mazus, paliek nemainīts, tāpat kā otrais izkārtojums, ko atverat ar taustiņu. Izslēdziet šo, lai redzētu katru izkārtojumu tādu, kādu to izveidojis autors.</string>
     <string name="layout_globe_in_one_place_subtitle">Vienā un tajā pašā vietā katrā izkārtojumā, blakus atstarpes taustiņam</string>
     <string name="layout_globe_in_one_place_title">Paturēt 🌐 taustiņu vienā vietā</string>

@@ -1144,7 +1144,6 @@
     <string name="backup_sync_keep_layouts_title">Keeled ja paigutused</string>
     <string name="backup_sync_keep_local_info">Siin märgitud seaded jäävad selles seadmes samaks. Siin tehtud muudatusi ei saadeta mujale ja teistest seadmetest tulevaid muudatusi ei võeta vastu. Kui eemaldad hiljem linnukese, võtab see seade üle teiste seadmete seaded.</string>
     <string name="backup_sync_keep_local_title">Hoia selles seadmes</string>
-    <string name="backup_sync_keep_needs_settings">Vajab, et Sätted oleks märgitud jaotises Mida sünkroonida</string>
     <string name="backup_sync_keep_toolbar_subtitle">Millised tööriistad, mis järjekorras ja kuidas need välja näevad</string>
     <string name="backup_sync_keep_toolbar_title">Tööriistariba ja tööriistakast</string>
     <string name="backup_sync_local_note">Mõned sätted jäävad igasse seadmesse, kuna need sobivad ainult sellele seadmele: klaviatuuri suurus ja asukoht, ühe käega režiim, riistvaraline klaviatuur, seotud arvutid ja rakenduse lukk. Kui soovite rohkem selles seadmes hoida, kasutage allpool valikut Hoia selles seadmes.</string>
@@ -1554,7 +1553,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">Kustuta sõnaloend %1$s</string>
     <string name="customdict_delete_pack_desc">Kustuta emotikonide pakk %1$s</string>
-    <string name="customdict_emoji_auto_download_blocked">Välja lülitatud, kuna \"Laadi andmed automaatselt alla\" on keelte all välja lülitatud</string>
     <string name="customdict_emoji_auto_download_info">Kui lülitate keele sisse, laadib rakendus taustal alla selle emotikonide märksõnad. See on umbes 100 KB, ühekordselt. Kui lülitate selle välja, on allolevad allalaadimisnupud ainus viis märksõnade saamiseks.</string>
     <string name="customdict_emoji_auto_download_subtitle">Laadige alla märksõnad keelte jaoks, mida kasutate</string>
     <string name="customdict_emoji_auto_download_title">Laadi automaatselt alla</string>
@@ -3634,7 +3632,6 @@
     <string name="languages_ansi_version_subtitle">Valige see, mille jaoks teie ANSI-font on loodud</string>
     <string name="languages_ansi_version_title">ANSI versioon</string>
     <string name="languages_auto_pair_toast">%1$s ja %2$s soovitavad nüüd üksteise sõnu. Seda saate muuta iga keele lehel.</string>
-    <string name="languages_autocorrect_global_off_subtitle">Automaatkorrektuur on kõigi keelte puhul tippimisel välja lülitatud</string>
     <string name="languages_autocorrect_group">Automaatkorrektuur</string>
     <string name="languages_autocorrect_info">Lülitage see välja, et hoida iga %1$s keeles kirjutatud sõna sellisena, nagu selle kirjutasite, samal ajal kui teisi keeli ikka parandatakse. Soovituste riba näitab endiselt oma soovitusi ja saate ühele neist vajutada. Automaatkorrektuuri lüliti jaotises Tippimine lülitab automaatkorrektuuri välja kõigi keelte jaoks.</string>
     <string name="languages_autocorrect_subtitle">Paranda kirjavigu tühiku vajutamisel</string>
@@ -3930,7 +3927,6 @@
     </plurals>
     <string name="languages_secondary_info">Klaviatuur pakub %1$s tippimise ajal sõnu nendest keeltest. Automaatkorrektuur ei muuda neid kunagi.</string>
     <string name="languages_secondary_title">Soovita ka keelest</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">Tühik pärast soovitust on kõigi keelte puhul tippimisel väljas</string>
     <string name="languages_space_after_suggestion_info">Lülita see välja, et sisestada soovitusribalt valitud sõna keeles %1$s ilma tühikuta selle järel, nii et saad kohe lõpu lisada. Teiste keelte puhul lisatakse tühik endiselt. Tippimise seadete lüliti „Tühik pärast soovitust“ lülitab tühiku välja kõigi keelte puhul.</string>
     <string name="languages_space_after_suggestion_subtitle">Lisa tühik, kui valite sõna soovituste ribalt</string>
     <string name="languages_space_after_suggestion_title">Tühik pärast soovitust</string>
@@ -4624,7 +4620,6 @@
     <string name="layout_globe_guard_info">🌐-klahv asub tühikuklahvi ja koma kõrval, nii et kiire pöial võib selle sõna keskel kogemata vajutada ja keelt muuta. Määra siin aeg ja 🌐-klahvi vajutus, mis toimub varem kui see pärast trükitud klahvi, ei tee midagi. Vajutus pärast pausi muudab keelt nagu tavaliselt, samuti kiired järjestikused vajutused 🌐-klahvil endal. Vajuta ja hoia 🌐-klahvi all, et igal ajal keelte loend avada. Tähed, tühik, tagasilükkeklahv ja sisestusklahv lähevad trükkimisena arvesse. Shift ja režiimiklahvid mitte. See seade on vaikimisi väljas.</string>
     <string name="layout_globe_guard_subtitle">Puudutus 🌐-l vahetult pärast tähte ei tee midagi</string>
     <string name="layout_globe_guard_title">Ignoreeri 🌐 kohe pärast tippimist</string>
-    <string name="layout_globe_hidden_subtitle">Pole mõju, kui 🌐 klahv on peidetud</string>
     <string name="layout_globe_in_one_place_info">Mõned paigutused panevad 🌐 klahvi teise kohta, näiteks vasakule serva või otse pärast ?123 klahvi. See liigutab selle kohta, mida kasutavad sisseehitatud paigutused, nii et teie pöial leiab selle igas keeles samast kohast. Klahvid selle vasakul pool muutuvad laiemaks või kitsamaks, et ruumi teha, ja tühikuklahv kohandub. Paigutus, kus see muudaks klahvid liiga väikeseks, jäetakse nii nagu on, samuti teine paigutus, mille avate klahvist. Lülitage see välja, et näha iga paigutust nii, nagu selle autor on loonud.</string>
     <string name="layout_globe_in_one_place_subtitle">Samas kohas igal paigutusel, tühikuklahvi kõrval</string>
     <string name="layout_globe_in_one_place_title">Hoia 🌐 klahvi ühes kohas</string>

@@ -172,7 +172,8 @@ internal fun AppLockSettingsScreen(repository: SettingsRepository) {
     for ((group, targets) in AppLockTargets.grouped) {
         SettingsGroup(stringResource(group.title)) {
             for (target in targets) {
-                item {
+                // Which screens the lock guards: nothing to pick while it is off.
+                item(visible = cfg.enabled) {
                     ToggleSetting(
                         title = stringResource(target.label),
                         icon = SettingsRowIcons[target.label],
@@ -190,7 +191,7 @@ internal fun AppLockSettingsScreen(repository: SettingsRepository) {
                         icon = target.route?.let { SettingsRouteIcons[it] }
                             ?: SettingsRowIcons[target.label],
                         highlightKey = target.label,
-                        enabled = cfg.enabled && status.canEnable,
+                        enabled = status.canEnable,
                         default = target.onByDefault,
                     ) { checked ->
                         scope.launch { repository.setAppLockTarget(target.id, checked) }

@@ -1143,7 +1143,6 @@
     <string name="backup_sync_keep_layouts_title">Jazyky a rozloženia</string>
     <string name="backup_sync_keep_local_info">Nastavenia, ktoré tu zaškrtnete, zostanú na tomto zariadení také, aké sú. Zmeny, ktoré v nich tu vykonáte, sa neodošlú a zmeny z vašich ostatných zariadení sa neprevezmú. Ak neskôr jedno odškrtnete, toto zariadenie prevezme to, čo majú vaše ostatné zariadenia.</string>
     <string name="backup_sync_keep_local_title">Ponechať v tomto zariadení</string>
-    <string name="backup_sync_keep_needs_settings">Vyžaduje začiarknuté nastavenia v sekcii Čo sa má synchronizovať</string>
     <string name="backup_sync_keep_toolbar_subtitle">Ktoré nástroje, v akom poradí a ako vyzerajú</string>
     <string name="backup_sync_keep_toolbar_title">Panel s nástrojmi a sada nástrojov</string>
     <string name="backup_sync_local_note">Niektoré nastavenia zostávajú v každom zariadení, pretože súvisia iba s daným zariadením: veľkosť a poloha klávesnice, režim ovládania jednou rukou, hardvérová klávesnica, spárované počítače a uzamknutie aplikácie. Ak chcete ponechať viac údajov v tomto zariadení, použite nižšie uvedenú možnosť Ponechať v tomto zariadení.</string>
@@ -1553,7 +1552,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">Odstrániť zoznam slov %1$s</string>
     <string name="customdict_delete_pack_desc">Odstrániť balík emoji %1$s</string>
-    <string name="customdict_emoji_auto_download_blocked">Vypnuté, pretože „Automaticky sťahovať údaje“ je vypnuté v časti Jazyky</string>
     <string name="customdict_emoji_auto_download_info">Keď zapnete jazyk, aplikácia na pozadí stiahne kľúčové slová pre emodži. Ide o približne 100 KB, jednorazovo. Ak túto možnosť vypnete, jediný spôsob, ako získať tieto kľúčové slová, bude prostredníctvom tlačidiel Stiahnuť nižšie.</string>
     <string name="customdict_emoji_auto_download_subtitle">Stiahnuť kľúčové slová pre jazyky, v ktorých píšete</string>
     <string name="customdict_emoji_auto_download_title">Stiahnuť automaticky</string>
@@ -3635,7 +3633,6 @@
     <string name="languages_ansi_version_subtitle">Vyberte verziu, pre ktorú je vytvorené vaše ANSI písmo</string>
     <string name="languages_ansi_version_title">Verzia ANSI</string>
     <string name="languages_auto_pair_toast">%1$s a %2$s si teraz navzájom odporúčajú slová. Zmeniť to môžete na stránke každého jazyka.</string>
-    <string name="languages_autocorrect_global_off_subtitle">Automatické opravy sú vypnuté pre všetky jazyky v Písaní</string>
     <string name="languages_autocorrect_group">Automatické opravy</string>
     <string name="languages_autocorrect_info">Vypnite túto možnosť, ak chcete zachovať každé slovo, ktoré napíšete v %1$s, tak ako ste ho napísali, zatiaľ čo ostatné jazyky budú stále opravované. Panel návrhov bude stále zobrazovať svoje návrhy a môžete na ne klepnúť. Prepínač automatických opráv v časti Písanie vypne automatické opravy pre všetky jazyky.</string>
     <string name="languages_autocorrect_subtitle">Opraviť preklepy po stlačení medzery</string>
@@ -3926,7 +3923,6 @@
     </plurals>
     <string name="languages_secondary_info">Klávesnica ponúka slová z týchto jazykov, zatiaľ čo píšete %1$s. Automatické opravy ich nikdy nezmenia.</string>
     <string name="languages_secondary_title">Tiež navrhovať z</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">Medzera po návrhu je vypnutá pre všetky jazyky v nastaveniach písania</string>
     <string name="languages_space_after_suggestion_info">Vypnite túto funkciu, ak chcete napísať slovo, ktoré vyberiete z panela návrhov v %1$s, bez medzery za ním, aby ste mohli ihneď pridať koncovku. V ostatných jazykoch medzera zostane. Prepínač Medzera po návrhu v sekcii Písanie vypne medzeru pre všetky jazyky.</string>
     <string name="languages_space_after_suggestion_subtitle">Pridať medzeru po výbere slova z panela návrhov</string>
     <string name="languages_space_after_suggestion_title">Medzera po návrhu</string>
@@ -4620,7 +4616,6 @@
     <string name="layout_globe_guard_info">Kláves 🌐 je vedľa medzerníka a čiarky, takže rýchly palec ho môže omylom stlačiť uprostred slova a zmeniť jazyk. Nastavte tu čas a klepnutie na 🌐, ktoré príde skôr ako tento čas po napísaní znaku, neurobí nič. Klepnutie po pauze zmení jazyk ako zvyčajne, rovnako ako rýchle klepnutia jedno po druhom na samotné 🌐. Stlačením a podržaním 🌐 kedykoľvek otvoríte zoznam jazykov. Písmená, medzera, backspace a enter sa počítajú ako písanie. Shift a klávesy režimu nie. Toto nastavenie je predvolene vypnuté.</string>
     <string name="layout_globe_guard_subtitle">Ťuknutie na 🌐 hneď po písmene neurobí nič</string>
     <string name="layout_globe_guard_title">Ignorovať 🌐 hneď po písaní</string>
-    <string name="layout_globe_hidden_subtitle">Žiadny účinok, kým je kláves 🌐 skrytý</string>
     <string name="layout_globe_in_one_place_info">Niektoré rozloženia umiestňujú kláves 🌐 na iné miesto, napríklad úplne vľavo alebo priamo za kláves ?123. Toto nastavenie ho presunie na miesto, ktoré používajú vstavané rozloženia, takže ho palec nájde na rovnakom mieste v každom jazyku. Klávesy naľavo od neho sa zväčšia alebo zmenšia, aby uvoľnili miesto, a medzerník sa prispôsobí. Rozloženie, kde by to spôsobilo príliš malé klávesy, zostane nezmenené, rovnako ako druhé rozloženie, ktoré otvoríte z klávesu. Vypnite túto možnosť, ak chcete vidieť každé rozloženie tak, ako ho vytvoril jeho autor.</string>
     <string name="layout_globe_in_one_place_subtitle">Rovnaké miesto v každom rozložení, vedľa medzerníka</string>
     <string name="layout_globe_in_one_place_title">Ponechajte kláves 🌐 na jednom mieste</string>

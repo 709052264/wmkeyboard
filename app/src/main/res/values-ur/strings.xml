@@ -1143,7 +1143,6 @@
     <string name="backup_sync_keep_layouts_title">زبانیں اور لے آؤٹس</string>
     <string name="backup_sync_keep_local_info">یہاں جو سیٹنگز آپ منتخب (tick) کرتے ہیں وہ اس ڈیوائس پر ویسی ہی رہتی ہیں۔ ان میں یہاں کی جانے والی تبدیلیاں بھیجی نہیں جاتیں، اور آپ کی دوسری ڈیوائسز سے آنے والی تبدیلیاں قبول نہیں کی جاتیں۔ بعد میں کسی کو اَن ٹک (untick) کریں تو یہ ڈیوائس وہی چیزیں لے لے گی جو آپ کی دوسری ڈیوائسز کے پاس ہیں۔</string>
     <string name="backup_sync_keep_local_title">اس ڈیوائس پر رکھیں</string>
-    <string name="backup_sync_keep_needs_settings">ملاحظہ کریں کہ مطابقت پذیری (Sync) میں سیٹنگز پر ٹک لگانا ضروری ہے</string>
     <string name="backup_sync_keep_toolbar_subtitle">کون سے ٹولز، کس ترتیب میں، اور وہ کیسے نظر آتے ہیں</string>
     <string name="backup_sync_keep_toolbar_title">ٹول بار اور ٹول باکس</string>
     <string name="backup_sync_local_note">کچھ ترتیبات ہر ڈیوائس پر ہی رہتی ہیں، کیونکہ وہ صرف اسی ڈیوائس کے لیے موزوں ہوتی ہیں: کی بورڈ کا سائز اور پوزیشن، ایک ہاتھ والا موڈ، ہارڈویئر کی بورڈ، پیئرڈ کمپیوٹرز اور ایپ لاک۔ اس ڈیوائس پر مزید مواد رکھنے کے لیے، ذیل میں \"اس ڈیوائس پر رکھیں\" کا استعمال کریں۔</string>
@@ -1553,7 +1552,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">الفاظ کی فہرست %1$s کو حذف کریں</string>
     <string name="customdict_delete_pack_desc">ایموجی پیک %1$s کو حذف کریں</string>
-    <string name="customdict_emoji_auto_download_blocked">بند کر دیا گیا، کیونکہ زبانوں کے تحت \"ڈیٹا خودکار ڈاؤن لوڈ کریں\" بند ہے</string>
     <string name="customdict_emoji_auto_download_info">جب آپ کوئی زبان آن کرتے ہیں، تو ایپ پس منظر میں اس کے ایموجی کی ورڈز ڈاؤن لوڈ کرتی ہے۔ یہ تقریباً 100 KB ہے، ایک بار کے لیے۔ اگر آپ اسے بند کر دیتے ہیں، تو نیچے دیے گئے ڈاؤن لوڈ بٹن ہی کی ورڈز حاصل کرنے کا واحد طریقہ ہیں۔</string>
     <string name="customdict_emoji_auto_download_subtitle">ان زبانوں کے لیے کی ورڈز ڈاؤن لوڈ کریں جن میں آپ ٹائپ کرتے ہیں</string>
     <string name="customdict_emoji_auto_download_title">خودکار طور پر ڈاؤن لوڈ کریں</string>
@@ -3629,7 +3627,6 @@
     <string name="languages_ansi_version_subtitle">وہ منتخب کریں جس کے لیے آپ کا ANSI فونٹ بنایا گیا ہے</string>
     <string name="languages_ansi_version_title">ANSI ورژن</string>
     <string name="languages_auto_pair_toast">%1$s اور %2$s اب ایک دوسرے کے الفاظ تجویز کرتے ہیں۔ آپ اسے ہر زبان کے صفحے پر تبدیل کر سکتے ہیں۔</string>
-    <string name="languages_autocorrect_global_off_subtitle">ٹائپنگ میں تمام زبانوں کے لیے آٹو کریکٹ بند ہے</string>
     <string name="languages_autocorrect_group">آٹو کریکٹ</string>
     <string name="languages_autocorrect_info">اسے بند کریں تاکہ %1$s میں آپ کے ٹائپ کردہ ہر لفظ کو ویسا ہی رکھا جا سکے جیسا آپ نے ٹائپ کیا ہے، جبکہ دوسری زبانیں اب بھی درست کی جاتی ہیں۔ تجاویز کی پٹی اب بھی اپنی تجاویز دکھاتی ہے، اور آپ کسی ایک پر ٹیپ کر سکتے ہیں۔ ٹائپنگ میں آٹو کریکٹ سوئچ تمام زبانوں کے لیے آٹو کریکٹ کو بند کر دیتا ہے۔</string>
     <string name="languages_autocorrect_subtitle">اسپیس دبانے پر ٹائپنگ کی غلطیوں کو ٹھیک کریں</string>
@@ -3922,7 +3919,6 @@
     </plurals>
     <string name="languages_secondary_info">کی بورڈ %1$s ٹائپ کرتے وقت ان زبانوں کے الفاظ پیش کرتا ہے۔ آٹو کریکٹ انہیں کبھی تبدیل نہیں کرتا۔</string>
     <string name="languages_secondary_title">ان سے بھی تجاویز دیں</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">ٹائپنگ میں تمام زبانوں کے لیے تجویز کے بعد اسپیس بند ہے</string>
     <string name="languages_space_after_suggestion_info">اسے بند کریں تاکہ %1$s میں تجاویز کی پٹی سے منتخب کردہ لفظ کے بعد اسپیس نہ آئے، تاکہ آپ فوراً کوئی اختتامیہ شامل کر سکیں۔ دیگر زبانوں میں اسپیس بدستور موجود رہے گا۔ ٹائپنگ میں \'تجاویز کے بعد اسپیس\' کا سوئچ تمام زبانوں کے لیے اسپیس کو بند کر دیتا ہے۔</string>
     <string name="languages_space_after_suggestion_subtitle">جب آپ تجاویز کی پٹی سے کوئی لفظ منتخب کریں تو اسپیس شامل کریں</string>
     <string name="languages_space_after_suggestion_title">تجویز کے بعد جگہ چھوڑنا</string>
@@ -4616,7 +4612,6 @@
     <string name="layout_globe_guard_info">🌐 کلید اسپیس بار اور کوما کے ساتھ ہے، اس لیے تیز انگوٹھا غلطی سے اسے کسی لفظ کے درمیان دبا سکتا ہے اور زبان تبدیل ہو سکتی ہے۔ یہاں ایک وقت مقرر کریں، تاکہ ٹائپ کرنے کے بعد، اس وقت سے پہلے 🌐 کو دبانے پر کچھ نہ ہو۔ وقفے کے بعد دبانے پر زبان معمول کے مطابق تبدیل ہو جائے گی، اور 🌐 کو خود ایک کے بعد ایک تیزی سے دبانے پر بھی یہی ہوگا۔ زبان کی فہرست کھولنے کے لیے کسی بھی وقت 🌐 کو دبائے رکھیں۔ حروف، اسپیس، بیک اسپیس اور انٹر کو ٹائپنگ شمار کیا جاتا ہے۔ شفٹ اور موڈ کلیدیں نہیں۔ یہ ترتیب بائی ڈیفالٹ آف ہوتی ہے۔</string>
     <string name="layout_globe_guard_subtitle">کسی حرف کے فوراً بعد 🌐 پر ٹیپ کرنے سے کچھ نہیں ہوگا</string>
     <string name="layout_globe_guard_title">ٹائپ کرنے کے فوراً بعد 🌐 کو نظر انداز کریں</string>
-    <string name="layout_globe_hidden_subtitle">جب 🌐 کلید چھپی ہو تو کوئی اثر نہیں ہوتا</string>
     <string name="layout_globe_in_one_place_info">کچھ لے آؤٹس 🌐 کلید کو مختلف جگہ پر رکھتے ہیں، مثال کے طور پر بالکل بائیں جانب، یا ?123 کلید کے فوراً بعد۔ یہ اسے اس جگہ منتقل کرتا ہے جہاں بلٹ ان لے آؤٹس استعمال ہوتے ہیں، تاکہ آپ کا انگوٹھا ہر زبان میں اسے ایک ہی جگہ پر پائے۔ اس کے بائیں جانب کی کلیدیں جگہ بنانے کے لیے چوڑی یا تنگ ہو جاتی ہیں، اور اسپیس بار فٹ ہونے کے لیے تبدیل ہو جاتا ہے۔ ایک ایسا لے آؤٹ جہاں ایسا کرنے سے کلیدیں بہت چھوٹی ہو جائیں گی، اسے ویسا ہی چھوڑ دیا جاتا ہے، اور اسی طرح دوسرا لے آؤٹ بھی جسے آپ کسی کلید سے کھولتے ہیں۔ ہر لے آؤٹ کو ویسا ہی دیکھنے کے لیے اسے بند کر دیں جیسا کہ اس کے مصنف نے بنایا ہے۔</string>
     <string name="layout_globe_in_one_place_subtitle">ہر لے آؤٹ پر ایک ہی جگہ، اسپیس بار کے ساتھ</string>
     <string name="layout_globe_in_one_place_title">🌐 کلید کو ایک ہی جگہ رکھیں</string>

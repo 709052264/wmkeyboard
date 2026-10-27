@@ -1145,7 +1145,6 @@
     <string name="backup_sync_keep_layouts_title">Sprachen und Layouts</string>
     <string name="backup_sync_keep_local_info">Einstellungen, die Sie hier aktivieren, bleiben auf diesem Gerät unverändert. Änderungen, die Sie hier vornehmen, werden nicht synchronisiert, und Änderungen von anderen Geräten werden nicht übernommen. Wenn Sie die Option später deaktivieren, übernimmt dieses Gerät die Einstellungen Ihrer anderen Geräte.</string>
     <string name="backup_sync_keep_local_title">Auf diesem Gerät behalten</string>
-    <string name="backup_sync_keep_needs_settings">Erfordert, dass Einstellungen unter „Was synchronisiert wird“ aktiviert sind</string>
     <string name="backup_sync_keep_toolbar_subtitle">Welche Werkzeuge, in welcher Reihenfolge und wie sie aussehen</string>
     <string name="backup_sync_keep_toolbar_title">Symbolleiste und Werkzeugkasten</string>
     <string name="backup_sync_local_note">Einige Einstellungen verbleiben auf jedem Gerät, da sie nur für dieses Gerät relevant sind: Tastaturgröße und -position, Einhandmodus, Hardware-Tastatur, gekoppelte Computer und die App-Sperre. Um mehr auf diesem Gerät zu behalten, verwenden Sie unten die Option „Auf diesem Gerät behalten“.</string>
@@ -1555,7 +1554,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">Wortliste %1$s löschen</string>
     <string name="customdict_delete_pack_desc">Emoji-Paket %1$s löschen</string>
-    <string name="customdict_emoji_auto_download_blocked">Deaktiviert, da „Daten automatisch herunterladen“ unter Sprachen ausgeschaltet ist</string>
     <string name="customdict_emoji_auto_download_info">Wenn Sie eine Sprache aktivieren, lädt die App deren Emoji-Schlüsselwörter im Hintergrund herunter. Dies sind einmalig etwa 100 KB. Wenn Sie dies deaktivieren, sind die Download-Schaltflächen unten die einzige Möglichkeit, die Schlüsselwörter zu erhalten.</string>
     <string name="customdict_emoji_auto_download_subtitle">Lade Schlüsselwörter für die Sprachen herunter, in denen du tippst</string>
     <string name="customdict_emoji_auto_download_title">Automatisch herunterladen</string>
@@ -3631,7 +3629,6 @@
     <string name="languages_ansi_version_subtitle">Wählen Sie die Version, für die Ihre ANSI-Schriftart gemacht ist</string>
     <string name="languages_ansi_version_title">ANSI-Version</string>
     <string name="languages_auto_pair_toast">%1$s und %2$s schlagen jetzt gegenseitig ihre Wörter vor. Sie können dies auf der Seite der jeweiligen Sprache ändern.</string>
-    <string name="languages_autocorrect_global_off_subtitle">Die Autokorrektur ist für alle Sprachen unter „Tippen“ deaktiviert</string>
     <string name="languages_autocorrect_group">Autokorrektur</string>
     <string name="languages_autocorrect_info">Deaktivieren Sie dies, um jedes Wort, das Sie in %1$s eingeben, so beizubehalten, wie Sie es getippt haben, während andere Sprachen weiterhin korrigiert werden. Die Vorschlagsleiste zeigt weiterhin ihre Vorschläge an, und Sie können einen davon auswählen. Der Autokorrektur-Schalter unter „Tippen“ deaktiviert die Autokorrektur für alle Sprachen.</string>
     <string name="languages_autocorrect_subtitle">Tippfehler beim Drücken der Leertaste korrigieren</string>
@@ -3925,7 +3922,6 @@
     </plurals>
     <string name="languages_secondary_info">Die Tastatur bietet Wörter aus diesen Sprachen an, während Sie %1$s tippen. Die Autokorrektur ändert diese niemals.</string>
     <string name="languages_secondary_title">Vorschläge auch von</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">Leerzeichen nach einem Vorschlag ist für alle Sprachen unter „Tippen“ deaktiviert</string>
     <string name="languages_space_after_suggestion_info">Deaktiviere dies, um ein Wort, das du aus der Vorschlagsleiste auswählst, in %1$s ohne Leerzeichen danach einzugeben, damit du sofort eine Endung hinzufügen kannst. Andere Sprachen erhalten weiterhin das Leerzeichen. Der Schalter „Leerzeichen nach Vorschlag“ unter „Eingabe“ deaktiviert das Leerzeichen für alle Sprachen.</string>
     <string name="languages_space_after_suggestion_subtitle">Nach Auswahl eines Worts aus der Vorschlagsleiste ein Leerzeichen einfügen</string>
     <string name="languages_space_after_suggestion_title">Leerzeichen nach einem Vorschlag</string>
@@ -4619,7 +4615,6 @@
     <string name="layout_globe_guard_info">Die 🌐-Taste befindet sich neben der Leertaste und dem Komma, sodass ein schneller Daumen sie mitten in einem Wort versehentlich treffen und die Sprache ändern kann. Lege hier eine Zeit fest, und ein Tippen auf 🌐, das kürzer als diese Zeit nach einer getippten Taste erfolgt, bewirkt nichts. Ein Tippen nach einer Pause ändert die Sprache wie gewohnt, ebenso wie schnelle aufeinanderfolgende Tippvorgänge auf 🌐 selbst. Halte 🌐 gedrückt, um jederzeit die Sprachliste zu öffnen. Buchstaben, Leerzeichen, Rücktaste und Eingabetaste zählen als Tippen. Umschalt- und Modustasten nicht. Diese Einstellung ist standardmäßig deaktiviert.</string>
     <string name="layout_globe_guard_subtitle">Ein Tippen auf 🌐 direkt nach einem Buchstaben bewirkt nichts</string>
     <string name="layout_globe_guard_title">🌐 direkt nach dem Tippen ignorieren</string>
-    <string name="layout_globe_hidden_subtitle">Keine Auswirkung, während die 🌐-Taste ausgeblendet ist</string>
     <string name="layout_globe_in_one_place_info">Einige Layouts platzieren die 🌐-Taste an einer anderen Stelle, zum Beispiel ganz links oder direkt nach der ?123-Taste. Dies verschiebt sie an die Position, die von den integrierten Layouts verwendet wird, sodass Ihr Daumen sie in jeder Sprache an derselben Stelle findet. Die Tasten links davon werden breiter oder schmaler, um Platz zu schaffen, und die Leertaste wird entsprechend angepasst. Ein Layout, bei dem die Tasten dadurch zu klein würden, bleibt unverändert, ebenso wie ein zweites Layout, das Sie über eine Taste öffnen. Deaktivieren Sie dies, um jedes Layout so zu sehen, wie es vom Autor erstellt wurde.</string>
     <string name="layout_globe_in_one_place_subtitle">An der gleichen Stelle auf jedem Layout, neben der Leertaste</string>
     <string name="layout_globe_in_one_place_title">Die 🌐-Taste an einer Stelle behalten</string>

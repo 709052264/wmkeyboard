@@ -1144,7 +1144,6 @@
     <string name="backup_sync_keep_layouts_title">Jeziki in postavitve</string>
     <string name="backup_sync_keep_local_info">Nastavitve, ki jih tukaj označite, ostanejo nespremenjene v tej napravi. Spremembe, ki jih tu naredite, ne bodo poslane, spremembe iz drugih naprav pa ne bodo upoštevane. Če jih pozneje odznačite, bo ta naprava prevzela nastavitve, ki jih imajo vaše druge naprave.</string>
     <string name="backup_sync_keep_local_title">Obdrži v tej napravi</string>
-    <string name="backup_sync_keep_needs_settings">Zahteva, da so nastavitve označene v razdelku Kaj se sinhronizira</string>
     <string name="backup_sync_keep_toolbar_subtitle">Katera orodja, v kakšnem vrstnem redu in kako so videti</string>
     <string name="backup_sync_keep_toolbar_title">Orodna vrstica in zbirka orodij</string>
     <string name="backup_sync_local_note">Nekatere nastavitve ostanejo na vsaki napravi, ker ustrezajo samo tej napravi: velikost in položaj tipkovnice, način za eno roko, strojna tipkovnica, seznanjeni računalniki in zaklepanje aplikacije.</string>
@@ -1554,7 +1553,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">Izbriši seznam besed %1$s</string>
     <string name="customdict_delete_pack_desc">Izbriši paket emojijev %1$s</string>
-    <string name="customdict_emoji_auto_download_blocked">Izklopljeno, ker je možnost »Samodejni prenos podatkov« izklopljena v razdelku Jeziki</string>
     <string name="customdict_emoji_auto_download_info">Ko vklopite jezik, aplikacija v ozadju prenese njegove ključne besede za emojije. To je približno 100 KB, enkratno. Če to izklopite, so gumbi za prenos spodaj edini način za pridobitev ključnih besed.</string>
     <string name="customdict_emoji_auto_download_subtitle">Prenesi ključne besede za jezike, v katerih tipkate</string>
     <string name="customdict_emoji_auto_download_title">Samodejni prenos</string>
@@ -3637,7 +3635,6 @@
     <string name="languages_ansi_version_subtitle">Izberite tisto, za katero je izdelana vaša pisava ANSI</string>
     <string name="languages_ansi_version_title">Različica ANSI</string>
     <string name="languages_auto_pair_toast">%1$s in %2$s zdaj predlagata besede drug drugega. To lahko spremenite na strani vsakega jezika.</string>
-    <string name="languages_autocorrect_global_off_subtitle">Samodejno popravljanje je izklopljeno za vse jezike v tipkanju</string>
     <string name="languages_autocorrect_group">Samodejno popravljanje</string>
     <string name="languages_autocorrect_info">Izklopite to, da ohranite vsako besedo, ki jo vtipkate v %1$s, takšno, kot ste jo vtipkali, medtem ko se drugi jeziki še vedno popravljajo. Vrstica s predlogi še vedno prikazuje svoje predloge in lahko se dotaknete enega. Stikalo za samodejno popravljanje v tipkanju izklopi samodejno popravljanje za vse jezike.</string>
     <string name="languages_autocorrect_subtitle">Popravi tipkarske napake ob pritisku na presledek</string>
@@ -3930,7 +3927,6 @@
     </plurals>
     <string name="languages_secondary_info">Tipkovnica med tipkanjem %1$s ponuja besede iz teh jezikov. Samodejno popravljanje jih nikoli ne spremeni.</string>
     <string name="languages_secondary_title">Predlagaj tudi iz</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">Presledek po predlogu je izklopljen za vse jezike v tipkanju</string>
     <string name="languages_space_after_suggestion_info">Izklopite to, če želite vnesti besedo, ki jo izberete iz vrstice s predlogi v %1$s, brez presledka za njo, tako da lahko takoj dodate končnico. Drugi jeziki še vedno dobijo presledek. Stikalo »Presledek za predlogom« v nastavitvah tipkanja izklopi presledek za vse jezike.</string>
     <string name="languages_space_after_suggestion_subtitle">Dodaj presledek, ko izbereš besedo iz traku s predlogi.</string>
     <string name="languages_space_after_suggestion_title">Presledek za predlogom</string>
@@ -4624,7 +4620,6 @@
     <string name="layout_globe_guard_info">Tipka 🌐 je ob preslednici in vejici, zato jo lahko hiter palec po pomoti pritisne sredi besede in spremeni jezik. Tukaj nastavite čas in dotik tipke 🌐, ki se zgodi hitreje od tega po vnosu druge tipke, ne bo storil ničesar. Dotik po premoru kot običajno spremeni jezik, tako kot hitri zaporedni dotiki same tipke 🌐. Pritisnite in pridržite 🌐, da kadar koli odprete seznam jezikov. Črke, presledek, vračalka in vnos se štejejo kot tipkanje. Shift in sistemske tipke ne. Ta nastavitev je privzeto izklopljena.</string>
     <string name="layout_globe_guard_subtitle">Dotik 🌐 takoj za črko ne naredi ničesar</string>
     <string name="layout_globe_guard_title">Prezri 🌐 takoj po tipkanju</string>
-    <string name="layout_globe_hidden_subtitle">Brez učinka, ko je tipka 🌐 skrita</string>
     <string name="layout_globe_in_one_place_info">Nekatere postavitve postavijo tipko 🌐 na drugo mesto, na primer povsem levo ali neposredno za tipko ?123. To jo premakne na mesto, ki ga uporabljajo vgrajene postavitve, tako da jo palec najde na istem mestu v vsakem jeziku. Tipke na levi strani postanejo širše ali ožje, da se naredi prostor, preslednica pa se prilagodi. Postavitev, kjer bi bile zaradi tega tipke premajhne, ostane nespremenjena, prav tako druga postavitev, ki jo odprete s tipko. Izklopite to, če želite videti vsako postavitev tako, kot jo je ustvaril njen avtor.</string>
     <string name="layout_globe_in_one_place_subtitle">Na istem mestu v vsaki postavitvi, poleg preslednice</string>
     <string name="layout_globe_in_one_place_title">Ohrani tipko 🌐 na enem mestu</string>

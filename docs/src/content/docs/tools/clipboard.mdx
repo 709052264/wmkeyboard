@@ -246,7 +246,7 @@ The Clipboard screen is a hub. Three rows open its pages, and the Panel group si
 - **Height over the keys**: how much taller the panel opens while the keys are under it, stacked or searching, up to 400 dp more, default **Compact**. Every [panel over the keys](/tools/overview/#making-a-panel-over-the-keys-taller) shares it, and dragging the bar on any of them sets it.
 - **ABC, space and enter keys**: off by default. Adds a row along the bottom of the panel: <KeyCap>ABC</KeyCap> back to the letters, a space bar, and enter. Paste a link and press enter to open it, or paste several clips with a space or a new line between them, without going back to the keys each time. Enter shows the field's own action, Go or Send, the way it does on the keyboard. The row steps aside while the clipboard is [stacked over the keys](#clipboard-and-keys-together), since the real keys are right there. It only changes the panel as it ships: if you've edited the **Panel layout**, add the keys there instead.
 - **History layout**: **Grid** (default) or **List**, the same choice as the [switch in the panel](#grid-or-list).
-- **Grid columns**: 1–4, default 2. Greyed out while the history is a list.
+- **Grid columns**: 1–4, default 2. Shown only while the history is a grid.
 - **Lines per clip**: **Auto** (default: six on a card, three in a row) or 1–20.
 - **Line spacing**: 100% to 200%, default 130%. How far apart a clip's lines sit.
 - **Time on each clip**: **None** (default), **Time copied** or **Time left**. See [Columns, lines and times](#columns-lines-and-times).
@@ -278,7 +278,7 @@ Three groups: Limits, Pinned clips, and Screenshots and the source app. The last
 - **Maximum entries**: how many unpinned clips history keeps, from 5 to 5,000 in steps, default 100, or **Unlimited** at the end of the slider. Unlimited leaves the expiry as the only limit; with the expiry set to never as well, nothing is deleted, and a very long history makes the panel slower to open.
 - **Clipboard expiry**: hours before an unpinned clip is removed, 0–168, default 24 hours (0 means never).
 - **Longest clip kept**: **No limit** (default), or 1,000 to 100,000 characters in steps; a [longer copy is stored cut](#expiry-and-the-entry-cap).
-- **Pinned entries last**: moves pinned clips to the end of the panel instead of the top; off by default. Greyed out while the tabs are on or pinned clips are kept in place.
+- **Pinned entries last**: moves pinned clips to the end of the panel instead of the top; off by default. Hidden while the tabs are on or pinned clips are kept in place.
 - **Keep pinned clips in place**: pinned clips stay where they were copied, among the others, wearing their pin; off by default. With it on, the tabs and **Pinned entries last** have no effect.
 - **Pinned folders**: files each tagged pinned clip in a [folder per tag](#pinned-folders); off by default. With pinned clips kept in place, the folders sit over the whole history.
 - **Your screenshots**: shows device screenshots in the panel alongside copied text and images; off by default. While it's on without the photos permission granted, a row appears underneath to open system settings. The Play Store build has no such row: Google Play only allows the photos permission to apps that can't use the photo picker for their main job, so that build doesn't declare it, and screenshots reach the clipboard only the usual way, by copying one. GitHub and F-Droid builds keep it.

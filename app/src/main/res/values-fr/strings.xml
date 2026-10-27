@@ -1141,7 +1141,6 @@
     <string name="backup_sync_keep_layouts_title">Langues et dispositions</string>
     <string name="backup_sync_keep_local_info">Les paramètres que vous cochez ici restent tels quels sur cet appareil. Les modifications que vous y apportez ne sont pas envoyées, et les modifications provenant de vos autres appareils ne sont pas prises en compte. Décochez-en un plus tard et cet appareil prendra ce que vos autres appareils ont.</string>
     <string name="backup_sync_keep_local_title">Conserver sur cet appareil</string>
-    <string name="backup_sync_keep_needs_settings">Nécessite que Paramètres soit coché dans Ce qui est synchronisé</string>
     <string name="backup_sync_keep_toolbar_subtitle">Quels outils, dans quel ordre et à quoi ils ressemblent</string>
     <string name="backup_sync_keep_toolbar_title">Barre d\'outils et boîte à outils</string>
     <string name="backup_sync_local_note">Certains paramètres restent sur chaque appareil, car ils ne sont adaptés qu\'à cet appareil : la taille et la position du clavier, le mode une main, le clavier matériel, les ordinateurs couplés et le verrouillage de l\'application.</string>
@@ -1551,7 +1550,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">Supprimer la liste de mots %1$s</string>
     <string name="customdict_delete_pack_desc">Supprimer le pack d\'émojis %1$s</string>
-    <string name="customdict_emoji_auto_download_blocked">Désactivé, car « Télécharger les données automatiquement » est désactivé dans Langues</string>
     <string name="customdict_emoji_auto_download_info">Lorsque vous activez une langue, l\'application télécharge ses mots-clés emoji en arrière-plan. Cela représente environ 100 Ko, une seule fois. Si vous désactivez cette option, les boutons de téléchargement ci-dessous seront le seul moyen d\'obtenir les mots-clés.</string>
     <string name="customdict_emoji_auto_download_subtitle">Télécharger des mots-clés pour les langues que vous utilisez</string>
     <string name="customdict_emoji_auto_download_title">Télécharger automatiquement</string>
@@ -3623,7 +3621,6 @@
     <string name="languages_ansi_version_subtitle">Choisissez celle pour laquelle votre police ANSI est conçue</string>
     <string name="languages_ansi_version_title">Version ANSI</string>
     <string name="languages_auto_pair_toast">%1$s et %2$s suggèrent désormais les mots l\'un de l\'autre. Vous pouvez modifier cela sur la page de chaque langue.</string>
-    <string name="languages_autocorrect_global_off_subtitle">La correction automatique est désactivée pour toutes les langues dans Saisie</string>
     <string name="languages_autocorrect_group">Correction automatique</string>
     <string name="languages_autocorrect_info">Désactivez cette option pour conserver chaque mot que vous tapez en %1$s tel que vous l\'avez tapé, tandis que les autres langues restent corrigées. La barre de suggestion affiche toujours ses suggestions, et vous pouvez en toucher une. L\'interrupteur de correction automatique dans Saisie désactive la correction automatique pour toutes les langues.</string>
     <string name="languages_autocorrect_subtitle">Corriger les fautes de frappe lors de l\'appui sur la barre d\'espace</string>
@@ -3917,7 +3914,6 @@
     </plurals>
     <string name="languages_secondary_info">Le clavier propose des mots de ces langues pendant que vous tapez en %1$s. La correction automatique ne les modifie jamais.</string>
     <string name="languages_secondary_title">Suggérer aussi depuis</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">L\'espace après une suggestion est désactivé pour toutes les langues dans Saisie</string>
     <string name="languages_space_after_suggestion_info">Désactivez cette option pour taper un mot sélectionné dans la barre de suggestions en %1$s sans espace après, afin de pouvoir ajouter une terminaison immédiatement. Les autres langues conservent l\'espace. L\'option \"Espace après une suggestion\" dans la saisie désactive l\'espace pour toutes les langues.</string>
     <string name="languages_space_after_suggestion_subtitle">Ajouter un espace lors de la sélection d\'un mot dans la barre de suggestions</string>
     <string name="languages_space_after_suggestion_title">Espace après une suggestion</string>
@@ -4611,7 +4607,6 @@
     <string name="layout_globe_guard_info">La touche 🌐 se trouve à côté de la barre d\'espace et de la virgule, donc un pouce rapide peut l\'appuyer par erreur au milieu d\'un mot et changer la langue. Définissez un délai ici et un appui sur 🌐 qui survient plus tôt que cela après une touche saisie ne fera rien. Un appui après une pause change la langue comme d\'habitude, tout comme des appuis rapides successifs sur 🌐 lui-même. Appuyez longuement sur 🌐 pour ouvrir la liste des langues à tout moment. Les lettres, l\'espace, le retour arrière et l\'entrée comptent comme de la saisie. Maj et les touches de mode ne comptent pas. Ce paramètre est désactivé par défaut.</string>
     <string name="layout_globe_guard_subtitle">Un appui sur 🌐 juste après une lettre ne fait rien</string>
     <string name="layout_globe_guard_title">Ignorer 🌐 juste après la saisie</string>
-    <string name="layout_globe_hidden_subtitle">Aucun effet lorsque la touche 🌐 est masquée</string>
     <string name="layout_globe_in_one_place_info">Certaines dispositions placent la touche 🌐 à un endroit différent, par exemple tout à gauche, ou directement après la touche ?123. Cela la déplace à l\'endroit utilisé par les dispositions intégrées, afin que votre pouce la trouve au même endroit dans chaque langue. Les touches à sa gauche deviennent plus larges ou plus étroites pour faire de la place, et la barre d\'espace s\'adapte. Une disposition où cela rendrait les touches trop petites est laissée telle quelle, tout comme une deuxième disposition que vous ouvrez à partir d\'une touche. Désactivez cette option pour voir chaque disposition telle que son auteur l\'a conçue.</string>
     <string name="layout_globe_in_one_place_subtitle">Au même endroit sur chaque disposition, à côté de la barre d\'espace</string>
     <string name="layout_globe_in_one_place_title">Garder la touche 🌐 au même endroit</string>

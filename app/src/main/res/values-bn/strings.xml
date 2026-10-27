@@ -1145,7 +1145,6 @@
     <string name="backup_sync_keep_layouts_title">ভাষা এবং লেআউট</string>
     <string name="backup_sync_keep_local_info">আপনি এখানে যে সেটিংসগুলো টিক দেবেন সেগুলো এই ডিভাইসে আগের মতোই থাকবে। এখানে করা পরিবর্তনগুলো পাঠানো হবে না এবং আপনার অন্যান্য ডিভাইস থেকে আসা পরিবর্তনগুলো গ্রহণ করা হবে না। পরে একটি টিক তুলে দিলে এই ডিভাইসটি আপনার অন্যান্য ডিভাইসে যা আছে তা গ্রহণ করবে।</string>
     <string name="backup_sync_keep_local_title">এই ডিভাইসে রাখুন</string>
-    <string name="backup_sync_keep_needs_settings">\'কী সিঙ্ক হয়\'-এ সেটিংস টিক দেওয়া প্রয়োজন</string>
     <string name="backup_sync_keep_toolbar_subtitle">কোন টুলগুলো, কী ক্রমে এবং দেখতে কেমন হবে</string>
     <string name="backup_sync_keep_toolbar_title">টুলবার এবং টুলবক্স</string>
     <string name="backup_sync_local_note">কিছু সেটিংস প্রতিটি ডিভাইসেই থেকে যায়, কারণ সেগুলো শুধুমাত্র সেই ডিভাইসের জন্যই প্রযোজ্য: কিবোর্ডের আকার ও অবস্থান, এক-হাতে ব্যবহারের মোড, হার্ডওয়্যার কিবোর্ড, পেয়ার করা কম্পিউটার এবং অ্যাপ লক। এই ডিভাইসে আরও বেশি কিছু রাখতে, নিচে থাকা \'এই ডিভাইসে রাখুন\' অপশনটি ব্যবহার করুন।</string>
@@ -1555,7 +1554,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">শব্দ তালিকা %1$s মুছে ফেলুন</string>
     <string name="customdict_delete_pack_desc">%1$s ইমোজি প্যাকটি মুছে ফেলুন</string>
-    <string name="customdict_emoji_auto_download_blocked">বন্ধ করা হয়েছে, কারণ ল্যাঙ্গুয়েজের অধীনে “স্বয়ংক্রিয়ভাবে ডেটা ডাউনলোড করুন” বন্ধ আছে</string>
     <string name="customdict_emoji_auto_download_info">আপনি যখন একটি ভাষা চালু করেন, অ্যাপটি ব্যাকগ্রাউন্ডে তার ইমোজি কিওয়ার্ডগুলো ডাউনলোড করে। এটি প্রায় ১০০ কেবি, একবারের জন্য। আপনি যদি এটি বন্ধ করেন, তবে নিচের ডাউনলোড বোতামগুলোই কিওয়ার্ডগুলো পাওয়ার একমাত্র উপায়।</string>
     <string name="customdict_emoji_auto_download_subtitle">আপনার টাইপ করা ভাষার জন্য কিওয়ার্ড ডাউনলোড করুন</string>
     <string name="customdict_emoji_auto_download_title">স্বয়ংক্রিয়ভাবে ডাউনলোড করুন</string>
@@ -3649,7 +3647,6 @@
     <string name="languages_ansi_version_subtitle">আপনার ANSI ফন্টটি যেটির জন্য তৈরি তা বেছে নিন</string>
     <string name="languages_ansi_version_title">ANSI সংস্করণ</string>
     <string name="languages_auto_pair_toast">%1$s এবং %2$s এখন একে অপরের শব্দ সাজেস্ট করে। আপনি প্রতিটি ভাষার পৃষ্ঠায় এটি পরিবর্তন করতে পারেন।</string>
-    <string name="languages_autocorrect_global_off_subtitle">টাইপিং-এ সব ভাষার জন্য অটোকারেক্ট বন্ধ আছে</string>
     <string name="languages_autocorrect_group">অটোকারেক্ট</string>
     <string name="languages_autocorrect_info">%1$s-এ আপনি যে শব্দটি টাইপ করেন তা ঠিক সেভাবেই রাখতে এটি বন্ধ করুন, যদিও অন্যান্য ভাষার ক্ষেত্রে সংশোধন চালু থাকবে। সাজেশন স্ট্রিপে এখনও সাজেশন দেখাবে এবং আপনি চাইলে একটিতে ট্যাপ করতে পারেন। টাইপিং-এ অটোকারেক্ট সুইচটি বন্ধ করলে সব ভাষার জন্য অটোকারেক্ট বন্ধ হয়ে যাবে।</string>
     <string name="languages_autocorrect_subtitle">স্পেস চাপলে টাইপো ঠিক করুন</string>
@@ -3943,7 +3940,6 @@
     </plurals>
     <string name="languages_secondary_info">আপনি যখন %1$s টাইপ করেন তখন কীবোর্ড এই ভাষাগুলো থেকে শব্দ অফার করে। অটোকারেক্ট কখনোই সেগুলো পরিবর্তন করে না।</string>
     <string name="languages_secondary_title">এখান থেকেও পরামর্শ দিন</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">টাইপিং-এ সমস্ত ভাষার জন্য পরামর্শের পরে স্পেস দেওয়া বন্ধ আছে</string>
     <string name="languages_space_after_suggestion_info">%1$s-এ সাজেশন স্ট্রিপ থেকে আপনার নির্বাচন করা শব্দটির পরে স্পেস ছাড়া টাইপ করতে এটি বন্ধ করুন, যাতে আপনি সরাসরি একটি এন্ডিং যোগ করতে পারেন। অন্যান্য ভাষায় স্পেস থাকবে। টাইপিং-এ \'স্পেস আফটার সাজেশন\' সুইচটি সব ভাষার জন্য স্পেস বন্ধ করে দেয়।</string>
     <string name="languages_space_after_suggestion_subtitle">পরামর্শের তালিকা থেকে কোনো শব্দ নির্বাচন করলে একটি স্পেস যোগ করুন</string>
     <string name="languages_space_after_suggestion_title">সাজেশনের পরে স্পেস</string>
@@ -4637,7 +4633,6 @@
     <string name="layout_globe_guard_info">🌐 কী-টি স্পেসবার এবং কমার পাশে থাকে, তাই দ্রুত টাইপ করার সময় ভুলবশত এটি টিপ লেগে ভাষা পরিবর্তন হয়ে যেতে পারে। এখানে একটি সময় সেট করুন, তাহলে কোনো কী টাইপ করার পর এই সময়ের মধ্যে 🌐 টিপলে কিছুই হবে না। বিরতির পর টিপলে স্বাভাবিকভাবে ভাষা পরিবর্তন হবে, এবং 🌐-তে পরপর দ্রুত টিপলেও তাই হবে। যেকোনো সময় ভাষার তালিকা খুলতে 🌐 টিপে ধরে রাখুন। অক্ষর, স্পেস, ব্যাকস্পেস এবং এন্টার টাইপ হিসেবে গণ্য হয়। শিফট এবং মোড কীগুলো হয় না। এই সেটিংটি ডিফল্টভাবে বন্ধ থাকে।</string>
     <string name="layout_globe_guard_subtitle">একটি অক্ষরের ঠিক পরে 🌐 তে ট্যাপ করলে কিছুই হয় না</string>
     <string name="layout_globe_guard_title">টাইপ করার ঠিক পরেই 🌐 উপেক্ষা করুন</string>
-    <string name="layout_globe_hidden_subtitle">🌐 কী লুকানো থাকলে কোনো প্রভাব নেই</string>
     <string name="layout_globe_in_one_place_info">কিছু লেআউট 🌐 কি-টিকে আলাদা জায়গায় রাখে, যেমন একদম বামে অথবা সরাসরি ?123 কি-এর পরে। এটি এটিকে সেই জায়গায় সরিয়ে আনে যা বিল্ট-ইন লেআউটগুলো ব্যবহার করে, যাতে আপনার থাম্ব সব ভাষাতেই এটিকে একই জায়গায় খুঁজে পায়। এর বাম দিকের কিগুলো জায়গা করার জন্য চওড়া বা সরু হয়ে যায় এবং স্পেসবারটি ফিট করার জন্য পরিবর্তিত হয়। এমন একটি লেআউট যেখানে কি-গুলো খুব ছোট হয়ে যাবে, সেটি যেমন আছে তেমনই রাখা হয়, আর কোনো কি থেকে আপনি যে দ্বিতীয় লেআউটটি খোলেন সেটিও তাই। প্রতিটি লেআউটকে এর নির্মাতার তৈরি রূপ দেখতে এটিকে বন্ধ করে দিন।</string>
     <string name="layout_globe_in_one_place_subtitle">স্পেসবারের পাশে, প্রতিটি লেআউটের একই স্থানে</string>
     <string name="layout_globe_in_one_place_title">🌐 কি (key) এক জায়গায় রাখুন</string>

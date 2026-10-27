@@ -1143,7 +1143,6 @@
     <string name="backup_sync_keep_layouts_title">Języki i układy</string>
     <string name="backup_sync_keep_local_info">Ustawienia, które tutaj zaznaczysz, pozostaną bez zmian na tym urządzeniu. Zmiany wprowadzone tutaj nie będą wysyłane, a zmiany z innych urządzeń nie zostaną zastosowane. Jeśli później je odznaczysz, to urządzenie pobierze ustawienia z innych urządzeń.</string>
     <string name="backup_sync_keep_local_title">Zachowaj na tym urządzeniu</string>
-    <string name="backup_sync_keep_needs_settings">Wymaga zaznaczenia ustawień w sekcji Co synchronizować</string>
     <string name="backup_sync_keep_toolbar_subtitle">Które narzędzia, w jakiej kolejności i jak wyglądają</string>
     <string name="backup_sync_keep_toolbar_title">Pasek narzędzi i przybornik</string>
     <string name="backup_sync_local_note">Niektóre ustawienia pozostają na każdym urządzeniu, ponieważ są specyficzne dla danego sprzętu: rozmiar i pozycja klawiatury, tryb obsługi jedną ręką, klawiatura sprzętowa, sparowane komputery i blokada aplikacji. Aby zachować więcej danych na tym urządzeniu, użyj opcji „Zachowaj na tym urządzeniu” poniżej.</string>
@@ -1553,7 +1552,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">Usuń listę słów %1$s</string>
     <string name="customdict_delete_pack_desc">Usuń pakiet emoji %1$s</string>
-    <string name="customdict_emoji_auto_download_blocked">Wyłączono, ponieważ opcja „Pobieraj dane automatycznie” jest wyłączona w sekcji Języki</string>
     <string name="customdict_emoji_auto_download_info">Gdy włączasz język, aplikacja pobiera w tle jego słowa kluczowe emoji. To około 100 KB, jednorazowo. Jeśli to wyłączysz, przyciski Pobierz poniżej będą jedynym sposobem na uzyskanie słów kluczowych.</string>
     <string name="customdict_emoji_auto_download_subtitle">Pobierz słowa kluczowe dla języków, w których piszesz</string>
     <string name="customdict_emoji_auto_download_title">Pobierz automatycznie</string>
@@ -3632,7 +3630,6 @@
     <string name="languages_ansi_version_subtitle">Wybierz wersję, dla której stworzono Twoją czcionkę ANSI</string>
     <string name="languages_ansi_version_title">Wersja ANSI</string>
     <string name="languages_auto_pair_toast">%1$s i %2$s teraz sugerują nawzajem swoje słowa. Możesz to zmienić na stronie każdego języka.</string>
-    <string name="languages_autocorrect_global_off_subtitle">Autokorekta jest wyłączona dla wszystkich języków w Pisaniu</string>
     <string name="languages_autocorrect_group">Autokorekta</string>
     <string name="languages_autocorrect_info">Wyłącz tę opcję, aby zachować każde słowo wpisane w %1$s w oryginalnej formie, podczas gdy inne języki będą nadal korygowane. Pasek sugestii nadal będzie wyświetlał swoje propozycje, które możesz wybrać. Przełącznik autokorekty w ustawieniach pisania wyłącza autokorektę dla wszystkich języków.</string>
     <string name="languages_autocorrect_subtitle">Poprawiaj literówki po naciśnięciu spacji</string>
@@ -3925,7 +3922,6 @@
     </plurals>
     <string name="languages_secondary_info">Klawiatura oferuje słowa z tych języków podczas pisania w %1$s. Autokorekta nigdy ich nie zmienia.</string>
     <string name="languages_secondary_title">Sugeruj również z</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">Dodawanie spacji po sugestii jest wyłączone dla wszystkich języków w sekcji Pisanie</string>
     <string name="languages_space_after_suggestion_info">Wyłącz tę opcję, aby móc wpisywać słowo wybrane z paska sugestii w %1$s bez spacji po nim, co pozwoli od razu dodać zakończenie. W innych językach spacja będzie nadal dodawana. Przełącznik Spacja po sugestii w ustawieniach pisania wyłącza spację dla wszystkich języków.</string>
     <string name="languages_space_after_suggestion_subtitle">Dodaj spację po wybraniu słowa z paska sugestii</string>
     <string name="languages_space_after_suggestion_title">Spacja po sugestii</string>
@@ -4619,7 +4615,6 @@
     <string name="layout_globe_guard_info">Klawisz 🌐 znajduje się obok spacji i przecinka, więc szybki kciuk może go przypadkowo nacisnąć w środku słowa i zmienić język. Ustaw tutaj czas, a dotknięcie 🌐, które nastąpi wcześniej niż ten czas po wpisaniu znaku, nie zrobi nic. Dotknięcie po pauzie zmieni język jak zwykle, podobnie jak szybkie dotknięcia jedno po drugim samego klawisza 🌐. Naciśnij i przytrzymaj 🌐, aby w dowolnym momencie otworzyć listę języków. Litery, spacja, backspace i enter liczą się jako pisanie. Shift i klawisze trybu nie. To ustawienie jest domyślnie wyłączone.</string>
     <string name="layout_globe_guard_subtitle">Dotknięcie 🌐 zaraz po literze nie wywołuje żadnej akcji</string>
     <string name="layout_globe_guard_title">Ignoruj 🌐 bezpośrednio po pisaniu</string>
-    <string name="layout_globe_hidden_subtitle">Brak efektu, gdy klawisz 🌐 jest ukryty</string>
     <string name="layout_globe_in_one_place_info">Niektóre układy umieszczają klawisz 🌐 w innym miejscu, na przykład na samym końcu po lewej stronie lub bezpośrednio po klawiszu ?123. Ta opcja przenosi go w miejsce używane przez wbudowane układy, dzięki czemu kciuk zawsze znajdzie go w tym samym miejscu w każdym języku. Klawisze po jego lewej stronie stają się szersze lub węższe, aby zrobić miejsce, a spacja zmienia rozmiar. Układ, w którym klawisze stałyby się zbyt małe, pozostaje bez zmian, podobnie jak drugi układ otwierany z klawisza. Wyłącz tę opcję, aby zobaczyć każdy układ w formie zaprojektowanej przez jego autora.</string>
     <string name="layout_globe_in_one_place_subtitle">W tym samym miejscu w każdym układzie, obok spacji</string>
     <string name="layout_globe_in_one_place_title">Trzymaj klawisz 🌐 w jednym miejscu</string>

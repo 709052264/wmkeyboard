@@ -1144,7 +1144,6 @@
     <string name="backup_sync_keep_layouts_title">ભાષાઓ અને લેઆઉટ</string>
     <string name="backup_sync_keep_local_info">તમે અહીં જે સેટિંગ્સ પસંદ કરો છો તે આ ઉપકરણ પર જેમના તેમ રહેશે. તમે અહીં તેમાં કરેલા ફેરફારો મોકલવામાં આવતા નથી, અને તમારા અન્ય ઉપકરણોના ફેરફારો લેવામાં આવતા નથી. પછીથી કોઈ એકને અનટિક કરો અને આ ઉપકરણ તમારા અન્ય ઉપકરણો પાસે જે છે તે લઈ લેશે.</string>
     <string name="backup_sync_keep_local_title">આ ઉપકરણ પર રાખો</string>
-    <string name="backup_sync_keep_needs_settings">શું સિંક થાય છે તેમાં સેટિંગ્સ ટિક કરેલું હોવું જરૂરી છે</string>
     <string name="backup_sync_keep_toolbar_subtitle">કયા ટૂલ્સ, કયા ક્રમમાં, અને તે કેવા દેખાય છે</string>
     <string name="backup_sync_keep_toolbar_title">ટૂલબાર અને ટૂલબોક્સ</string>
     <string name="backup_sync_local_note">કેટલીક સેટિંગ્સ દરેક ઉપકરણ પર જ રહે છે, કારણ કે તે ફક્ત તે ઉપકરણને જ અનુરૂપ છે: કીબોર્ડનું કદ અને સ્થાન, વન-હેન્ડેડ મોડ, હાર્ડવેર કીબોર્ડ, પેયર કરેલા કમ્પ્યુટર્સ અને એપ લોક. આ ઉપકરણ પર વધુ રાખવા માટે, નીચે આપેલ \'આ ઉપકરણ પર રાખો\' નો ઉપયોગ કરો.</string>
@@ -1554,7 +1553,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">શબ્દ સૂચિ %1$s કાઢી નાખો</string>
     <string name="customdict_delete_pack_desc">ઇમોજી પેક %1$s કાઢી નાખો</string>
-    <string name="customdict_emoji_auto_download_blocked">બંધ કર્યું છે, કારણ કે ભાષાઓ હેઠળ “ડેટા આપમેળે ડાઉનલોડ કરો” બંધ છે</string>
     <string name="customdict_emoji_auto_download_info">જ્યારે તમે કોઈ ભાષા ચાલુ કરો છો, ત્યારે એપ બેકગ્રાઉન્ડમાં તેના ઇમોજી કીવર્ડ્સ ડાઉનલોડ કરે છે. આ લગભગ 100 KB છે, એક વાર માટે. જો તમે આ બંધ કરો છો, તો નીચે આપેલા ડાઉનલોડ બટનો જ કીવર્ડ્સ મેળવવાનો એકમાત્ર રસ્તો છે.</string>
     <string name="customdict_emoji_auto_download_subtitle">તમે જે ભાષાઓમાં ટાઈપ કરો છો તેના માટે કીવર્ડ્સ ડાઉનલોડ કરો</string>
     <string name="customdict_emoji_auto_download_title">આપમેળે ડાઉનલોડ કરો</string>
@@ -3630,7 +3628,6 @@
     <string name="languages_ansi_version_subtitle">તમારો ANSI ફોન્ટ જે માટે બનાવવામાં આવ્યો છે તે પસંદ કરો</string>
     <string name="languages_ansi_version_title">ANSI સંસ્કરણ</string>
     <string name="languages_auto_pair_toast">%1$s અને %2$s હવે એકબીજાના શબ્દો સૂચવે છે. તમે દરેક ભાષાના પેજ પર આ બદલી શકો છો.</string>
-    <string name="languages_autocorrect_global_off_subtitle">ટાઇપિંગમાં બધી ભાષાઓ માટે ઓટોકરેક્ટ બંધ છે</string>
     <string name="languages_autocorrect_group">ઓટોકરેક્ટ</string>
     <string name="languages_autocorrect_info">તમે %1$s માં જે શબ્દ ટાઈપ કરો છો તેને તે જ રીતે રાખવા માટે આને બંધ કરો, જ્યારે અન્ય ભાષાઓ હજુ પણ સુધારવામાં આવશે. સૂચન પટ્ટી હજુ પણ તેના સૂચનો બતાવે છે, અને તમે એક પર ટેપ કરી શકો છો. ટાઈપિંગમાં ઓટોકરેક્ટ સ્વીચ બધી ભાષાઓ માટે ઓટોકરેક્ટ બંધ કરે છે.</string>
     <string name="languages_autocorrect_subtitle">જ્યારે તમે સ્પેસ દબાવો ત્યારે ટાઈપિંગની ભૂલો સુધારો</string>
@@ -3923,7 +3920,6 @@
     </plurals>
     <string name="languages_secondary_info">જ્યારે તમે %1$s ટાઇપ કરો છો ત્યારે કીબોર્ડ આ ભાષાઓના શબ્દો ઓફર કરે છે. ઓટોકરેક્ટ તેમને ક્યારેય બદલતું નથી.</string>
     <string name="languages_secondary_title">આમાંથી પણ સૂચવો</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">ટાઇપિંગમાં બધી ભાષાઓ માટે સૂચન પછી સ્પેસ બંધ છે</string>
     <string name="languages_space_after_suggestion_info">સૂચન પટ્ટીમાંથી તમે પસંદ કરેલ શબ્દને %1$s માં તેની પાછળ સ્પેસ વગર ટાઇપ કરવા માટે આને બંધ કરો, જેથી તમે તરત જ અંત ઉમેરી શકો. અન્ય ભાષાઓમાં હજુ પણ સ્પેસ મળે છે. ટાઇપિંગમાં \'સૂચન પછી સ્પેસ\' સ્વિચ તમામ ભાષાઓ માટે સ્પેસ બંધ કરે છે.</string>
     <string name="languages_space_after_suggestion_subtitle">જ્યારે તમે સૂચન પટ્ટીમાંથી કોઈ શબ્દ પસંદ કરો ત્યારે જગ્યા ઉમેરો</string>
     <string name="languages_space_after_suggestion_title">સૂચન પછી જગ્યા</string>
@@ -4617,7 +4613,6 @@
     <string name="layout_globe_guard_info">🌐 કી સ્પેસબાર અને અલ્પવિરામની બાજુમાં છે, તેથી ઝડપી અંગૂઠો ભૂલથી શબ્દની વચ્ચે તેને દબાવી શકે છે અને ભાષા બદલી શકે છે. અહીં એક સમય સેટ કરો અને ટાઇપ કરેલી કી પછી આ સમય કરતાં વહેલા 🌐 પર ટેપ કરવાથી કંઈ થશે નહીં. વિરામ પછી ટેપ કરવાથી ભાષા સામાન્ય રીતે બદલાય છે, અને 🌐 પર એક પછી એક ઝડપી ટેપ કરવાથી પણ એમ જ થાય છે. કોઈપણ સમયે ભાષાની સૂચિ ખોલવા માટે 🌐 ને દબાવી રાખો. અક્ષરો, સ્પેસ, બેકસ્પેસ અને એન્ટર ટાઇપિંગ તરીકે ગણાય છે. શિફ્ટ અને મોડ કી ગણાતી નથી. આ સેટિંગ ડિફોલ્ટ રૂપે બંધ છે.</string>
     <string name="layout_globe_guard_subtitle">અક્ષર પછી તરત જ 🌐 પર ટેપ કરવાથી કંઈ થતું નથી</string>
     <string name="layout_globe_guard_title">ટાઈપ કર્યા પછી તરત જ 🌐 ને અવગણો</string>
-    <string name="layout_globe_hidden_subtitle">🌐 કી છુપાયેલી હોય ત્યારે કોઈ અસર થતી નથી</string>
     <string name="layout_globe_in_one_place_info">કેટલાક લેઆઉટ 🌐 કીને અલગ જગ્યાએ મૂકે છે, ઉદાહરણ તરીકે ડાબી બાજુએ સૌથી છેલ્લે, અથવા સીધા ?123 કી પછી. આ તેને એવી જગ્યાએ ખસેડે છે જેનો ઉપયોગ ઇન-બિલ્ટ લેઆઉટ કરે છે, જેથી તમારો અંગૂઠો દરેક ભાષામાં તેને એક જ જગ્યાએ શોધી શકે. તેની ડાબી બાજુની કી જગ્યા બનાવવા માટે પહોળી કે સાંકડી થાય છે, અને સ્પેસબાર ફિટ થવા માટે બદલાય છે. જે લેઆઉટમાં કી ખૂબ નાની થઈ જતી હોય તેને જેવું છે તેવું જ રહેવા દેવામાં આવે છે, અને તમે કીમાંથી ખોલો છો તે બીજા લેઆઉટને પણ. દરેક લેઆઉટને તેના લેખકે બનાવ્યું છે તેમ જોવા માટે આને બંધ કરો.</string>
     <string name="layout_globe_in_one_place_subtitle">દરેક લેઆઉટ પર એક જ જગ્યાએ, સ્પેસબારની બાજુમાં</string>
     <string name="layout_globe_in_one_place_title">🌐 કીને એક જગ્યાએ રાખો</string>

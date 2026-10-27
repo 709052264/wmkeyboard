@@ -36,13 +36,13 @@ internal fun AutomationSettingsScreen(repository: SettingsRepository) {
     )) {
         SettingsGroup(stringResource(title), info = stringResource(info)) {
             for (permission in permissions) {
-                item {
+                // Off, the banner above is the page; the permissions come back with it.
+                item(visible = automation.enabled) {
                     val (rowTitle, rowSubtitle) = automationRowStrings(permission)
                     ToggleSetting(
                         rowTitle,
                         stringResource(rowSubtitle),
                         permission in automation.allowed,
-                        enabled = automation.enabled,
                         default = permission.defaultAllowed,
                     ) { scope.launch { repository.setAutomationAllowed(permission, it) } }
                 }

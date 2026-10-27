@@ -1142,7 +1142,6 @@
     <string name="backup_sync_keep_layouts_title">言語とレイアウト</string>
     <string name="backup_sync_keep_local_info">ここでチェックした設定は、このデバイス上の状態が維持されます。ここでの変更は同期されず、他のデバイスからの変更も適用されません。チェックを外すと、そのデバイスの状態が他のデバイスと同期されます。</string>
     <string name="backup_sync_keep_local_title">このデバイスに保存</string>
-    <string name="backup_sync_keep_needs_settings">「同期対象」で「設定」にチェックを入れる必要があります</string>
     <string name="backup_sync_keep_toolbar_subtitle">どのツールを、どのような順序で、どのように表示するか</string>
     <string name="backup_sync_keep_toolbar_title">ツールバーとツールボックス</string>
     <string name="backup_sync_local_note">キーボードのサイズや位置、片手モード、ハードウェアキーボード、ペアリングされたパソコン、アプリのロックなど、デバイス固有の設定はデバイスに残ります。このデバイスにより多くの設定を残すには、以下の「このデバイスに保存」をご使用ください。</string>
@@ -1552,7 +1551,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">単語リスト %1$s を削除</string>
     <string name="customdict_delete_pack_desc">絵文字パック %1$s を削除</string>
-    <string name="customdict_emoji_auto_download_blocked">「言語」設定で「データを自動的にダウンロード」がオフになっているため、無効になっています</string>
     <string name="customdict_emoji_auto_download_info">言語をオンにすると、アプリはバックグラウンドでその絵文字キーワードをダウンロードします。これは初回のみ約100KBです。これをオフにすると、以下のダウンロードボタンからのみキーワードを取得できます。</string>
     <string name="customdict_emoji_auto_download_subtitle">入力する言語のキーワードをダウンロードする</string>
     <string name="customdict_emoji_auto_download_title">自動的にダウンロード</string>
@@ -3627,7 +3625,6 @@
     <string name="languages_ansi_version_subtitle">ANSIフォントが対応しているバージョンを選択してください</string>
     <string name="languages_ansi_version_title">ANSIバージョン</string>
     <string name="languages_auto_pair_toast">%1$sと%2$sで互いの単語が候補として表示されるようになりました。各言語の設定ページから変更できます。</string>
-    <string name="languages_autocorrect_global_off_subtitle">「入力」のすべての言語で自動修正がオフになっています</string>
     <string name="languages_autocorrect_group">自動修正</string>
     <string name="languages_autocorrect_info">これをオフにすると、%1$sで入力した単語はそのまま維持され、他の言語は引き続き修正されます。サジェストバーには引き続き候補が表示され、タップすることも可能です。入力設定の自動修正スイッチをオフにすると、すべての言語で自動修正が無効になります。</string>
     <string name="languages_autocorrect_subtitle">スペースキーを押したときにタイプミスを修正</string>
@@ -3920,7 +3917,6 @@
     </plurals>
     <string name="languages_secondary_info">%1$sを入力中、キーボードはこれらの言語の単語を提案します。自動修正で変更されることはありません。</string>
     <string name="languages_secondary_title">次の言語からも提案</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">「入力」設定のすべての言語で、サジェスト後のスペース挿入が無効になっています</string>
     <string name="languages_space_after_suggestion_info">これをオフにすると、候補バーから選択した%1$sの単語の後にスペースが挿入されなくなるため、すぐに語尾を追加できます。他の言語では引き続きスペースが挿入されます。「入力」設定の「候補の後にスペース」スイッチをオンにすると、すべての言語でスペースがオフになります。</string>
     <string name="languages_space_after_suggestion_subtitle">候補バーから単語を選択したときにスペースを追加する</string>
     <string name="languages_space_after_suggestion_title">候補選択後にスペースを挿入</string>
@@ -4614,7 +4610,6 @@
     <string name="layout_globe_guard_info">🌐キーはスペースキーとコンマの隣にあるため、速く打鍵すると単語の途中で誤って押し、言語が切り替わってしまうことがあります。ここで時間を設定すると、キー入力から設定時間内に🌐キーをタップしても何も起こらなくなります。一時停止後のタップや、🌐キー自体の連続タップは通常通り言語を切り替えます。🌐を長押しすれば、いつでも言語リストを開くことができます。文字、スペース、バックスペース、Enterキーは入力とみなされますが、Shiftキーやモード切り替えキーは入力とみなされません。この設定はデフォルトでオフになっています。</string>
     <string name="layout_globe_guard_subtitle">文字の直後に 🌐 をタップしても何も起こりません</string>
     <string name="layout_globe_guard_title">入力直後の🌐を無視</string>
-    <string name="layout_globe_hidden_subtitle">🌐キーが非表示の間は効果がありません</string>
     <string name="layout_globe_in_one_place_info">一部のレイアウトでは、🌐 キーが左端や ?123 キーの直後など、異なる場所に配置されています。これをオンにすると、組み込みレイアウトと同じ場所に移動するため、どの言語でも親指が同じ場所でキーを見つけられます。左側のキーは幅が調整され、スペースバーもそれに合わせて変更されます。キーが小さくなりすぎるレイアウトや、キーから開く2番目のレイアウトはそのまま維持されます。これをオフにすると、作成者が意図した通りのすべてのレイアウトが表示されます。</string>
     <string name="layout_globe_in_one_place_subtitle">すべてのレイアウトでスペースキーの横の同じ位置に配置</string>
     <string name="layout_globe_in_one_place_title">🌐キーを固定する</string>

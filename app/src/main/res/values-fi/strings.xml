@@ -1143,7 +1143,6 @@
     <string name="backup_sync_keep_layouts_title">Kielet ja asettelut</string>
     <string name="backup_sync_keep_local_info">Täällä valitsemasi asetukset pysyvät sellaisina kuin ne ovat tällä laitteella. Niihin täällä tekemäsi muutokset eivät lähde eteenpäin, eikä muiden laitteidesi muutoksia oteta käyttöön. Jos poistat valinnan myöhemmin, tämä laite ottaa käyttöön sen, mitä muilla laitteillasi on.</string>
     <string name="backup_sync_keep_local_title">Pidä tällä laitteella</string>
-    <string name="backup_sync_keep_needs_settings">Vaatii Asetukset-valinnan kohdassa Mitä synkronoidaan</string>
     <string name="backup_sync_keep_toolbar_subtitle">Mitkä työkalut, missä järjestyksessä ja miltä ne näyttävät</string>
     <string name="backup_sync_keep_toolbar_title">Työkalupalkki ja työkalupakki</string>
     <string name="backup_sync_local_note">Jotkin asetukset pysyvät kussakin laitteessa, koska ne sopivat vain kyseiseen laitteeseen: näppäimistön koko ja sijainti, yhden käden tila, laitteistonnäppäimistö, pariksi liitetyt tietokoneet ja sovelluksen lukitus. Jos haluat säilyttää enemmän tietoja tässä laitteessa, käytä alla olevaa asetusta Säilytä tässä laitteessa.</string>
@@ -1553,7 +1552,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">Poista sanalista %1$s</string>
     <string name="customdict_delete_pack_desc">Poista emojipaketti %1$s</string>
-    <string name="customdict_emoji_auto_download_blocked">Pois päältä, koska ”Lataa tiedot automaattisesti” on pois päältä kohdassa Kielet</string>
     <string name="customdict_emoji_auto_download_info">Kun otat kielen käyttöön, sovellus lataa sen emoji-avainsanat taustalla. Tämä on noin 100 kt, kertaluonteisesti. Jos poistat tämän käytöstä, alla olevat Lataa-painikkeet ovat ainoa tapa saada avainsanat.</string>
     <string name="customdict_emoji_auto_download_subtitle">Lataa avainsanat kielille, joilla kirjoitat</string>
     <string name="customdict_emoji_auto_download_title">Lataa automaattisesti</string>
@@ -3627,7 +3625,6 @@
     <string name="languages_ansi_version_subtitle">Valitse se, jota varten ANSI-fonttisi on tehty</string>
     <string name="languages_ansi_version_title">ANSI-versio</string>
     <string name="languages_auto_pair_toast">%1$s ja %2$s ehdottavat nyt toistensa sanoja. Voit muuttaa tätä kunkin kielen sivulla.</string>
-    <string name="languages_autocorrect_global_off_subtitle">Automaattinen korjaus on pois päältä kaikilla kielillä kirjoitettaessa</string>
     <string name="languages_autocorrect_group">Automaattinen korjaus</string>
     <string name="languages_autocorrect_info">Poista tämä käytöstä, jotta jokainen kielellä %1$s kirjoittamasi sana säilyy sellaisena kuin kirjoitit sen, samalla kun muita kieliä korjataan edelleen. Ehdotuspalkki näyttää edelleen ehdotuksensa, ja voit napauttaa yhtä niistä. Kirjoitusasetusten automaattinen korjaus -kytkin poistaa automaattisen korjauksen käytöstä kaikilta kieliltä.</string>
     <string name="languages_autocorrect_subtitle">Korjaa kirjoitusvirheet, kun painat välilyöntiä</string>
@@ -3919,7 +3916,6 @@
     </plurals>
     <string name="languages_secondary_info">Näppäimistö tarjoaa sanoja näiltä kieliltä, kun kirjoitat kielellä %1$s. Automaattinen korjaus ei koskaan muuta niitä.</string>
     <string name="languages_secondary_title">Ehdota myös kielestä</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">Välilyönti ehdotuksen jälkeen on pois päältä kaikilla kielillä kirjoitettaessa</string>
     <string name="languages_space_after_suggestion_info">Poista tämä käytöstä, jos haluat kirjoittaa ehdotuspalkista valitsemasi sanan kielellä %1$s ilman välilyöntiä sen jälkeen, jotta voit lisätä päätteen heti. Muut kielet saavat edelleen välilyönnin. Kirjoitusasetusten \"Välilyönti ehdotuksen jälkeen\" -kytkin poistaa välilyönnin käytöstä kaikilla kielillä.</string>
     <string name="languages_space_after_suggestion_subtitle">Lisää välilyönti, kun valitset sanan ehdotuspalkista</string>
     <string name="languages_space_after_suggestion_title">Välilyönti ehdotuksen jälkeen</string>
@@ -4613,7 +4609,6 @@
     <string name="layout_globe_guard_info">🌐-näppäin on välilyönnin ja pilkun vieressä, joten nopea peukalo voi osua siihen vahingossa sanan keskellä ja vaihtaa kieltä. Aseta tässä aika, jolloin 🌐-näppäimen napautus kirjoitetun näppäimen jälkeen ei tee mitään. Tauon jälkeinen napautus vaihtaa kielen tavalliseen tapaan, samoin kuin peräkkäiset nopeat napautukset itse 🌐-näppäimellä. Paina ja pidä 🌐-näppäintä pohjassa avataksesi kieliluettelon milloin tahansa. Kirjaimet, välilyönti, askelpalautin ja rivinvaihto lasketaan kirjoittamiseksi. Vaihto- ja tilanäppäimet eivät. Tämä asetus on oletuksena pois päältä.</string>
     <string name="layout_globe_guard_subtitle">🌐-kuvakkeen napauttaminen heti kirjaimen jälkeen ei tee mitään</string>
     <string name="layout_globe_guard_title">Ohita 🌐 heti kirjoittamisen jälkeen</string>
-    <string name="layout_globe_hidden_subtitle">Ei vaikutusta, kun 🌐-näppäin on piilotettu</string>
     <string name="layout_globe_in_one_place_info">Jotkut asettelut sijoittavat 🌐-näppäimen eri paikkaan, esimerkiksi aivan vasempaan reunaan tai suoraan ?123-näppäimen jälkeen. Tämä siirtää sen paikkaan, jota sisäänrakennetut asettelut käyttävät, jotta peukalosi löytää sen samasta kohdasta jokaisella kielellä. Sen vasemmalla puolella olevat näppäimet levenevät tai kapenevat tilaa antaakseen, ja välilyönti muuttaa kokoaan. Asettelu, jossa tämä tekisi näppäimistä liian pieniä, jätetään ennalleen, samoin kuin toinen asettelu, jonka avaat näppäimestä. Poista tämä käytöstä nähdäksesi jokaisen asettelun sellaisena kuin sen tekijä on sen suunnitellut.</string>
     <string name="layout_globe_in_one_place_subtitle">Sama paikka jokaisessa asettelussa, välilyönti-näppäimen vieressä</string>
     <string name="layout_globe_in_one_place_title">Pidä 🌐-näppäin yhdessä paikassa</string>

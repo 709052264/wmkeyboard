@@ -1140,7 +1140,6 @@
     <string name="backup_sync_keep_layouts_title">语言和布局</string>
     <string name="backup_sync_keep_local_info">您在此处勾选的设置将保持在本设备上的状态。您在此处对它们所做的更改不会被发送，也不会接收来自其他设备的更改。稍后取消勾选，本设备将采用其他设备上的设置。</string>
     <string name="backup_sync_keep_local_title">保留在此设备上</string>
-    <string name="backup_sync_keep_needs_settings">需要在“同步内容”中勾选“设置”</string>
     <string name="backup_sync_keep_toolbar_subtitle">哪些工具、顺序如何以及外观如何</string>
     <string name="backup_sync_keep_toolbar_title">工具栏和工具箱</string>
     <string name="backup_sync_local_note">某些设置会保留在每台设备上，因为它们仅适用于该设备：键盘大小和位置、单手模式、硬件键盘、已配对的计算机以及应用锁定。</string>
@@ -1550,7 +1549,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">删除词汇表 %1$s</string>
     <string name="customdict_delete_pack_desc">删除表情符号包 %1$s</string>
-    <string name="customdict_emoji_auto_download_blocked">已关闭，因为“语言”设置下的“自动下载数据”处于关闭状态</string>
     <string name="customdict_emoji_auto_download_info">当您开启一种语言时，应用程序会在后台下载其表情符号关键字。这大约需要 100 KB，仅需一次。如果您关闭此功能，下方的“下载”按钮将是获取关键字的唯一途径。</string>
     <string name="customdict_emoji_auto_download_subtitle">为您输入的语言下载关键词</string>
     <string name="customdict_emoji_auto_download_title">自动下载</string>
@@ -3621,7 +3619,6 @@
     <string name="languages_ansi_version_subtitle">请选择您的ANSI字体适用的版本</string>
     <string name="languages_ansi_version_title">ANSI 版本</string>
     <string name="languages_auto_pair_toast">%1$s 和 %2$s 现在可以互相建议对方的词汇。您可以在各语言页面更改此设置。</string>
-    <string name="languages_autocorrect_global_off_subtitle">“输入”设置中所有语言的自动更正功能均已关闭</string>
     <string name="languages_autocorrect_group">自动更正</string>
     <string name="languages_autocorrect_info">关闭此项可保持您在 %1$s 中输入的每个词的原样，同时其他语言仍会进行自动更正。建议栏仍会显示建议，您可以点击其中一个。“输入”中的自动更正开关会关闭所有语言的自动更正功能。</string>
     <string name="languages_autocorrect_subtitle">按下空格键时修正拼写错误</string>
@@ -3913,7 +3910,6 @@
     </plurals>
     <string name="languages_secondary_info">当您输入 %1$s 时，键盘会提供来自这些语言的词汇。自动更正功能永远不会更改它们。</string>
     <string name="languages_secondary_title">同时建议来自</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">“输入”设置中所有语言的“建议后自动加空格”功能均已关闭</string>
     <string name="languages_space_after_suggestion_info">关闭此项后，在 %1$s 中从建议栏选择单词时将不会自动添加空格，以便您可以直接添加词尾。其他语言仍会添加空格。“输入”设置中的“建议后添加空格”开关可关闭所有语言的空格。</string>
     <string name="languages_space_after_suggestion_subtitle">从建议栏选择单词时添加空格</string>
     <string name="languages_space_after_suggestion_title">建议后添加空格</string>
@@ -4607,7 +4603,6 @@
     <string name="layout_globe_guard_info">🌐 键位于空格键和逗号旁边，因此快速移动拇指时可能会在单词中间误触并更改语言。在此处设置时间，如果在输入按键后短于此时间点击 🌐，则不会执行任何操作。暂停后点击会照常更改语言，连续快速点击 🌐 本身也是如此。随时长按 🌐 可打开语言列表。字母、空格、退格键和回车键计为输入。Shift 和模式键不计入。此设置默认关闭。</string>
     <string name="layout_globe_guard_subtitle">在输入字母后立即点击 🌐 不会执行任何操作</string>
     <string name="layout_globe_guard_title">输入后立即忽略 🌐</string>
-    <string name="layout_globe_hidden_subtitle">当 🌐 键隐藏时无效</string>
     <string name="layout_globe_in_one_place_info">某些布局将 🌐 键放在不同的位置，例如最左侧，或直接放在 ?123 键之后。此选项将其移动到内置布局使用的位置，以便您的拇指在每种语言中都能在相同位置找到它。其左侧的按键会变宽或变窄以腾出空间，空格键也会相应调整。如果布局会导致按键过小，则保持原样；从按键打开的第二个布局也会保持原样。关闭此选项可查看作者设计的原始布局。</string>
     <string name="layout_globe_in_one_place_subtitle">在每个布局中保持相同位置，紧邻空格键</string>
     <string name="layout_globe_in_one_place_title">将 🌐 键固定在同一位置</string>

@@ -1141,7 +1141,6 @@
     <string name="backup_sync_keep_layouts_title">Ngôn ngữ và bố cục</string>
     <string name="backup_sync_keep_local_info">Các cài đặt bạn đánh dấu ở đây sẽ giữ nguyên như trên thiết bị này. Những thay đổi bạn thực hiện đối với chúng tại đây sẽ không được gửi đi và các thay đổi từ thiết bị khác của bạn sẽ không được áp dụng. Bỏ đánh dấu sau này và thiết bị này sẽ lấy dữ liệu từ các thiết bị khác của bạn.</string>
     <string name="backup_sync_keep_local_title">Giữ trên thiết bị này</string>
-    <string name="backup_sync_keep_needs_settings">Cần đánh dấu Cài đặt trong mục Những gì được đồng bộ</string>
     <string name="backup_sync_keep_toolbar_subtitle">Những công cụ nào, theo thứ tự nào và chúng trông như thế nào</string>
     <string name="backup_sync_keep_toolbar_title">Thanh công cụ và hộp công cụ</string>
     <string name="backup_sync_local_note">Một số cài đặt vẫn nằm trên mỗi thiết bị vì chúng chỉ phù hợp với thiết bị đó: kích thước và vị trí bàn phím, chế độ một tay, bàn phím phần cứng, các máy tính đã ghép nối và khóa ứng dụng. Để giữ nhiều dữ liệu hơn trên thiết bị này, hãy sử dụng tùy chọn Giữ trên thiết bị này ở bên dưới.</string>
@@ -1551,7 +1550,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">Xóa danh sách từ %1$s</string>
     <string name="customdict_delete_pack_desc">Xóa gói biểu tượng cảm xúc %1$s</string>
-    <string name="customdict_emoji_auto_download_blocked">Đã tắt vì tùy chọn “Tự động tải dữ liệu xuống” trong phần Ngôn ngữ đang bị tắt</string>
     <string name="customdict_emoji_auto_download_info">Khi bạn bật một ngôn ngữ, ứng dụng sẽ tải xuống các từ khóa biểu tượng cảm xúc của ngôn ngữ đó trong nền. Việc này tốn khoảng 100 KB, chỉ một lần duy nhất. Nếu bạn tắt tính năng này, các nút Tải xuống bên dưới là cách duy nhất để lấy từ khóa.</string>
     <string name="customdict_emoji_auto_download_subtitle">Tải xuống từ khóa cho các ngôn ngữ bạn nhập</string>
     <string name="customdict_emoji_auto_download_title">Tự động tải xuống</string>
@@ -3626,7 +3624,6 @@
     <string name="languages_ansi_version_subtitle">Chọn phiên bản phù hợp với phông chữ ANSI của bạn</string>
     <string name="languages_ansi_version_title">Phiên bản ANSI</string>
     <string name="languages_auto_pair_toast">%1$s và %2$s hiện gợi ý từ của nhau. Bạn có thể thay đổi điều này trên trang của từng ngôn ngữ.</string>
-    <string name="languages_autocorrect_global_off_subtitle">Tự động sửa lỗi đã tắt cho tất cả ngôn ngữ trong phần Nhập liệu</string>
     <string name="languages_autocorrect_group">Tự động sửa lỗi</string>
     <string name="languages_autocorrect_info">Tắt tính năng này để giữ nguyên từng từ bạn nhập bằng %1$s như bạn đã nhập, trong khi các ngôn ngữ khác vẫn được sửa lỗi. Thanh gợi ý vẫn hiển thị các gợi ý của nó và bạn có thể nhấn vào một gợi ý. Công tắc tự động sửa lỗi trong phần Nhập liệu sẽ tắt tự động sửa lỗi cho tất cả các ngôn ngữ.</string>
     <string name="languages_autocorrect_subtitle">Sửa lỗi chính tả khi bạn nhấn phím cách</string>
@@ -3918,7 +3915,6 @@
     </plurals>
     <string name="languages_secondary_info">Bàn phím sẽ gợi ý từ từ các ngôn ngữ này trong khi bạn nhập %1$s. Tự động sửa lỗi sẽ không bao giờ thay đổi các từ này.</string>
     <string name="languages_secondary_title">Cũng gợi ý từ</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">Khoảng cách sau gợi ý đã tắt cho tất cả ngôn ngữ trong phần Gõ</string>
     <string name="languages_space_after_suggestion_info">Tắt tính năng này để nhập từ bạn chọn từ thanh gợi ý trong %1$s mà không có khoảng trắng sau đó, giúp bạn có thể thêm hậu tố ngay lập tức. Các ngôn ngữ khác vẫn sẽ có khoảng trắng. Công tắc \'Khoảng trắng sau gợi ý\' trong phần Nhập liệu sẽ tắt khoảng trắng cho tất cả các ngôn ngữ.</string>
     <string name="languages_space_after_suggestion_subtitle">Thêm dấu cách khi bạn chọn một từ từ thanh gợi ý</string>
     <string name="languages_space_after_suggestion_title">Khoảng trắng sau gợi ý</string>
@@ -4612,7 +4608,6 @@
     <string name="layout_globe_guard_info">Phím 🌐 nằm cạnh phím cách và dấu phẩy, vì vậy ngón cái nhanh có thể vô tình nhấn vào đó giữa chừng khi đang gõ và làm thay đổi ngôn ngữ. Hãy đặt thời gian tại đây và một lần nhấn vào 🌐 xảy ra sớm hơn khoảng thời gian này sau khi gõ một phím sẽ không có tác dụng gì. Một lần nhấn sau khi tạm dừng sẽ thay đổi ngôn ngữ như bình thường, và các lần nhấn nhanh liên tiếp trên chính phím 🌐 cũng vậy. Nhấn và giữ 🌐 để mở danh sách ngôn ngữ bất cứ lúc nào. Chữ cái, dấu cách, phím xóa lùi và phím enter được tính là đang gõ. Phím Shift và các phím chế độ thì không. Cài đặt này mặc định là tắt.</string>
     <string name="layout_globe_guard_subtitle">Chạm vào 🌐 ngay sau một chữ cái sẽ không có tác dụng gì</string>
     <string name="layout_globe_guard_title">Bỏ qua 🌐 ngay sau khi nhập</string>
-    <string name="layout_globe_hidden_subtitle">Không có hiệu lực khi phím 🌐 bị ẩn</string>
     <string name="layout_globe_in_one_place_info">Một số bố cục đặt phím 🌐 ở vị trí khác, ví dụ như ở xa bên trái hoặc ngay sau phím ?123. Điều này di chuyển nó đến vị trí mà các bố cục tích hợp sẵn sử dụng, để ngón cái của bạn tìm thấy nó ở cùng một vị trí trong mọi ngôn ngữ. Các phím bên trái nó trở nên rộng hơn hoặc hẹp hơn để tạo không gian, và phím cách thay đổi để vừa vặn. Một bố cục mà việc đó làm cho các phím quá nhỏ sẽ được giữ nguyên, cũng như bố cục thứ hai bạn mở từ một phím. Tắt tính năng này để xem mọi bố cục như cách tác giả đã tạo ra.</string>
     <string name="layout_globe_in_one_place_subtitle">Cùng một vị trí trên mọi bố cục, bên cạnh phím cách</string>
     <string name="layout_globe_in_one_place_title">Giữ phím 🌐 ở một vị trí</string>

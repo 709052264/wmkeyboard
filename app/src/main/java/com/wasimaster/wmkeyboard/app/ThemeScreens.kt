@@ -4087,7 +4087,7 @@ fun ThemeEditorScreen(
         // switch), never blurs the app: the glass shows the wallpaper instead,
         // which does not change from app to app. Said here, where the switch
         // that cannot work is (Telegram group).
-        item(visible = frost.windowBlur && !blursWindows, level = SettingLevel.STANDARD) {
+        item(visible = frost.windowBlur && !blursWindows, level = SettingLevel.ADVANCED) {
             Text(
                 stringResource(R.string.theme_glass_window_blur_unavailable),
                 style = MaterialTheme.typography.bodySmall,

@@ -1139,7 +1139,6 @@
     <string name="backup_sync_keep_layouts_title">Tungumál og lyklaborðsstillingar</string>
     <string name="backup_sync_keep_local_info">Stillingar sem þú merkir hér haldast eins og þær eru á þessu tæki. Breytingar sem þú gerir á þeim hér eru ekki sendar, og breytingar frá öðrum tækjum þínum eru ekki teknar. Afmerktu eina síðar og þetta tæki tekur það sem önnur tæki þín hafa.</string>
     <string name="backup_sync_keep_local_title">Geyma á þessu tæki</string>
-    <string name="backup_sync_keep_needs_settings">Þarfnast þess að Stillingar séu valdar í „Hvað er samstillt“</string>
     <string name="backup_sync_keep_toolbar_subtitle">Hvaða verkfæri, í hvaða röð og hvernig þau líta út</string>
     <string name="backup_sync_keep_toolbar_title">Tækjastika og verkfærakista</string>
     <string name="backup_sync_local_note">Sumar stillingar haldast á hverju tæki, vegna þess að þær passa aðeins við það tæki: stærð og staðsetning lyklaborðsins, einhendustilling, vélbúnaðarlyklaborðið, pöruð tölvur og forritalás. Til að halda meiru á þessu tæki, notaðu „Halda á þessu tæki“ hér fyrir neðan.</string>
@@ -1549,7 +1548,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">Eyða orðalistanum %1$s</string>
     <string name="customdict_delete_pack_desc">Eyða emoji-pakkanum %1$s</string>
-    <string name="customdict_emoji_auto_download_blocked">Slökkt á, vegna þess að „Sækja gögn sjálfkrafa“ er óvirkt undir Tungumálum</string>
     <string name="customdict_emoji_auto_download_info">Þegar þú kveikir á tungumáli hleður forritið niður emoji-leitarorðum þess í bakgrunni. Þetta er um 100 KB, í eitt skipti. Ef þú slekkur á þessu eru niðurhalshnapparnir hér að neðan eina leiðin til að fá leitarorðin.</string>
     <string name="customdict_emoji_auto_download_subtitle">Sækja leitarorð fyrir tungumálin sem þú skrifar á</string>
     <string name="customdict_emoji_auto_download_title">Sækja sjálfkrafa</string>
@@ -3630,7 +3628,6 @@
     <string name="languages_ansi_version_subtitle">Veldu þá útgáfu sem ANSI-letrið þitt er gert fyrir</string>
     <string name="languages_ansi_version_title">ANSI útgáfa</string>
     <string name="languages_auto_pair_toast">%1$s og %2$s stinga nú upp á orðum hvors annars. Þú getur breytt þessu á síðu hvers tungumáls.</string>
-    <string name="languages_autocorrect_global_off_subtitle">Sjálfvirk leiðrétting er óvirk fyrir öll tungumál í Ritun</string>
     <string name="languages_autocorrect_group">Sjálfvirk leiðrétting</string>
     <string name="languages_autocorrect_info">Slökktu á þessu til að halda hverju orði sem þú skrifar á %1$s eins og þú skrifaðir það, á meðan öðrum tungumálum er enn leiðrétt. Tillögustikan sýnir enn tillögur sínar og þú getur pikkað á eina þeirra. Sjálfvirk leiðréttingarrofi í Ritun slekkur á sjálfvirkri leiðréttingu fyrir öll tungumál.</string>
     <string name="languages_autocorrect_subtitle">Laga stafsetningarvillur þegar þú ýtir á bilslátt</string>
@@ -3924,7 +3921,6 @@
     </plurals>
     <string name="languages_secondary_info">Lyklaborðið býður upp á orð úr þessum tungumálum á meðan þú skrifar %1$s. Sjálfvirk leiðrétting breytir þeim aldrei.</string>
     <string name="languages_secondary_title">Stinga einnig upp á frá</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">Bil eftir tillögu er óvirkt fyrir öll tungumál í ritun</string>
     <string name="languages_space_after_suggestion_info">Slökktu á þessu til að skrifa orð sem þú velur af tillögustikunni í %1$s án bils á eftir, svo þú getir bætt við endingu strax. Önnur tungumál fá samt bilið. Bilið á eftir tillögu-rofanum í Ritun slekkur á bilinu fyrir öll tungumál.</string>
     <string name="languages_space_after_suggestion_subtitle">Bæta við bili þegar þú velur orð af tillögustikunni</string>
     <string name="languages_space_after_suggestion_title">Bil á eftir tillögu</string>
@@ -4619,7 +4615,6 @@
     <string name="layout_globe_guard_info">🌐-lykillinn er við hliðina á bilslánni og kommunni, svo þumall á ferð getur slegið hann fyrir mistök í miðju orði og breytt tungumálinu. Stilltu tíma hér og snerting á 🌐 sem kemur fyrr en þetta eftir sleginn takka gerir ekkert. Snerting eftir hlé breytir tungumálinu eins og venjulega, og það gera líka snöggar snertingar hver á eftir annarri á 🌐 sjálfum. Ýttu á og haltu 🌐 til að opna tungumálalistann hvenær sem er. Stafir, bil, baklykill og enter teljast sem ritun. Shift og stillingarlyklar gera það ekki. Þessi stilling er óvirk sjálfgefið.</string>
     <string name="layout_globe_guard_subtitle">Það gerist ekkert við að banka á 🌐 rétt eftir bókstaf</string>
     <string name="layout_globe_guard_title">Hunsa 🌐 strax eftir innslátt</string>
-    <string name="layout_globe_hidden_subtitle">Engin áhrif á meðan 🌐 lykillinn er falinn</string>
     <string name="layout_globe_in_one_place_info">Sum uppsetningarmyndir setja 🌐-lykilinn á annan stað, til dæmis lengst til vinstri eða beint á eftir ?123-lyklinum. Þetta færir hann á þann stað sem innbyggðu uppsetningarmyndirnar nota, þannig að þumallinn finni hann á sama stað á öllum tungumálum. Lyklarnir til vinstri við hann verða breiðari eða mjórri til að búa til pláss og bilstöngin breytist til að passa. Uppsetningarmynd þar sem það myndi gera lykla of litla er látin vera eins og hún er, og svo er líka um að ræða aðra uppsetningarmynd sem þú opnar með lykli. Slökktu á þessu til að sjá hverja uppsetningarmynd eins og höfundur hennar gerði hana.</string>
     <string name="layout_globe_in_one_place_subtitle">Sami staður á öllum útlitum, við hliðina á bilslánni</string>
     <string name="layout_globe_in_one_place_title">Hafðu 🌐-lykilinn á einum stað</string>

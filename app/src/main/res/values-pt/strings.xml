@@ -1143,7 +1143,6 @@
     <string name="backup_sync_keep_layouts_title">Idiomas e esquemas</string>
     <string name="backup_sync_keep_local_info">As configurações que você marcar aqui permanecem como estão neste dispositivo. As alterações feitas nelas aqui não são enviadas, e as alterações de seus outros dispositivos não são aplicadas. Desmarque uma mais tarde e este dispositivo adotará o que seus outros dispositivos possuem.</string>
     <string name="backup_sync_keep_local_title">Manter neste dispositivo</string>
-    <string name="backup_sync_keep_needs_settings">Requer que Configurações esteja marcado em O que sincronizar</string>
     <string name="backup_sync_keep_toolbar_subtitle">Quais ferramentas, em que ordem e como elas se parecem</string>
     <string name="backup_sync_keep_toolbar_title">Barra de ferramentas e caixa de ferramentas</string>
     <string name="backup_sync_local_note">Algumas configurações permanecem em cada dispositivo, pois só se aplicam a ele: o tamanho e a posição do teclado, o modo de uma mão, o teclado físico, computadores pareados e o bloqueio do aplicativo.</string>
@@ -1553,7 +1552,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">Excluir a lista de palavras %1$s</string>
     <string name="customdict_delete_pack_desc">Excluir o pacote de emojis %1$s</string>
-    <string name="customdict_emoji_auto_download_blocked">Desativado, porque \"Baixar dados automaticamente\" está desativado em Idiomas</string>
     <string name="customdict_emoji_auto_download_info">Quando você ativa um idioma, o aplicativo baixa suas palavras-chave de emoji em segundo plano. Isso é cerca de 100 KB, uma única vez. Se você desativar isso, os botões de Download abaixo são a única maneira de obter as palavras-chave.</string>
     <string name="customdict_emoji_auto_download_subtitle">Baixar palavras-chave para os idiomas que você digita</string>
     <string name="customdict_emoji_auto_download_title">Baixar automaticamente</string>
@@ -3629,7 +3627,6 @@
     <string name="languages_ansi_version_subtitle">Escolha a versão para a qual sua fonte ANSI foi criada</string>
     <string name="languages_ansi_version_title">Versão ANSI</string>
     <string name="languages_auto_pair_toast">%1$s e %2$s agora sugerem as palavras um do outro. Você pode alterar isso na página de cada idioma.</string>
-    <string name="languages_autocorrect_global_off_subtitle">O corretor ortográfico está desativado para todos os idiomas em Digitação</string>
     <string name="languages_autocorrect_group">Correção automática</string>
     <string name="languages_autocorrect_info">Desative isto para manter cada palavra que escreve em %1$s tal como a escreveu, enquanto outros idiomas continuam a ser corrigidos. A barra de sugestões continua a mostrar as suas sugestões e pode tocar numa. O interruptor de correção automática em Escrita desativa a correção automática para todos os idiomas.</string>
     <string name="languages_autocorrect_subtitle">Corrigir erros de digitação ao pressionar espaço</string>
@@ -3922,7 +3919,6 @@
     </plurals>
     <string name="languages_secondary_info">O teclado oferece palavras destes idiomas enquanto escreve em %1$s. A correção automática nunca as altera.</string>
     <string name="languages_secondary_title">Também sugerir a partir de</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">O espaço após uma sugestão está desativado para todos os idiomas na Digitação</string>
     <string name="languages_space_after_suggestion_info">Desative isso para digitar uma palavra selecionada na barra de sugestões em %1$s sem um espaço após ela, para que você possa adicionar uma terminação imediatamente. Outros idiomas ainda recebem o espaço. O botão Espaço após uma sugestão em Digitação desativa o espaço para todos os idiomas.</string>
     <string name="languages_space_after_suggestion_subtitle">Adicionar um espaço ao selecionar uma palavra da barra de sugestões</string>
     <string name="languages_space_after_suggestion_title">Espaço após uma sugestão</string>
@@ -4616,7 +4612,6 @@
     <string name="layout_globe_guard_info">A tecla 🌐 fica ao lado da barra de espaço e da vírgula, então um polegar rápido pode tocá-la por engano no meio de uma palavra e mudar o idioma. Defina um tempo aqui e um toque em 🌐 que ocorra antes disso após uma tecla digitada não fará nada. Um toque após uma pausa muda o idioma normalmente, assim como toques rápidos um após o outro na própria tecla 🌐. Pressione e segure 🌐 para abrir a lista de idiomas a qualquer momento. Letras, espaço, backspace e enter contam como digitação. Shift e as teclas de modo não contam. Esta configuração está desativada por padrão.</string>
     <string name="layout_globe_guard_subtitle">Um toque no 🌐 logo após uma letra não faz nada</string>
     <string name="layout_globe_guard_title">Ignorar 🌐 logo após digitar</string>
-    <string name="layout_globe_hidden_subtitle">Sem efeito enquanto a tecla 🌐 estiver oculta</string>
     <string name="layout_globe_in_one_place_info">Alguns layouts colocam a tecla 🌐 em um lugar diferente, por exemplo, na extrema esquerda ou logo após a tecla ?123. Isso a move para o local que os layouts integrados usam, para que seu polegar a encontre no mesmo lugar em todos os idiomas. As teclas à esquerda dela ficam mais largas ou mais estreitas para abrir espaço, e a barra de espaço muda para se ajustar. Um layout onde isso tornaria as teclas muito pequenas é deixado como está, assim como um segundo layout que você abre a partir de uma tecla. Desative isso para ver cada layout como seu autor o criou.</string>
     <string name="layout_globe_in_one_place_subtitle">O mesmo lugar em todos os layouts, ao lado da barra de espaço</string>
     <string name="layout_globe_in_one_place_title">Mantenha a tecla 🌐 em um único lugar</string>

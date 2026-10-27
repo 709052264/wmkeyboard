@@ -1147,7 +1147,6 @@
     <string name="backup_sync_keep_layouts_title">Izilimi nezakhiwo</string>
     <string name="backup_sync_keep_local_info">Izilungiselelo ozikhethayo lapha zihlala zinjengoba zinjalo kule divayisi. Izinguquko ozenzayo kuzo lapha azithunyelwa, futhi izinguquko ezivela kwamanye amadivayisi akho azithathwa. Ungakhethi eyodwa kamuva bese le divayisi ithatha lokho amanye amadivayisi akho anakho.</string>
     <string name="backup_sync_keep_local_title">Gcina kule divayisi</string>
-    <string name="backup_sync_keep_needs_settings">Idinga ukuthi Izilungiselelo zikhethwe kokuthi Yini evumelaniswayo</string>
     <string name="backup_sync_keep_toolbar_subtitle">Yimaphi amathuluzi, ngaluphi uhlelo, nokuthi abukeka kanjani</string>
     <string name="backup_sync_keep_toolbar_title">Ibha yamathuluzi kanye nebhokisi lamathuluzi</string>
     <string name="backup_sync_local_note">Ezinye izilungiselelo zihlala kudivayisi ngayinye, ngoba zifanele leyo divayisi kuphela: usayizi nesikhundla sekhibhodi, imodi yesandla esisodwa, ikhibhodi yehadiwe, amakhompyutha abhangqiwe kanye nokukhiya uhlelo lokusebenza. Ukuze ugcine okwengeziwe kule divayisi, sebenzisa okuthi Gcina kule divayisi ngezansi.</string>
@@ -1557,7 +1556,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">Susa uhlu lwamagama %1$s</string>
     <string name="customdict_delete_pack_desc">Susa iphakethe le-emoji %1$s</string>
-    <string name="customdict_emoji_auto_download_blocked">Kucishiwe, ngoba “Landa idatha ngokuzenzakalelayo” kucishiwe ngaphansi kwezilimi</string>
     <string name="customdict_emoji_auto_download_info">Uma uvula ulimi, uhlelo lokusebenza lulanda amagama angukhiye we-emoji ngemuva. Lokhu kungaba cishe i-100 KB, kanye kuphela. Uma ukucisha lokhu, izinkinobho zokulanda ezingezansi yizona kuphela indlela yokuthola amagama angukhiye.</string>
     <string name="customdict_emoji_auto_download_subtitle">Landa amagama angukhiye ezilimi ozibhala ngazo</string>
     <string name="customdict_emoji_auto_download_title">Landa ngokuzenzakalelayo</string>
@@ -3640,7 +3638,6 @@
     <string name="languages_ansi_version_subtitle">Khetha leyo ifonti yakho ye-ANSI eyenzelwe yona</string>
     <string name="languages_ansi_version_title">Inguqulo ye-ANSI</string>
     <string name="languages_auto_pair_toast">I-%1$s ne-%2$s manje ziphakamisana amagama. Ungakushintsha lokhu ekhasini lolimi ngalunye.</string>
-    <string name="languages_autocorrect_global_off_subtitle">Ukulungisa ngokuzenzakalela kuvaliwe kuzo zonke izilimi kokuthi Ukuthayipha</string>
     <string name="languages_autocorrect_group">Ukulungisa ngokuzenzakalelayo</string>
     <string name="languages_autocorrect_info">Vala lokhu ukuze ugcine igama ngalinye olithayiphayo ku-%1$s njengoba uli thayiphile, ngenkathi ezinye izilimi zisacushwa. Umugqa weziphakamiso usakhombisa iziphakamiso zawo, futhi ungathepha eyodwa. Inkinobho yokulungisa ngokuzenzakalelayo ekuthayipheni icisha ukulungisa ngokuzenzakalelayo kuzo zonke izilimi.</string>
     <string name="languages_autocorrect_subtitle">Lungisa amaphutha okuthayipha uma ucindezela isikhala</string>
@@ -3932,7 +3929,6 @@
     </plurals>
     <string name="languages_secondary_info">Ikhibhodi inikeza amagama avela kulezi zilimi ngenkathi uthayipha %1$s. Ukulungisa ngokuzenzakalelayo akusoze kwawashintsha.</string>
     <string name="languages_secondary_title">Phakamisa futhi kusuka ku-</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">Isikhala ngemva kwesiphakamiso sivaliwe kuzo zonke izilimi ekuthayipheni</string>
     <string name="languages_space_after_suggestion_info">Vala lokhu ukuze uthayiphe igama olikhetha kusuka emgqeni wesiphakamiso ku-%1$s ngaphandle kwesikhala ngemva kwalo, ukuze ukwazi ukwengeza isiphetho ngaso leso sikhathi. Ezinye izilimi zisathola isikhala. Inkinobho yesikhala ngemva kwesiphakamiso ekuthayipheni icisha isikhala kuzo zonke izilimi.</string>
     <string name="languages_space_after_suggestion_subtitle">Engeza isikhala uma ukhetha igama emgqeni wesiphakamiso</string>
     <string name="languages_space_after_suggestion_title">Isikhala ngemuva kwesiphakamiso</string>
@@ -4627,7 +4623,6 @@
     <string name="layout_globe_guard_info">Ukhiye we-🌐 useduze nebha yesikhala kanye nokhefana, ngakho isithupha esisheshayo singawushaya ngephutha phakathi negama bese sishintsha ulimi. Setha isikhathi lapha futhi ukuthepha ku-🌐 okufika ngaphambi kwalokhu ngemva kokuthayipha ukhiye akwenzi lutho. Ukuthepha ngemva kwekhefu kushintsha ulimi njengokujwayelekile, kanjalo nokuthepha okusheshayo okulandelanayo ku-🌐 uqobo. Cindezela ubambe u-🌐 ukuze uvule uhlu lwezilimi nganoma yisiphi isikhathi. Izinhlamvu, isikhala, i-backspace kanye ne-enter kubalwa njengokuthayipha. I-Shift nokhiye bemodi ababalwa. Lesi silungiselelo sicishiwe ngokuzenzakalelayo.</string>
     <string name="layout_globe_guard_subtitle">Ukuthepha ku-🌐 ngemva nje kohlamvu akwenzi lutho</string>
     <string name="layout_globe_guard_title">Ziba u-🌐 ngemva nje kokuthayipha</string>
-    <string name="layout_globe_hidden_subtitle">Ayikho imiphumela ngenkathi ukhiye we-🌐 ufihliwe</string>
     <string name="layout_globe_in_one_place_info">Ezinye izakhiwo zibeka ukhiye we-🌐 endaweni ehlukile, ngokwesibonelo kude kwesobunxele, noma ngemuva nje kokhiye we-?123. Lokhu kuwuhambisela endaweni esetshenziswa yizakhiwo ezakhelwe ngaphakathi, ukuze isithupha sakho usithole endaweni efanayo ngalo lonke ulimi. Okhiye abasesobunxele bayaba banzi noma banciphe ukuze kwenziwe indawo, kanti ibha yesikhala (spacebar) iyashintsha ukuze ilingane. Isakhiwo lapho lokho bekungenza okhiye babe bancane kakhulu sishiywa sinjalo, kanye nesakhiwo sesibili osivula ekhiyeni. Yicime lokhu ukuze ubone sonke isakhiwo ngendlela owasenza ngayo umbhali waso.</string>
     <string name="layout_globe_in_one_place_subtitle">Indawo efanayo kuzo zonke izakhiwo, eceleni kwebha yesikhala</string>
     <string name="layout_globe_in_one_place_title">Gcina ukhiye we-🌐 endaweni eyodwa</string>

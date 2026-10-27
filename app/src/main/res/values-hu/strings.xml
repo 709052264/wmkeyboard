@@ -1141,7 +1141,6 @@
     <string name="backup_sync_keep_layouts_title">Nyelvek és elrendezések</string>
     <string name="backup_sync_keep_local_info">Az itt bejelölt beállítások ezen az eszközön változatlanok maradnak. Az itt végrehajtott módosítások nem kerülnek elküldésre, és a többi eszközről érkező változtatások sem lesznek érvényesítve. Ha később leveszi a jelölést valamelyikről, ez az eszköz átveszi a többi eszköz beállításait.</string>
     <string name="backup_sync_keep_local_title">Megtartás ezen az eszközön</string>
-    <string name="backup_sync_keep_needs_settings">Be kell jelölni a Beállításokat a „Mi szinkronizálódik” szakaszban</string>
     <string name="backup_sync_keep_toolbar_subtitle">Mely eszközök, milyen sorrendben és hogyan nézzenek ki</string>
     <string name="backup_sync_keep_toolbar_title">Eszköztár és eszközkészlet</string>
     <string name="backup_sync_local_note">Egyes beállítások minden eszközön megmaradnak, mivel csak az adott eszközhöz illeszkednek: a billentyűzet mérete és pozíciója, az egykezes mód, a hardveres billentyűzet, a párosított számítógépek és az alkalmazászár. Ha többet szeretne megtartani ezen az eszközön, használja az alábbi „Megtartás ezen az eszközön” lehetőséget.</string>
@@ -1551,7 +1550,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">A(z) %1$s szójegyzék törlése</string>
     <string name="customdict_delete_pack_desc">A(z) %1$s hangulatjel-csomag törlése</string>
-    <string name="customdict_emoji_auto_download_blocked">Kikapcsolva, mert az „Adatok automatikus letöltése” ki van kapcsolva a Nyelvek alatt</string>
     <string name="customdict_emoji_auto_download_info">Amikor bekapcsolsz egy nyelvet, az alkalmazás a háttérben letölti az emoji-kulcsszavakat. Ez körülbelül 100 KB, egyszeri alkalommal. Ha ezt kikapcsolod, az alábbi Letöltés gombok maradnak az egyetlen módja a kulcsszavak beszerzésének.</string>
     <string name="customdict_emoji_auto_download_subtitle">Kulcsszavak letöltése az Ön által használt nyelvekhez</string>
     <string name="customdict_emoji_auto_download_title">Automatikus letöltés</string>
@@ -3625,7 +3623,6 @@
     <string name="languages_ansi_version_subtitle">Válaszd ki azt, amelyikhez az ANSI betűtípusod készült</string>
     <string name="languages_ansi_version_title">ANSI-verzió</string>
     <string name="languages_auto_pair_toast">A(z) %1$s és %2$s mostantól javasolja egymás szavait. Ezt az egyes nyelvek oldalán módosíthatja.</string>
-    <string name="languages_autocorrect_global_off_subtitle">Az automatikus javítás minden nyelv esetében ki van kapcsolva a Gépelésben</string>
     <string name="languages_autocorrect_group">Automatikus javítás</string>
     <string name="languages_autocorrect_info">Kapcsolja ki ezt, hogy a %1$s nyelven beírt szavak úgy maradjanak, ahogy beírta őket, miközben a többi nyelv továbbra is javításra kerül. A javaslatsáv továbbra is megjeleníti a javaslatait, és koppinthat valamelyikre. A Gépelés beállításoknál található automatikus javítás kapcsoló az összes nyelv esetében kikapcsolja az automatikus javítást.</string>
     <string name="languages_autocorrect_subtitle">Gépelési hibák javítása a szóköz megnyomásakor</string>
@@ -3918,7 +3915,6 @@
     </plurals>
     <string name="languages_secondary_info">A billentyűzet ezekből a nyelvekből kínál szavakat, miközben %1$s nyelven gépelsz. Az automatikus javítás soha nem módosítja őket.</string>
     <string name="languages_secondary_title">Javaslatok innen is</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">A javaslat utáni szóköz minden nyelv esetében ki van kapcsolva a Gépelésben</string>
     <string name="languages_space_after_suggestion_info">Kapcsolja ki ezt, ha a javaslatsávból kiválasztott szót %1$s nyelven szóköz nélkül szeretné beírni, így azonnal hozzáadhat egy végződést. Más nyelveknél továbbra is megmarad a szóköz. A Gépelés beállításainál található „Szóköz javaslat után” kapcsoló minden nyelv esetében kikapcsolja a szóközt.</string>
     <string name="languages_space_after_suggestion_subtitle">Szóköz hozzáadása, amikor szót választ a javaslatsávból</string>
     <string name="languages_space_after_suggestion_title">Szóköz javaslat után</string>
@@ -4612,7 +4608,6 @@
     <string name="layout_globe_guard_info">A 🌐 gomb a szóköz és a vessző mellett található, így egy gyors hüvelykujj véletlenül megnyomhatja egy szó közepén, ami megváltoztathatja a nyelvet. Állítson be itt egy időtartamot, és a 🌐 gomb megnyomása, ha az egy begépelt karakter után ennél hamarabb történik, nem csinál semmit. Egy szünet utáni koppintás a szokásos módon vált nyelvet, csakúgy, mint a 🌐 gomb gyors, egymás utáni megnyomása. A 🌐 gombot hosszan nyomva tartva bármikor megnyithatja a nyelvlistát. A betűk, a szóköz, a visszatörlés és az enter gépelésnek számítanak. A Shift és az üzemmódváltó gombok nem. Ez a beállítás alapértelmezés szerint ki van kapcsolva.</string>
     <string name="layout_globe_guard_subtitle">A betű utáni 🌐 ikon megérintése nem csinál semmit</string>
     <string name="layout_globe_guard_title">🌐 figyelmen kívül hagyása gépelés után</string>
-    <string name="layout_globe_hidden_subtitle">Nincs hatása, amíg a 🌐 billentyű rejtve van</string>
     <string name="layout_globe_in_one_place_info">Egyes elrendezések más helyre teszik a 🌐 billentyűt, például a bal szélre, vagy közvetlenül a ?123 billentyű után. Ez a beépített elrendezések által használt helyre teszi, így a hüvelykujjad minden nyelven ugyanazon a helyen találja meg. A tőle balra lévő billentyűk szélesebbek vagy keskenyebbek lesznek, hogy helyet csináljanak, és a szóköz is igazodik. Az az elrendezés, ahol ez túl kicsivé tenné a billentyűket, változatlan marad, csakúgy, mint a billentyűről megnyitott második elrendezés. Kapcsold ki ezt, ha minden elrendezést úgy szeretnél látni, ahogy a szerzője megalkotta.</string>
     <string name="layout_globe_in_one_place_subtitle">Ugyanaz a hely minden elrendezésen, a szóköz mellett</string>
     <string name="layout_globe_in_one_place_title">A 🌐 billentyű tartása egy helyen</string>

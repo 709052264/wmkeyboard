@@ -58,7 +58,6 @@
     <string name="clipboard_view_subtitle">Cards in columns, or one clip per row</string>
     <string name="clipboard_view_info">The grid packs cards in columns, which suits pictures. Set how many under Grid columns. The list gives each clip a whole row, which suits long text. The switch beside the panel\'s search bar changes the same setting. The grid is the default.</string>
     <!-- Long press on the greyed-out Grid columns slider. -->
-    <string name="clipboard_columns_needs_grid_reason">Only the grid has columns. Set History layout to Grid first.</string>
     <string name="clipboard_columns_title">Grid columns</string>
     <string name="clipboard_columns_subtitle">How many columns of cards the grid has</string>
     <string name="clipboard_columns_info">More columns show more clips at once, which suits short text. Fewer give each card more room, which suits long text and pictures. The list layout always shows one clip per row. The default is 2.</string>
@@ -141,8 +140,6 @@
     <string name="clipboard_image_viewer_desc">Copied image</string>
     <string name="clipboard_pinned_last_subtitle">List pinned clips at the end of the panel instead of the top</string>
     <!-- Long press on the greyed-out switch; the names are the two settings that hold it. -->
-    <string name="clipboard_pinned_last_tabs_reason">Pinned clips have a tab of their own. Turn off Pinned and unpinned tabs first.</string>
-    <string name="clipboard_pinned_last_in_place_reason">Pinned clips stay where they are. Turn off Keep pinned clips in place first.</string>
     <string name="clipboard_search_title">Search bar</string>
     <string name="clipboard_search_subtitle">Show a search bar at the top of the clipboard panel. It filters the history as you type</string>
     <string name="clipboard_search_regex_title">Regular expressions</string>

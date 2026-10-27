@@ -827,6 +827,8 @@ internal fun TypingSuggestionsSettings(
     val moreSuggestionsOn = settings.watch { it.suggestionStrip.swipeForMore || it.suggestionStrip.swipeUpForMore }
     // The grid a swipe down, or a scrolling strip's arrow, opens (#970).
     val pagesGridOn = settings.watch { it.suggestionStrip.swipeForMore || it.suggestionStrip.scrollable }
+    // The digits it reads are the top row's corner hints, which a number row takes away.
+    val numberRowOn = settings.watch { it.numberRow }
     SettingsGroup(stringResource(R.string.typing_group_suggestions_title)) {
         item(level = SettingLevel.STANDARD) {
             ToggleSetting(
@@ -1202,7 +1204,7 @@ internal fun TypingSuggestionsSettings(
                 default = SettingsDefaults.suggestionStrip.recentWordBar,
             ) { scope.launch { repository.setRecentWordBar(it) } }
         }
-        item(level = SettingLevel.ADVANCED) {
+        item(visible = !numberRowOn, level = SettingLevel.ADVANCED) {
             // Issue #181: a word typed on digit-hinted keys also offers the number.
             ToggleSetting(
                 R.string.typing_number_prediction_title,
@@ -2663,6 +2665,7 @@ internal fun TypingSpacebarSettings(
     val spaceLanguage = settings.watch {
         it.spaceShortSwipe == SpaceSwipeAction.LANGUAGE || it.spaceLongSwipe == SpaceSwipeAction.LANGUAGE
     }
+    val spaceAccelerate = settings.watch { it.textEditing.spaceCursorAccelerate }
     SettingsGroup(stringResource(R.string.typing_group_spacebar_swipes_title)) {
         item {
             SpaceSwipeSetting(
@@ -2729,7 +2732,7 @@ internal fun TypingSpacebarSettings(
                 ToggleSetting(
                     R.string.typing_space_cursor_accelerate_title,
                     stringResource(R.string.typing_space_cursor_accelerate_subtitle),
-                    settings.watch { it.textEditing.spaceCursorAccelerate },
+                    spaceAccelerate,
                     info = stringResource(R.string.typing_space_cursor_accelerate_info),
                     default = SettingsDefaults.textEditing.spaceCursorAccelerate,
                 ) { scope.launch { repository.setSpaceCursorAccelerate(it) } }
@@ -2764,7 +2767,7 @@ internal fun TypingSpacebarSettings(
                     default = SettingsDefaults.textEditing.spaceCursorWholeKeyboard,
                 ) { scope.launch { repository.setSpaceCursorWholeKeyboard(it) } }
             }
-            item(level = SettingLevel.ADVANCED) {
+            item(visible = spaceAccelerate, level = SettingLevel.ADVANCED) {
                 val valueFormat = stringResource(R.string.typing_value_multiplier_suffix)
                 SliderSetting(
                     R.string.typing_space_cursor_top_speed_title,
@@ -2773,11 +2776,6 @@ internal fun TypingSpacebarSettings(
                     range = 2f..16f,
                     display = { valueFormat.format(it.roundToInt().toString()) },
                     info = stringResource(R.string.typing_space_cursor_top_speed_info),
-                    enabled = settings.watch { it.textEditing.spaceCursorAccelerate },
-                    disabledReason = rememberDisabledReason(
-                        stringResource(R.string.typing_space_cursor_top_speed_off_reason),
-                        R.string.typing_space_cursor_accelerate_title,
-                    ),
                     default = SettingsDefaults.textEditing.spaceCursorTopSpeed.toFloat(),
                 ) { scope.launch { repository.setSpaceCursorTopSpeed(it.roundToInt()) } }
             }
@@ -2924,6 +2922,8 @@ internal fun TypingFlicksSettings(
     settings: LiveSettings,
 ) {
     val scope = rememberCoroutineScope()
+    // The two rows that settle a flick against a glided word.
+    val glideOn = settings.watch { it.gestureTyping }
     SettingsGroup(stringResource(R.string.typing_group_flicks_title)) {
         item(level = SettingLevel.STANDARD) {
             // Issue #178: a quick flick down on a key types its corner hint.
@@ -2986,7 +2986,7 @@ internal fun TypingFlicksSettings(
                 default = SettingsDefaults.layoutBehavior.flickDistanceDp.toFloat(),
             ) { scope.launch { repository.setFlickDistanceDp(it.roundToInt()) } }
         }
-        item(level = SettingLevel.ADVANCED) {
+        item(visible = glideOn, level = SettingLevel.ADVANCED) {
             // Issue #720: where a stroke off a flick key stops being a flick
             // and glide typing takes it.
             val percentFormat = stringResource(R.string.typing_value_percent)
@@ -3000,7 +3000,7 @@ internal fun TypingFlicksSettings(
                 default = SettingsDefaults.layoutBehavior.flickReachPct.toFloat(),
             ) { scope.launch { repository.setFlickReachPct(it.roundToInt()) } }
         }
-        item(level = SettingLevel.ADVANCED) {
+        item(visible = glideOn, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.typing_flick_onto_letter_title,
                 stringResource(R.string.typing_flick_onto_letter_subtitle),

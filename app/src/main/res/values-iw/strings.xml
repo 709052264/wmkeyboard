@@ -1142,7 +1142,6 @@
     <string name="backup_sync_keep_layouts_title">שפות ופריסות</string>
     <string name="backup_sync_keep_local_info">הגדרות שתסמן כאן יישארו כפי שהן במכשיר זה. שינויים שתבצע בהן כאן לא יישלחו, ושינויים מהמכשירים האחרים שלך לא יילקחו. בטל את הסימון מאוחר יותר ומכשיר זה יקבל את מה שיש במכשירים האחרים שלך.</string>
     <string name="backup_sync_keep_local_title">שמור במכשיר זה</string>
-    <string name="backup_sync_keep_needs_settings">דורש סימון \'הגדרות\' ב\'מה מסתנכרן\'</string>
     <string name="backup_sync_keep_toolbar_subtitle">אילו כלים, באיזה סדר, ואיך הם נראים</string>
     <string name="backup_sync_keep_toolbar_title">סרגל כלים ותיבת כלים</string>
     <string name="backup_sync_local_note">הגדרות מסוימות נשארות בכל מכשיר, כיוון שהן רלוונטיות למכשיר ספציפי בלבד: גודל ומיקום המקלדת, מצב יד אחת, מקלדת חומרה, מחשבים מזווגים ונעילת אפליקציה.</string>
@@ -1552,7 +1551,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">מחק את רשימת המילים %1$s</string>
     <string name="customdict_delete_pack_desc">מחק את חבילת האימוג\'י %1$s</string>
-    <string name="customdict_emoji_auto_download_blocked">כבוי, מכיוון שהאפשרות \"הורד נתונים באופן אוטומטי\" כבויה תחת שפות</string>
     <string name="customdict_emoji_auto_download_info">כאשר אתה מפעיל שפה, האפליקציה מורידה את מילות המפתח של האימוג\'י שלה ברקע. זה בערך 100 KB, פעם אחת. אם תכבה זאת, כפתורי ההורדה למטה הם הדרך היחידה לקבל את מילות המפתח.</string>
     <string name="customdict_emoji_auto_download_subtitle">הורד מילות מפתח עבור השפות שבהן אתה מקליד</string>
     <string name="customdict_emoji_auto_download_title">הורדה אוטומטית</string>
@@ -3630,7 +3628,6 @@
     <string name="languages_ansi_version_subtitle">בחר את הגרסה עבורה מותאם גופן ה-ANSI שלך</string>
     <string name="languages_ansi_version_title">גרסת ANSI</string>
     <string name="languages_auto_pair_toast">%1$s ו-%2$s מציעות כעת את המילים זו של זו. ניתן לשנות זאת בדף של כל שפה.</string>
-    <string name="languages_autocorrect_global_off_subtitle">תיקון אוטומטי כבוי עבור כל השפות בהקלדה</string>
     <string name="languages_autocorrect_group">תיקון אוטומטי</string>
     <string name="languages_autocorrect_info">כבה אפשרות זו כדי לשמור על כל מילה שאתה מקליד ב-%1$s כפי שהקלדת אותה, בעוד שפות אחרות עדיין יתוקנו. סרגל ההצעות עדיין יציג את הצעותיו, ותוכל להקיש על אחת מהן. מתג התיקון האוטומטי תחת \'הקלדה\' מכבה את התיקון האוטומטי עבור כל השפות.</string>
     <string name="languages_autocorrect_subtitle">תיקון שגיאות כתיב בעת לחיצה על רווח</string>
@@ -3924,7 +3921,6 @@
     </plurals>
     <string name="languages_secondary_info">המקלדת מציעה מילים משפות אלו בזמן ההקלדה ב-%1$s. תיקון אוטומטי לעולם לא ישנה אותן.</string>
     <string name="languages_secondary_title">הצע גם מתוך</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">הוספת רווח לאחר הצעה כבויה עבור כל השפות בהקלדה</string>
     <string name="languages_space_after_suggestion_info">כבה אפשרות זו כדי להקליד מילה שתבחר מסרגל ההצעות ב-%1$s ללא רווח אחריה, כך שתוכל להוסיף סיומת מיד. שפות אחרות עדיין יקבלו את הרווח. המתג \'רווח לאחר הצעה\' בהגדרות הקלדה מכבה את הרווח עבור כל השפות.</string>
     <string name="languages_space_after_suggestion_subtitle">הוסף רווח בעת בחירת מילה מסרגל ההצעות</string>
     <string name="languages_space_after_suggestion_title">רווח אחרי הצעה</string>
@@ -4618,7 +4614,6 @@
     <string name="layout_globe_guard_info">המקש 🌐 נמצא ליד מקש הרווח והפסיק, כך שאגודל מהיר עלול ללחוץ עליו בטעות באמצע מילה ולשנות את השפה. הגדר כאן זמן, ולחיצה על 🌐 שתגיע מוקדם יותר מזה לאחר הקלדת מקש לא תעשה דבר. לחיצה לאחר השהיה תשנה את השפה כרגיל, וכך גם לחיצות מהירות בזו אחר זו על 🌐 עצמו. לחץ והחזק את 🌐 כדי לפתוח את רשימת השפות בכל עת. אותיות, רווח, מחיקה ו-Enter נחשבים להקלדה. Shift ומקשי המצב לא. הגדרה זו כבויה כברירת מחדל.</string>
     <string name="layout_globe_guard_subtitle">הקשה על 🌐 מיד לאחר אות לא עושה דבר</string>
     <string name="layout_globe_guard_title">התעלם מ-🌐 מיד לאחר ההקלדה</string>
-    <string name="layout_globe_hidden_subtitle">אין השפעה בזמן שמקש ה-🌐 מוסתר</string>
     <string name="layout_globe_in_one_place_info">פריסות מסוימות מציבות את מקש ה-🌐 במקום שונה, למשל בקצה השמאלי, או ישירות אחרי מקש ה-?123. אפשרות זו מעבירה אותו למיקום שבו משתמשות פריסות ברירת המחדל, כך שהאגודל שלך ימצא אותו באותו המקום בכל שפה. המקשים משמאלו הופכים לרחבים או צרים יותר כדי לפנות מקום, ומקש הרווח משתנה בהתאם. פריסה שבה הדבר יגרום למקשים להיות קטנים מדי תישאר כפי שהיא, וכך גם פריסה שנייה שפתחת מתוך מקש. בטל אפשרות זו כדי לראות כל פריסה כפי שיוצרה על ידי מחברה.</string>
     <string name="layout_globe_in_one_place_subtitle">באותו מקום בכל פריסה, לצד מקש הרווח</string>
     <string name="layout_globe_in_one_place_title">שמור את מקש ה-🌐 במקום אחד</string>

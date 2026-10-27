@@ -1146,7 +1146,6 @@
     <string name="backup_sync_keep_layouts_title">भाषाएँ और लेआउट</string>
     <string name="backup_sync_keep_local_info">यहाँ जो सेटिंग्स आप टिक करते हैं, वे इस डिवाइस पर वैसी ही रहती हैं। आप यहाँ उनमें जो बदलाव करते हैं, वे भेजे नहीं जाते हैं, और आपके अन्य डिवाइस से किए गए बदलाव लिए नहीं जाते हैं। बाद में किसी एक को अनटिक करें और यह डिवाइस आपके अन्य डिवाइस के पास जो है उसे ले लेगा।</string>
     <string name="backup_sync_keep_local_title">इस डिवाइस पर रखें</string>
-    <string name="backup_sync_keep_needs_settings">What syncs में Settings को टिक करने की आवश्यकता है</string>
     <string name="backup_sync_keep_toolbar_subtitle">कौन से टूल, किस क्रम में, और वे कैसे दिखते हैं</string>
     <string name="backup_sync_keep_toolbar_title">टूलबार और टूलबॉक्स</string>
     <string name="backup_sync_local_note">कुछ सेटिंग्स प्रत्येक डिवाइस पर बनी रहती हैं, क्योंकि वे केवल उसी डिवाइस के लिए उपयुक्त होती हैं: कीबोर्ड का आकार और स्थिति, एक-हाथ वाला मोड, हार्डवेयर कीबोर्ड, युग्मित कंप्यूटर और ऐप लॉक। इस डिवाइस पर अधिक जानकारी रखने के लिए, नीचे \'इस डिवाइस पर रखें\' का उपयोग करें।</string>
@@ -1556,7 +1555,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">शब्द सूची %1$s हटाएं</string>
     <string name="customdict_delete_pack_desc">इमोजी पैक %1$s को हटाएं</string>
-    <string name="customdict_emoji_auto_download_blocked">बंद कर दिया गया है, क्योंकि भाषाओं के अंतर्गत “डेटा स्वचालित रूप से डाउनलोड करें” बंद है</string>
     <string name="customdict_emoji_auto_download_info">जब आप कोई भाषा चालू करते हैं, तो ऐप बैकग्राउंड में उसके इमोजी कीवर्ड डाउनलोड करता है। यह लगभग 100 KB है, एक बार के लिए। यदि आप इसे बंद कर देते हैं, तो नीचे दिए गए डाउनलोड बटन ही कीवर्ड प्राप्त करने का एकमात्र तरीका हैं।</string>
     <string name="customdict_emoji_auto_download_subtitle">उन भाषाओं के लिए कीवर्ड डाउनलोड करें जिन्हें आप टाइप करते हैं</string>
     <string name="customdict_emoji_auto_download_title">स्वचालित रूप से डाउनलोड करें</string>
@@ -3642,7 +3640,6 @@
     <string name="languages_ansi_version_subtitle">वह चुनें जिसके लिए आपका ANSI फ़ॉन्ट बनाया गया है</string>
     <string name="languages_ansi_version_title">ANSI संस्करण</string>
     <string name="languages_auto_pair_toast">%1$s और %2$s अब एक-दूसरे के शब्दों का सुझाव देते हैं। आप इसे प्रत्येक भाषा के पेज पर बदल सकते हैं।</string>
-    <string name="languages_autocorrect_global_off_subtitle">टाइपिंग में सभी भाषाओं के लिए ऑटोकरेक्ट बंद है</string>
     <string name="languages_autocorrect_group">ऑटोकरेक्ट</string>
     <string name="languages_autocorrect_info">इसे बंद करने से %1$s में आपके द्वारा टाइप किया गया प्रत्येक शब्द वैसा ही रहेगा जैसा आपने टाइप किया है, जबकि अन्य भाषाओं में सुधार जारी रहेगा। सुझाव पट्टी अभी भी अपने सुझाव दिखाती है, और आप किसी एक पर टैप कर सकते हैं। टाइपिंग में ऑटोकरेक्ट स्विच सभी भाषाओं के लिए ऑटोकरेक्ट को बंद कर देता है।</string>
     <string name="languages_autocorrect_subtitle">स्पेस दबाने पर टाइपिंग की गलतियों को ठीक करें</string>
@@ -3936,7 +3933,6 @@
     </plurals>
     <string name="languages_secondary_info">जब आप %1$s टाइप करते हैं, तो कीबोर्ड इन भाषाओं के शब्द सुझाता है। ऑटोकरेक्ट इन्हें कभी नहीं बदलता।</string>
     <string name="languages_secondary_title">इनसे भी सुझाव दें</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">टाइपिंग में सभी भाषाओं के लिए सुझाव के बाद स्पेस बंद है</string>
     <string name="languages_space_after_suggestion_info">सुझाव पट्टी से चुने गए शब्द को %1$s में बिना स्पेस के टाइप करने के लिए इसे बंद करें, ताकि आप तुरंत अंत जोड़ सकें। अन्य भाषाओं में अभी भी स्पेस मिलता है। टाइपिंग में \'सुझाव के बाद स्पेस\' स्विच सभी भाषाओं के लिए स्पेस को बंद कर देता है।</string>
     <string name="languages_space_after_suggestion_subtitle">जब आप सुझाव पट्टी से कोई शब्द चुनते हैं तो एक स्पेस जोड़ें</string>
     <string name="languages_space_after_suggestion_title">सुझाव के बाद स्पेस</string>
@@ -4630,7 +4626,6 @@
     <string name="layout_globe_guard_info">🌐 कुंजी स्पेसबार और अल्पविराम के बगल में है, इसलिए एक तेज़ अंगूठा गलती से शब्द के बीच में इसे दबा सकता है और भाषा बदल सकता है। यहाँ एक समय निर्धारित करें और टाइप की गई कुंजी के बाद इससे पहले 🌐 पर किया गया टैप कुछ नहीं करेगा। ठहराव के बाद किया गया टैप हमेशा की तरह भाषा बदल देगा, और इसी तरह 🌐 पर एक के बाद एक त्वरित टैप भी काम करेगा। किसी भी समय भाषा सूची खोलने के लिए 🌐 को दबाकर रखें। अक्षर, स्पेस, बैकस्पेस और एंटर को टाइपिंग के रूप में गिना जाता है। शिफ्ट और मोड कुंजियाँ नहीं। यह सेटिंग डिफ़ॉल्ट रूप से बंद है।</string>
     <string name="layout_globe_guard_subtitle">किसी अक्षर के ठीक बाद 🌐 पर टैप करने से कुछ नहीं होता</string>
     <string name="layout_globe_guard_title">टाइप करने के तुरंत बाद 🌐 को अनदेखा करें</string>
-    <string name="layout_globe_hidden_subtitle">जब 🌐 कुंजी छिपी हो तो कोई प्रभाव नहीं</string>
     <string name="layout_globe_in_one_place_info">कुछ लेआउट 🌐 कुंजी को अलग जगह पर रखते हैं, उदाहरण के लिए सबसे बाईं ओर, या सीधे ?123 कुंजी के बाद। यह इसे उस जगह ले जाता है जहाँ इन-बिल्ट लेआउट उपयोग करते हैं, ताकि आपका अंगूठा हर भाषा में इसे एक ही जगह पर पा सके। इसके बाईं ओर की कुंजियाँ जगह बनाने के लिए चौड़ी या संकरी हो जाती हैं, और स्पेसबार फिट होने के लिए बदल जाता है। एक लेआउट जहाँ ऐसा करने से कुंजियाँ बहुत छोटी हो जाएँगी, उसे वैसा ही छोड़ दिया जाता है, और एक दूसरा लेआउट जिसे आप एक कुंजी से खोलते हैं, उसे भी वैसा ही छोड़ दिया जाता है। हर लेआउट को वैसा ही देखने के लिए इसे बंद करें जैसा उसके लेखक ने बनाया है।</string>
     <string name="layout_globe_in_one_place_subtitle">हर लेआउट में एक ही जगह, स्पेसबार के बगल में</string>
     <string name="layout_globe_in_one_place_title">🌐 की (key) को एक ही जगह रखें</string>

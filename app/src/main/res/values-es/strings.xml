@@ -1147,7 +1147,6 @@
     <string name="backup_sync_keep_layouts_title">Idiomas y diseños</string>
     <string name="backup_sync_keep_local_info">Los ajustes que marques aquí permanecerán como están en este dispositivo. Los cambios que hagas aquí no se enviarán, y los cambios de tus otros dispositivos no se aplicarán. Desmarca uno más tarde y este dispositivo tomará lo que tengan tus otros dispositivos.</string>
     <string name="backup_sync_keep_local_title">Mantener en este dispositivo</string>
-    <string name="backup_sync_keep_needs_settings">Requiere que \"Ajustes\" esté marcado en \"Qué se sincroniza\"</string>
     <string name="backup_sync_keep_toolbar_subtitle">Qué herramientas, en qué orden y cómo se ven</string>
     <string name="backup_sync_keep_toolbar_title">Barra de herramientas y caja de herramientas</string>
     <string name="backup_sync_local_note">Algunos ajustes permanecen en cada dispositivo porque solo se adaptan a ese dispositivo: el tamaño y la posición del teclado, el modo a una mano, el teclado físico, los equipos vinculados y el bloqueo de la aplicación. Para mantener más elementos en este dispositivo, usa Mantener en este dispositivo a continuación.</string>
@@ -1557,7 +1556,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">Eliminar la lista de palabras %1$s</string>
     <string name="customdict_delete_pack_desc">Eliminar el paquete de emojis %1$s</string>
-    <string name="customdict_emoji_auto_download_blocked">Desactivado, porque “Descargar datos automáticamente” está desactivado en Idiomas</string>
     <string name="customdict_emoji_auto_download_info">Cuando activas un idioma, la aplicación descarga sus palabras clave de emoji en segundo plano. Esto es aproximadamente 100 KB, una sola vez. Si desactivas esto, los botones de descarga a continuación son la única forma de obtener las palabras clave.</string>
     <string name="customdict_emoji_auto_download_subtitle">Descargar palabras clave para los idiomas que escribes</string>
     <string name="customdict_emoji_auto_download_title">Descargar automáticamente</string>
@@ -3635,7 +3633,6 @@
     <string name="languages_ansi_version_subtitle">Elige para la que está hecha tu fuente ANSI</string>
     <string name="languages_ansi_version_title">Versión ANSI</string>
     <string name="languages_auto_pair_toast">%1$s y %2$s ahora sugieren las palabras del otro. Puedes cambiar esto en la página de cada idioma.</string>
-    <string name="languages_autocorrect_global_off_subtitle">La autocorrección está desactivada para todos los idiomas en Escritura</string>
     <string name="languages_autocorrect_group">Autocorrección</string>
     <string name="languages_autocorrect_info">Desactiva esto para mantener cada palabra que escribes en %1$s tal como la escribiste, mientras que otros idiomas siguen siendo corregidos. La barra de sugerencias sigue mostrando sus sugerencias y puedes tocar una. El interruptor de autocorrección en Escritura desactiva la autocorrección para todos los idiomas.</string>
     <string name="languages_autocorrect_subtitle">Corregir errores tipográficos al pulsar espacio</string>
@@ -3928,7 +3925,6 @@
     </plurals>
     <string name="languages_secondary_info">El teclado ofrece palabras de estos idiomas mientras escribes %1$s. El autocorrector nunca las cambia.</string>
     <string name="languages_secondary_title">Sugerir también desde</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">El espacio después de una sugerencia está desactivado para todos los idiomas en Escritura</string>
     <string name="languages_space_after_suggestion_info">Desactiva esto para escribir una palabra que selecciones de la barra de sugerencias en %1$s sin un espacio después, para que puedas añadir una terminación directamente. Otros idiomas seguirán recibiendo el espacio. El interruptor \"Espacio después de una sugerencia\" en \"Escritura\" desactiva el espacio para todos los idiomas.</string>
     <string name="languages_space_after_suggestion_subtitle">Añadir un espacio al seleccionar una palabra de la barra de sugerencias</string>
     <string name="languages_space_after_suggestion_title">Espacio después de una sugerencia</string>
@@ -4622,7 +4618,6 @@
     <string name="layout_globe_guard_info">La tecla 🌐 está junto a la barra espaciadora y la coma, por lo que un pulgar rápido puede tocarla por error en medio de una palabra y cambiar el idioma. Establece un tiempo aquí y un toque en 🌐 que ocurra antes de esto después de una tecla escrita no hará nada. Un toque después de una pausa cambia el idioma como de costumbre, al igual que los toques rápidos uno tras otro en la propia tecla 🌐. Mantén presionada la tecla 🌐 para abrir la lista de idiomas en cualquier momento. Las letras, el espacio, el retroceso y la tecla Intro cuentan como escritura. La tecla Mayús y las teclas de modo no cuentan. Esta configuración está desactivada de forma predeterminada.</string>
     <string name="layout_globe_guard_subtitle">Un toque en 🌐 justo después de una letra no hace nada</string>
     <string name="layout_globe_guard_title">Ignorar 🌐 justo después de escribir</string>
-    <string name="layout_globe_hidden_subtitle">Sin efecto mientras la tecla 🌐 esté oculta</string>
     <string name="layout_globe_in_one_place_info">Algunos diseños colocan la tecla 🌐 en un lugar diferente, por ejemplo, al extremo izquierdo o justo después de la tecla ?123. Esto la mueve a la ubicación que usan los diseños integrados, para que tu pulgar la encuentre en el mismo sitio en cada idioma. Las teclas a su izquierda se vuelven más anchas o estrechas para dejar espacio, y la barra espaciadora cambia para ajustarse. Un diseño en el que esto hiciera las teclas demasiado pequeñas se mantiene tal cual, al igual que un segundo diseño que abras desde una tecla. Desactiva esta opción para ver cada diseño tal como lo creó su autor.</string>
     <string name="layout_globe_in_one_place_subtitle">El mismo lugar en cada diseño, al lado de la barra espaciadora</string>
     <string name="layout_globe_in_one_place_title">Mantener la tecla 🌐 en un solo lugar</string>

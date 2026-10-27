@@ -1142,7 +1142,6 @@
     <string name="backup_sync_keep_layouts_title">Bahasa dan tata letak</string>
     <string name="backup_sync_keep_local_info">Pengaturan yang Anda centang di sini akan tetap seperti apa adanya di perangkat ini. Perubahan yang Anda buat di sini tidak akan dikirim, dan perubahan dari perangkat lain tidak akan diambil. Hapus centang nanti dan perangkat ini akan mengambil apa yang dimiliki perangkat lain Anda.</string>
     <string name="backup_sync_keep_local_title">Simpan di perangkat ini</string>
-    <string name="backup_sync_keep_needs_settings">Perlu mencentang Pengaturan di Apa yang disinkronkan</string>
     <string name="backup_sync_keep_toolbar_subtitle">Alat mana, dalam urutan apa, dan bagaimana tampilannya</string>
     <string name="backup_sync_keep_toolbar_title">Toolbar dan toolbox</string>
     <string name="backup_sync_local_note">Beberapa pengaturan tetap ada di setiap perangkat karena hanya sesuai untuk perangkat tersebut: ukuran dan posisi papan ketik, mode satu tangan, papan ketik perangkat keras, komputer yang dipasangkan, dan kunci aplikasi. Untuk menyimpan lebih banyak di perangkat ini, gunakan Simpan di perangkat ini di bawah.</string>
@@ -1552,7 +1551,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">Hapus daftar kata %1$s</string>
     <string name="customdict_delete_pack_desc">Hapus paket emoji %1$s</string>
-    <string name="customdict_emoji_auto_download_blocked">Dimatikan, karena “Unduh data secara otomatis” tidak aktif di bawah Bahasa</string>
     <string name="customdict_emoji_auto_download_info">Saat Anda mengaktifkan bahasa, aplikasi akan mengunduh kata kunci emoji-nya di latar belakang. Ukurannya sekitar 100 KB, satu kali saja. Jika Anda mematikan ini, tombol Unduh di bawah adalah satu-satunya cara untuk mendapatkan kata kunci tersebut.</string>
     <string name="customdict_emoji_auto_download_subtitle">Unduh kata kunci untuk bahasa yang Anda ketik</string>
     <string name="customdict_emoji_auto_download_title">Unduh secara otomatis</string>
@@ -3629,7 +3627,6 @@
     <string name="languages_ansi_version_subtitle">Pilih versi yang sesuai dengan font ANSI Anda</string>
     <string name="languages_ansi_version_title">Versi ANSI</string>
     <string name="languages_auto_pair_toast">%1$s dan %2$s sekarang saling menyarankan kata. Anda dapat mengubah ini di halaman masing-masing bahasa.</string>
-    <string name="languages_autocorrect_global_off_subtitle">Koreksi otomatis nonaktif untuk semua bahasa di Pengetikan</string>
     <string name="languages_autocorrect_group">Koreksi otomatis</string>
     <string name="languages_autocorrect_info">Matikan ini untuk menjaga setiap kata yang Anda ketik dalam %1$s tetap seperti yang Anda ketik, sementara bahasa lain tetap dikoreksi. Bilah saran tetap menampilkan sarannya, dan Anda dapat mengetuk salah satunya. Sakelar koreksi otomatis di Pengetikan mematikan koreksi otomatis untuk semua bahasa.</string>
     <string name="languages_autocorrect_subtitle">Perbaiki kesalahan ketik saat Anda menekan spasi</string>
@@ -3923,7 +3920,6 @@
     </plurals>
     <string name="languages_secondary_info">Papan ketik menawarkan kata-kata dari bahasa-bahasa ini saat Anda mengetik %1$s. Koreksi otomatis tidak akan pernah mengubahnya.</string>
     <string name="languages_secondary_title">Juga sarankan dari</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">Spasi setelah saran dinonaktifkan untuk semua bahasa di Pengetikan</string>
     <string name="languages_space_after_suggestion_info">Matikan ini untuk mengetik kata yang Anda pilih dari bilah saran dalam %1$s tanpa spasi setelahnya, sehingga Anda dapat langsung menambahkan akhiran. Bahasa lain tetap mendapatkan spasi. Tombol Spasi setelah saran di Pengetikan akan mematikan spasi untuk semua bahasa.</string>
     <string name="languages_space_after_suggestion_subtitle">Tambahkan spasi saat Anda memilih kata dari bilah saran</string>
     <string name="languages_space_after_suggestion_title">Spasi setelah saran</string>
@@ -4617,7 +4613,6 @@
     <string name="layout_globe_guard_info">Tombol 🌐 terletak di sebelah tombol spasi dan koma, sehingga ibu jari yang cepat bisa menekannya secara tidak sengaja di tengah kata dan mengubah bahasa. Tetapkan waktu di sini agar ketukan pada 🌐 yang dilakukan segera setelah menekan tombol lain tidak akan memicu apa pun. Ketukan setelah jeda akan tetap mengubah bahasa seperti biasa, begitu pula ketukan cepat berturut-turut pada 🌐 itu sendiri. Tekan dan tahan 🌐 untuk membuka daftar bahasa kapan saja. Huruf, spasi, backspace, dan enter dihitung sebagai mengetik. Tombol Shift dan tombol mode tidak dihitung. Setelan ini tidak aktif secara default.</string>
     <string name="layout_globe_guard_subtitle">Ketukan pada 🌐 tepat setelah huruf tidak melakukan apa pun</string>
     <string name="layout_globe_guard_title">Abaikan 🌐 tepat setelah mengetik</string>
-    <string name="layout_globe_hidden_subtitle">Tidak ada efek saat kunci 🌐 disembunyikan</string>
     <string name="layout_globe_in_one_place_info">Beberapa tata letak menempatkan tombol 🌐 di tempat yang berbeda, misalnya di paling kiri, atau tepat setelah tombol ?123. Ini memindahkannya ke tempat yang digunakan tata letak bawaan, sehingga ibu jari Anda menemukannya di tempat yang sama dalam setiap bahasa. Tombol di sebelah kirinya menjadi lebih lebar atau lebih sempit untuk memberi ruang, dan bilah spasi berubah agar pas. Tata letak di mana hal itu akan membuat tombol terlalu kecil dibiarkan apa adanya, begitu pula tata letak kedua yang Anda buka dari tombol. Matikan ini untuk melihat setiap tata letak seperti yang dibuat oleh penulisnya.</string>
     <string name="layout_globe_in_one_place_subtitle">Tempat yang sama di setiap tata letak, di samping bilah spasi</string>
     <string name="layout_globe_in_one_place_title">Pertahankan tombol 🌐 di satu tempat</string>

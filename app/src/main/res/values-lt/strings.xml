@@ -1145,7 +1145,6 @@
     <string name="backup_sync_keep_layouts_title">Kalbos ir išdėstymai</string>
     <string name="backup_sync_keep_local_info">Čia pažymėti nustatymai šiame įrenginyje išlieka tokie, kokie yra. Jūsų atlikti pakeitimai čia nėra siunčiami, o pakeitimai iš kitų įrenginių nėra priimami. Vėliau atžymėkite vieną iš jų ir šis įrenginys perims tai, ką turi kiti jūsų įrenginiai.</string>
     <string name="backup_sync_keep_local_title">Palikti šiame įrenginyje</string>
-    <string name="backup_sync_keep_needs_settings">Turi būti pažymėta „Nustatymai“ dalyje „Kas sinchronizuojama“</string>
     <string name="backup_sync_keep_toolbar_subtitle">Kokie įrankiai, kokia tvarka ir kaip jie atrodo</string>
     <string name="backup_sync_keep_toolbar_title">Įrankių juosta ir įrankių rinkinys</string>
     <string name="backup_sync_local_note">Kai kurie nustatymai lieka kiekviename įrenginyje, nes jie tinka tik tam įrenginiui: klaviatūros dydis ir padėtis, valdymas viena ranka, aparatinė klaviatūra, susieti kompiuteriai ir programėlės užraktas.</string>
@@ -1555,7 +1554,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">Ištrinti žodžių sąrašą %1$s</string>
     <string name="customdict_delete_pack_desc">Ištrinti jaustukų paketą %1$s</string>
-    <string name="customdict_emoji_auto_download_blocked">Išjungta, nes skiltyje „Kalbos“ išjungta „Atsisiųsti duomenis automatiškai“</string>
     <string name="customdict_emoji_auto_download_info">Kai įjungiate kalbą, programėlė fone atsisiunčia jos jaustukų raktinius žodžius. Tai užima apie 100 KB vieną kartą. Jei tai išjungsite, vienintelis būdas gauti raktinius žodžius bus toliau esantys atsisiuntimo mygtukai.</string>
     <string name="customdict_emoji_auto_download_subtitle">Atsisiųsti raktinius žodžius kalboms, kuriomis rašote</string>
     <string name="customdict_emoji_auto_download_title">Atsisiųsti automatiškai</string>
@@ -3632,7 +3630,6 @@
     <string name="languages_ansi_version_subtitle">Pasirinkite tą, kuriai skirtas jūsų ANSI šriftas</string>
     <string name="languages_ansi_version_title">ANSI versija</string>
     <string name="languages_auto_pair_toast">%1$s ir %2$s dabar siūlo vienas kito žodžius. Tai galite pakeisti kiekvienos kalbos puslapyje.</string>
-    <string name="languages_autocorrect_global_off_subtitle">Automatinė taisa išjungta visoms kalboms skiltyje „Rašymas“</string>
     <string name="languages_autocorrect_group">Automatinė taisa</string>
     <string name="languages_autocorrect_info">Išjunkite tai, kad kiekvienas įvestas žodis %1$s kalba liktų toks, kokį įvedėte, kol kitos kalbos vis dar taisomos. Pasiūlymų juostoje vis tiek rodomi pasiūlymai ir galite vieną iš jų paliesti. Automatinio taisymo jungiklis skiltyje „Rašymas“ išjungia automatinį taisymą visoms kalboms.</string>
     <string name="languages_autocorrect_subtitle">Ištaisyti rašybos klaidas paspaudus tarpą</string>
@@ -3924,7 +3921,6 @@
     </plurals>
     <string name="languages_secondary_info">Klaviatūra siūlo žodžius iš šių kalbų, kai rašote %1$s. Automatinė taisa jų niekada nekeičia.</string>
     <string name="languages_secondary_title">Taip pat siūlyti iš</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">Tarpas po pasiūlymo išjungtas visoms kalboms rašant</string>
     <string name="languages_space_after_suggestion_info">Išjunkite tai, jei norite, kad pasirinkus žodį iš pasiūlymų juostos kalba %1$s po jo nebūtų dedamas tarpas, kad galėtumėte iškart pridėti galūnę. Kitos kalbos vis tiek turės tarpą. Nuostata „Tarpas po pasiūlymo“ skiltyje „Rašymas“ išjungia tarpą visoms kalboms.</string>
     <string name="languages_space_after_suggestion_subtitle">Pridėti tarpą pasirinkus žodį iš pasiūlymų juostos</string>
     <string name="languages_space_after_suggestion_title">Tarpas po pasiūlymo</string>
@@ -4618,7 +4614,6 @@
     <string name="layout_globe_guard_info">🌐 klavišas yra šalia tarpo ir kablelio, todėl greitas nykštys gali netyčia jį paspausti žodžio viduryje ir pakeisti kalbą. Čia nustatykite laiką, ir 🌐 paspaudimas, įvykęs anksčiau nei šis laikas po klavišo paspaudimo, nieko nedarys. Paspaudimas po pauzės pakeis kalbą kaip įprasta, taip pat ir greiti paspaudimai vienas po kito ant paties 🌐. Paspauskite ir palaikykite 🌐, kad bet kada atidarytumėte kalbų sąrašą. Raidės, tarpas, grįžties klavišas ir „enter“ skaičiuojami kaip rašymas. „Shift“ ir režimo klavišai – ne. Šis nustatymas pagal numatytuosius nustatymus yra išjungtas.</string>
     <string name="layout_globe_guard_subtitle">Paspaudus 🌐 iškart po raidės, nieko nevyksta</string>
     <string name="layout_globe_guard_title">Nepaisyti 🌐 iškart po įvedimo</string>
-    <string name="layout_globe_hidden_subtitle">Nėra efekto, kol 🌐 klavišas paslėptas</string>
     <string name="layout_globe_in_one_place_info">Kai kuriose išdėstymo parinktyse 🌐 klavišas yra kitoje vietoje, pavyzdžiui, pačiame kairiajame krašte arba iškart po ?123 klavišu. Tai perkelia jį į vietą, kurią naudoja integruoti išdėstymai, todėl nykštys jį ras toje pačioje vietoje visomis kalbomis. Klavišai į kairę nuo jo tampa platesni arba siauresni, kad atsirastų vietos, o tarpas pakeičia dydį, kad tilptų. Išdėstymas, kuriame dėl to klavišai taptų per maži, paliekamas nepakeistas; tas pats galioja ir antrajam išdėstymui, kurį atidarote iš klavišo. Išjunkite šią funkciją, kad matytumėte kiekvieną išdėstymą taip, kaip numatė jo autorius.</string>
     <string name="layout_globe_in_one_place_subtitle">Ta pati vieta kiekviename išdėstyme, šalia tarpo klavišo</string>
     <string name="layout_globe_in_one_place_title">Palikite 🌐 klavišą vienoje vietoje</string>

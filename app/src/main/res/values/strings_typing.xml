@@ -1128,7 +1128,6 @@
     <string name="typing_space_cursor_top_speed_title">Top cursor speed</string>
     <string name="typing_space_cursor_top_speed_subtitle">How fast a long spacebar swipe moves the cursor at its fastest</string>
     <!-- Long press on the greyed-out slider. -->
-    <string name="typing_space_cursor_top_speed_off_reason">Turn on Speed up long cursor swipes first.</string>
     <string name="typing_space_cursor_top_speed_info">The value is how many times faster than the normal cursor speed the cursor goes at the end of a long swipe. This setting is 4× by default.</string>
     <string name="typing_space_cursor_magnifier_title">Cursor magnifier</string>
     <string name="typing_space_cursor_magnifier_subtitle">Show the text at the cursor, larger, while a spacebar swipe moves the cursor</string>

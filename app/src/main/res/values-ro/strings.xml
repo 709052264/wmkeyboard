@@ -1144,7 +1144,6 @@
     <string name="backup_sync_keep_layouts_title">Limbi și layout-uri</string>
     <string name="backup_sync_keep_local_info">Setările pe care le bifezi aici rămân așa cum sunt pe acest dispozitiv. Modificările pe care le faci aici nu sunt trimise, iar modificările de pe celelalte dispozitive nu sunt preluate. Debifează una mai târziu și acest dispozitiv va prelua ce au celelalte dispozitive.</string>
     <string name="backup_sync_keep_local_title">Păstrați pe acest dispozitiv</string>
-    <string name="backup_sync_keep_needs_settings">Necesită bifarea Setărilor în Ce se sincronizează</string>
     <string name="backup_sync_keep_toolbar_subtitle">Ce instrumente, în ce ordine și cum arată</string>
     <string name="backup_sync_keep_toolbar_title">Bară de instrumente și set de unelte</string>
     <string name="backup_sync_local_note">Unele setări rămân pe fiecare dispozitiv, deoarece se potrivesc doar acelui dispozitiv: dimensiunea și poziția tastaturii, modul cu o singură mână, tastatura hardware, computerele asociate și blocarea aplicației. Pentru a păstra mai multe pe acest dispozitiv, folosește „Păstrează pe acest dispozitiv” de mai jos.</string>
@@ -1554,7 +1553,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">Șterge lista de cuvinte %1$s</string>
     <string name="customdict_delete_pack_desc">Șterge pachetul de emoji-uri %1$s</string>
-    <string name="customdict_emoji_auto_download_blocked">Dezactivat, deoarece „Descărcare automată a datelor” este oprită la secțiunea Limbi</string>
     <string name="customdict_emoji_auto_download_info">Când activezi o limbă, aplicația descarcă cuvintele cheie pentru emoji în fundal. Aceasta ocupă aproximativ 100 KB, o singură dată. Dacă dezactivezi această opțiune, butoanele de Descărcare de mai jos sunt singura modalitate de a obține cuvintele cheie.</string>
     <string name="customdict_emoji_auto_download_subtitle">Descarcă cuvinte cheie pentru limbile pe care le tastezi</string>
     <string name="customdict_emoji_auto_download_title">Descărcare automată</string>
@@ -3633,7 +3631,6 @@
     <string name="languages_ansi_version_subtitle">Alege-o pe cea pentru care este creat fontul tău ANSI</string>
     <string name="languages_ansi_version_title">Versiunea ANSI</string>
     <string name="languages_auto_pair_toast">%1$s și %2$s sugerează acum cuvintele celuilalt. Poți schimba acest lucru pe pagina fiecărei limbi.</string>
-    <string name="languages_autocorrect_global_off_subtitle">Corecția automată este dezactivată pentru toate limbile în Tastare</string>
     <string name="languages_autocorrect_group">Corecție automată</string>
     <string name="languages_autocorrect_info">Dezactivează această opțiune pentru a păstra fiecare cuvânt tastat în %1$s exact așa cum l-ai scris, în timp ce alte limbi sunt în continuare corectate. Bara de sugestii va afișa în continuare sugestiile sale și poți atinge una. Comutatorul de autocorecție din Tastare dezactivează autocorecția pentru toate limbile.</string>
     <string name="languages_autocorrect_subtitle">Corectează greșelile de scriere când apeși bara de spațiu</string>
@@ -3927,7 +3924,6 @@
     </plurals>
     <string name="languages_secondary_info">Tastatura oferă cuvinte din aceste limbi în timp ce scrii %1$s. Corecția automată nu le modifică niciodată.</string>
     <string name="languages_secondary_title">Sugerează și din</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">Spațiul după o sugestie este dezactivat pentru toate limbile în Tastare</string>
     <string name="languages_space_after_suggestion_info">Dezactivați acest lucru pentru a scrie un cuvânt pe care îl selectați din bara de sugestii în %1$s fără un spațiu după el, astfel încât să puteți adăuga o terminație imediat. Alte limbi primesc în continuare spațiul. Comutatorul Spațiu după o sugestie din Tastare dezactivează spațiul pentru toate limbile.</string>
     <string name="languages_space_after_suggestion_subtitle">Adaugă un spațiu când selectezi un cuvânt din bara de sugestii</string>
     <string name="languages_space_after_suggestion_title">Spațiu după o sugestie</string>
@@ -4621,7 +4617,6 @@
     <string name="layout_globe_guard_info">Tasta 🌐 este lângă bara de spațiu și virgulă, așa că un deget mare rapid o poate atinge din greșeală în mijlocul unui cuvânt și poate schimba limba. Setează un timp aici, iar o atingere pe 🌐 care vine mai devreme de atât după o tastă apăsată nu va face nimic. O atingere după o pauză schimbă limba ca de obicei, la fel și atingerile rapide una după alta pe 🌐. Apasă și menține 🌐 pentru a deschide lista de limbi în orice moment. Literele, spațiul, backspace și enter contează ca tastare. Shift și tastele de mod nu contează. Această setare este dezactivată implicit.</string>
     <string name="layout_globe_guard_subtitle">O atingere pe 🌐 imediat după o literă nu face nimic</string>
     <string name="layout_globe_guard_title">Ignoră 🌐 imediat după tastare</string>
-    <string name="layout_globe_hidden_subtitle">Fără efect cât timp tasta 🌐 este ascunsă</string>
     <string name="layout_globe_in_one_place_info">Unele machete plasează tasta 🌐 într-un alt loc, de exemplu în extrema stângă sau direct după tasta ?123. Această opțiune o mută în locul folosit de machetele integrate, astfel încât degetul tău să o găsească în același loc pentru fiecare limbă. Tastele din stânga sa devin mai late sau mai înguste pentru a face loc, iar bara de spațiu se ajustează corespunzător. O machetă unde acest lucru ar face tastele prea mici va rămâne neschimbată, la fel și o a doua machetă pe care o deschizi dintr-o tastă. Dezactivează această opțiune pentru a vedea fiecare machetă așa cum a creat-o autorul său.</string>
     <string name="layout_globe_in_one_place_subtitle">Același loc pe fiecare aspect, lângă bara de spațiu</string>
     <string name="layout_globe_in_one_place_title">Păstrează tasta 🌐 într-un singur loc</string>

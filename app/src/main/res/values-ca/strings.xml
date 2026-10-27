@@ -1144,7 +1144,6 @@
     <string name="backup_sync_keep_layouts_title">Idiomes i distribucions</string>
     <string name="backup_sync_keep_local_info">Els paràmetres que marqueu aquí es mantenen tal com estan en aquest dispositiu. Els canvis que hi feu no s\'envien, i els canvis d\'altres dispositius no s\'hi apliquen. Desmarqueu-ne algun més endavant i aquest dispositiu prendrà el que tinguin els vostres altres dispositius.</string>
     <string name="backup_sync_keep_local_title">Mantenir en aquest dispositiu</string>
-    <string name="backup_sync_keep_needs_settings">Requereix que la configuració estigui marcada a Què se sincronitza</string>
     <string name="backup_sync_keep_toolbar_subtitle">Quines eines, en quin ordre i quin aspecte tenen</string>
     <string name="backup_sync_keep_toolbar_title">Barra d\'eines i caixa d\'eines</string>
     <string name="backup_sync_local_note">Alguns ajustaments romanen en cada dispositiu perquè només s\'adapten a aquest: la mida i la posició del teclat, el mode d\'una mà, el teclat físic, els ordinadors vinculats i el bloqueig de l\'aplicació. Per mantenir-ne més en aquest dispositiu, utilitza \"Mantén en aquest dispositiu\" a continuació.</string>
@@ -1554,7 +1553,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">Suprimeix la llista de paraules %1$s</string>
     <string name="customdict_delete_pack_desc">Suprimeix el paquet d\'emojis %1$s</string>
-    <string name="customdict_emoji_auto_download_blocked">Desactivat perquè l\'opció «Baixa dades automàticament» està desactivada a Idiomes</string>
     <string name="customdict_emoji_auto_download_info">Quan activeu un idioma, l\'aplicació descarrega les seves paraules clau d\'emoji en segon pla. Això és aproximadament 100 KB, una vegada. Si desactiveu això, els botons de descàrrega següents són l\'única manera d\'obtenir les paraules clau.</string>
     <string name="customdict_emoji_auto_download_subtitle">Baixa paraules clau per als idiomes que escrius</string>
     <string name="customdict_emoji_auto_download_title">Descarregar automàticament</string>
@@ -3629,7 +3627,6 @@
     <string name="languages_ansi_version_subtitle">Tria la versió per a la qual està fet el teu tipus de lletra ANSI</string>
     <string name="languages_ansi_version_title">Versió ANSI</string>
     <string name="languages_auto_pair_toast">%1$s i %2$s ara suggereixen les paraules de l\'altre. Podeu canviar això a la pàgina de cada idioma.</string>
-    <string name="languages_autocorrect_global_off_subtitle">L\'autocorrecció està desactivada per a tots els idiomes a Escriptura</string>
     <string name="languages_autocorrect_group">Correcció automàtica</string>
     <string name="languages_autocorrect_info">Desactiveu aquesta opció per mantenir cada paraula que escriviu en %1$s tal com l\'heu escrit, mentre que els altres idiomes continuen corregint-se. La barra de suggeriments encara mostrarà els seus suggeriments i en podeu tocar un. L\'interruptor de correcció automàtica a Escriptura desactiva la correcció automàtica per a tots els idiomes.</string>
     <string name="languages_autocorrect_subtitle">Corregeix les errades en prémer l\'espai</string>
@@ -3922,7 +3919,6 @@
     </plurals>
     <string name="languages_secondary_info">El teclat ofereix paraules d\'aquests idiomes mentre escrius %1$s. L\'autocorrecció no les canvia mai.</string>
     <string name="languages_secondary_title">Suggerir també des de</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">L\'espai després d\'un suggeriment està desactivat per a tots els idiomes a Escriptura</string>
     <string name="languages_space_after_suggestion_info">Desactiveu aquesta opció per escriure una paraula seleccionada de la barra de suggeriments en %1$s sense un espai al darrere, de manera que pugueu afegir una terminació immediatament. Altres idiomes continuaran tenint l\'espai. L\'interruptor \"Espai després d\'un suggeriment\" a \"Escriptura\" desactiva l\'espai per a tots els idiomes.</string>
     <string name="languages_space_after_suggestion_subtitle">Afegeix un espai quan seleccionis una paraula de la franja de suggeriments</string>
     <string name="languages_space_after_suggestion_title">Espai després d\'un suggeriment</string>
@@ -4616,7 +4612,6 @@
     <string name="layout_globe_guard_info">La tecla 🌐 es troba al costat de la barra espaiadora i la coma, de manera que un polze ràpid pot prémer-la per error enmig d\'una paraula i canviar l\'idioma. Definiu un temps aquí i un toc a la 🌐 que es produeixi abans d\'aquest temps després d\'haver escrit una tecla no farà res. Un toc després d\'una pausa canviarà l\'idioma com de costum, igual que tocs ràpids seguits sobre la mateixa 🌐. Mantingueu premuda la tecla 🌐 per obrir la llista d\'idiomes en qualsevol moment. Les lletres, l\'espai, el retorn i l\'entrada compten com a escriptura. La tecla de majúscules i les tecles de mode no compten. Aquesta configuració està desactivada per defecte.</string>
     <string name="layout_globe_guard_subtitle">Un toc a 🌐 just després d\'una lletra no fa res</string>
     <string name="layout_globe_guard_title">Ignora el 🌐 just després d\'escriure</string>
-    <string name="layout_globe_hidden_subtitle">Cap efecte mentre la tecla 🌐 estigui oculta</string>
     <string name="layout_globe_in_one_place_info">Alguns dissenys posen la tecla 🌐 en un lloc diferent, per exemple a l\'extrem esquerre, o directament després de la tecla ?123. Això la mou al lloc que utilitzen els dissenys integrats, de manera que el vostre polze la troba al mateix lloc en tots els idiomes. Les tecles a la seva esquerra es fan més amples o més estretes per fer espai, i la barra espaiadora canvia per ajustar-se. Un disseny on això faria que les tecles fossin massa petites es deixa tal com és, i el mateix passa amb un segon disseny que obriu des d\'una tecla. Desactiveu això per veure cada disseny tal com el va fer el seu autor.</string>
     <string name="layout_globe_in_one_place_subtitle">Al mateix lloc en cada disposició, al costat de la barra espaiadora</string>
     <string name="layout_globe_in_one_place_title">Mantén la tecla 🌐 en un sol lloc</string>

@@ -1176,6 +1176,9 @@ internal fun LayoutSettings(
 
 
 
+    // The rows that act on the 🌐 key go with it: hidden, it has nothing for
+    // them to change.
+    val globeShown = settings.watch { it.showGlobeKey }
     SettingsGroup(stringResource(R.string.layout_bottom_row_keys_title)) {
         item(level = SettingLevel.STANDARD) {
             ToggleSetting(
@@ -1212,13 +1215,13 @@ internal fun LayoutSettings(
             ToggleSetting(
                 R.string.layout_show_globe_title,
                 stringResource(R.string.layout_show_globe_subtitle),
-                settings.watch { it.showGlobeKey },
+                globeShown,
                 info = stringResource(R.string.layout_show_globe_info),
                 default = SettingsDefaults.showGlobeKey,
             ) { scope.launch { repository.setShowGlobeKey(it) } }
         }
-        // Not greyed out with the key hidden: a physical keyboard's language
-        // key follows it too.
+        // Not hidden with the key: a physical keyboard's language key follows
+        // it too.
         item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.layout_globe_recent_title,
@@ -1228,19 +1231,12 @@ internal fun LayoutSettings(
                 default = SettingsDefaults.globeRecentOrder,
             ) { scope.launch { repository.setGlobeRecentOrder(it) } }
         }
-        item(level = SettingLevel.ADVANCED) {
+        item(visible = globeShown, level = SettingLevel.ADVANCED) {
             val offLabel = stringResource(CommonR.string.common_off)
             val msFormat = stringResource(R.string.typing_value_milliseconds)
-            val globeShown = settings.watch { it.showGlobeKey }
             SliderSetting(
                 R.string.layout_globe_guard_title,
-                subtitle = stringResource(
-                    if (globeShown) {
-                        R.string.layout_globe_guard_subtitle
-                    } else {
-                        R.string.layout_globe_hidden_subtitle
-                    },
-                ),
+                subtitle = stringResource(R.string.layout_globe_guard_subtitle),
                 value = settings.watch { it.layoutBehavior.globeTypingGuardMs }.toFloat(),
                 range = GlobeTypingGuardMsRange.first.toFloat()..GlobeTypingGuardMsRange.last.toFloat(),
                 // Steps of 50 ms: finer than that is not a difference a thumb
@@ -1251,77 +1247,33 @@ internal fun LayoutSettings(
                     if (ms == 0) offLabel else msFormat.format(ms)
                 },
                 info = stringResource(R.string.layout_globe_guard_info),
-                enabled = globeShown,
-                disabledReason = rememberDisabledReason(
-                    stringResource(R.string.layout_globe_hidden_reason),
-                    R.string.layout_show_globe_title,
-                ),
                 default = SettingsDefaults.layoutBehavior.globeTypingGuardMs.toFloat(),
             ) { scope.launch { repository.setGlobeTypingGuardMs((it / 50f).roundToInt() * 50) } }
         }
-        // The two rows below act on the 🌐 key, so with it hidden neither has
-        // anything to change. Greyed out rather than removed, so turning the key
-        // back on does not make two rows appear under the finger.
-        item {
-            val globeShown = settings.watch { it.showGlobeKey }
+        item(visible = globeShown) {
             ToggleSetting(
                 R.string.layout_globe_emoji_title,
-                stringResource(
-                    if (globeShown) {
-                        R.string.layout_globe_emoji_subtitle
-                    } else {
-                        R.string.layout_globe_hidden_subtitle
-                    },
-                ),
+                stringResource(R.string.layout_globe_emoji_subtitle),
                 settings.watch { it.globeAsEmoji },
                 info = stringResource(R.string.layout_globe_emoji_info),
-                enabled = globeShown,
-                disabledReason = rememberDisabledReason(
-                    stringResource(R.string.layout_globe_hidden_reason),
-                    R.string.layout_show_globe_title,
-                ),
                 default = SettingsDefaults.globeAsEmoji,
             ) { scope.launch { repository.setGlobeAsEmoji(it) } }
         }
-        item(level = SettingLevel.ADVANCED) {
-            val globeShown = settings.watch { it.showGlobeKey }
+        item(visible = globeShown, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.layout_swap_comma_globe_title,
-                stringResource(
-                    if (globeShown) {
-                        R.string.layout_swap_comma_globe_subtitle
-                    } else {
-                        R.string.layout_globe_hidden_subtitle
-                    },
-                ),
+                stringResource(R.string.layout_swap_comma_globe_subtitle),
                 settings.watch { it.swapCommaAndGlobe },
                 info = stringResource(R.string.layout_swap_comma_globe_info),
-                enabled = globeShown,
-                disabledReason = rememberDisabledReason(
-                    stringResource(R.string.layout_globe_hidden_reason),
-                    R.string.layout_show_globe_title,
-                ),
                 default = SettingsDefaults.swapCommaAndGlobe,
             ) { scope.launch { repository.setSwapCommaAndGlobe(it) } }
         }
-        item(level = SettingLevel.ADVANCED) {
-            val globeShown = settings.watch { it.showGlobeKey }
+        item(visible = globeShown, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.layout_globe_in_one_place_title,
-                stringResource(
-                    if (globeShown) {
-                        R.string.layout_globe_in_one_place_subtitle
-                    } else {
-                        R.string.layout_globe_hidden_subtitle
-                    },
-                ),
+                stringResource(R.string.layout_globe_in_one_place_subtitle),
                 settings.watch { it.layoutBehavior.globeInOnePlace },
                 info = stringResource(R.string.layout_globe_in_one_place_info),
-                enabled = globeShown,
-                disabledReason = rememberDisabledReason(
-                    stringResource(R.string.layout_globe_hidden_reason),
-                    R.string.layout_show_globe_title,
-                ),
                 default = SettingsDefaults.layoutBehavior.globeInOnePlace,
             ) { scope.launch { repository.setGlobeInOnePlace(it) } }
         }

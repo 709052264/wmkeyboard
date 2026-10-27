@@ -1145,7 +1145,6 @@
     <string name="backup_sync_keep_layouts_title">Jezici i rasporedi</string>
     <string name="backup_sync_keep_local_info">Postavke koje ovdje označite ostaju kakve jesu na ovom uređaju. Promjene koje ovdje napravite neće se poslati, a promjene s vaših drugih uređaja se neće preuzeti. Ako ih kasnije odznačite, ovaj uređaj će preuzeti postavke s vaših drugih uređaja.</string>
     <string name="backup_sync_keep_local_title">Zadrži na ovom uređaju</string>
-    <string name="backup_sync_keep_needs_settings">Potrebno je označiti Postavke u Što se sinkronizira</string>
     <string name="backup_sync_keep_toolbar_subtitle">Koji alati, kojim redoslijedom i kako izgledaju</string>
     <string name="backup_sync_keep_toolbar_title">Alatna traka i okvir s alatima</string>
     <string name="backup_sync_local_note">Neke postavke ostaju na svakom uređaju jer odgovaraju samo tom uređaju: veličina i položaj tipkovnice, način rada jednom rukom, hardverska tipkovnica, uparena računala i zaključavanje aplikacije. Da biste zadržali više na ovom uređaju, koristite Zadrži na ovom uređaju u nastavku.</string>
@@ -1555,7 +1554,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">Izbriši popis riječi %1$s</string>
     <string name="customdict_delete_pack_desc">Izbriši paket emojija %1$s</string>
-    <string name="customdict_emoji_auto_download_blocked">Isključeno jer je opcija „Automatsko preuzimanje podataka” isključena u postavkama jezika</string>
     <string name="customdict_emoji_auto_download_info">Kada uključite jezik, aplikacija u pozadini preuzima njegove ključne riječi za emojije. To je oko 100 KB, jednokratno. Ako ovo isključite, gumbi za preuzimanje u nastavku jedini su način za dobivanje ključnih riječi.</string>
     <string name="customdict_emoji_auto_download_subtitle">Preuzmite ključne riječi za jezike na kojima tipkate</string>
     <string name="customdict_emoji_auto_download_title">Automatsko preuzimanje</string>
@@ -3638,7 +3636,6 @@
     <string name="languages_ansi_version_subtitle">Odaberite onu za koju je napravljen vaš ANSI font</string>
     <string name="languages_ansi_version_title">ANSI verzija</string>
     <string name="languages_auto_pair_toast">%1$s i %2$s sada predlažu riječi jedan drugoga. To možete promijeniti na stranici svakog jezika.</string>
-    <string name="languages_autocorrect_global_off_subtitle">Automatsko ispravljanje je isključeno za sve jezike u Tipkanju</string>
     <string name="languages_autocorrect_group">Automatsko ispravljanje</string>
     <string name="languages_autocorrect_info">Isključite ovo kako biste zadržali svaku riječ koju upišete na %1$s onako kako ste je upisali, dok se drugi jezici i dalje ispravljaju. Traka s prijedlozima i dalje prikazuje svoje prijedloge, a vi možete dodirnuti jedan. Prekidač za automatsko ispravljanje u Tipkanju isključuje automatsko ispravljanje za sve jezike.</string>
     <string name="languages_autocorrect_subtitle">Ispravi tipfelere kada pritisnete razmak</string>
@@ -3931,7 +3928,6 @@
     </plurals>
     <string name="languages_secondary_info">Tipkovnica nudi riječi iz ovih jezika dok tipkate %1$s. Automatsko ispravljanje ih nikada ne mijenja.</string>
     <string name="languages_secondary_title">Također predloži iz</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">Razmak nakon prijedloga je isključen za sve jezike u Tipkanju</string>
     <string name="languages_space_after_suggestion_info">Isključite ovo da biste upisali riječ koju odaberete iz trake prijedloga u %1$s bez razmaka nakon nje, tako da možete odmah dodati završetak. Drugi jezici i dalje dobivaju razmak. Prekidač Razmak nakon prijedloga u Tipkanju isključuje razmak za sve jezike.</string>
     <string name="languages_space_after_suggestion_subtitle">Dodaj razmak kada odaberete riječ iz trake prijedloga</string>
     <string name="languages_space_after_suggestion_title">Razmak nakon prijedloga</string>
@@ -4626,7 +4622,6 @@
     <string name="layout_globe_guard_info">Tipka 🌐 nalazi se pored razmaknice i zareza, tako da je brzi palac može greškom pritisnuti usred riječi i promijeniti jezik. Ovdje postavite vrijeme nakon kojeg se dodir tipke 🌐 neće uzeti u obzir ako je uslijedio neposredno nakon upisane tipke. Dodir nakon pauze mijenja jezik kao i obično, baš kao i brzi uzastopni dodiri na samoj tipki 🌐. Pritisnite i držite 🌐 za otvaranje popisa jezika u bilo kojem trenutku. Slova, razmak, povratnica (backspace) i unos (enter) računaju se kao tipkanje. Shift i tipke načina rada ne računaju se.</string>
     <string name="layout_globe_guard_subtitle">Dodirivanje 🌐 odmah nakon slova ne čini ništa</string>
     <string name="layout_globe_guard_title">Zanemari 🌐 odmah nakon tipkanja</string>
-    <string name="layout_globe_hidden_subtitle">Nema učinka dok je tipka 🌐 skrivena</string>
     <string name="layout_globe_in_one_place_info">Neki rasporedi postavljaju 🌐 tipku na drugo mjesto, na primjer sasvim lijevo ili izravno nakon tipke ?123. Ovo je pomiče na mjesto koje koriste ugrađeni rasporedi, tako da je vaš palac pronalazi na istom mjestu u svakom jeziku. Tipke s njezine lijeve strane postaju šire ili uže kako bi napravile mjesta, a razmaknica se prilagođava. Raspored gdje bi to učinilo tipke premalima ostaje kakav jest, kao i drugi raspored koji otvorite tipkom. Isključite ovo da biste vidjeli svaki raspored onako kako ga je autor napravio.</string>
     <string name="layout_globe_in_one_place_subtitle">Isto mjesto na svakom rasporedu, pored razmaknice</string>
     <string name="layout_globe_in_one_place_title">Zadrži tipku 🌐 na jednom mjestu</string>

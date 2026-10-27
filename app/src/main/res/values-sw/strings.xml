@@ -1147,7 +1147,6 @@
     <string name="backup_sync_keep_layouts_title">Lugha na mipangilio</string>
     <string name="backup_sync_keep_local_info">Mipangilio unayotia alama hapa inabaki jinsi ilivyo kwenye kifaa hiki. Mabadiliko unayofanya hapa hayatumwi, na mabadiliko kutoka kwa vifaa vyako vingine hayachukuliwi. Ukiondoa alama baadaye, kifaa hiki kitachukua kilicho kwenye vifaa vyako vingine.</string>
     <string name="backup_sync_keep_local_title">Weka kwenye kifaa hiki</string>
-    <string name="backup_sync_keep_needs_settings">Inahitaji Mipangilio itiwe alama katika Kinachosawazishwa</string>
     <string name="backup_sync_keep_toolbar_subtitle">Zana zipi, kwa mpangilio upi, na jinsi zinavyoonekana</string>
     <string name="backup_sync_keep_toolbar_title">Upau wa zana na kisanduku cha zana</string>
     <string name="backup_sync_local_note">Baadhi ya mipangilio hubaki kwenye kila kifaa, kwa sababu inafaa kifaa hicho pekee: ukubwa na nafasi ya kibodi, hali ya mkono mmoja, kibodi ya maunzi, kompyuta zilizooanishwa na kufuli ya programu. Ili kuweka zaidi kwenye kifaa hiki, tumia Weka kwenye kifaa hiki hapa chini.</string>
@@ -1557,7 +1556,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">Futa orodha ya maneno %1$s</string>
     <string name="customdict_delete_pack_desc">Futa kifurushi cha emoji %1$s</string>
-    <string name="customdict_emoji_auto_download_blocked">Imezimwa, kwa sababu “Pakua data kiotomatiki” imezimwa chini ya Lugha</string>
     <string name="customdict_emoji_auto_download_info">Unapowasha lugha, programu hupakua maneno muhimu ya emoji zake chinichini. Hii ni takriban KB 100, mara moja. Ukizima hii, vitufe vya Pakua hapa chini ndiyo njia pekee ya kupata maneno muhimu.</string>
     <string name="customdict_emoji_auto_download_subtitle">Pakua maneno muhimu kwa lugha unazochapa</string>
     <string name="customdict_emoji_auto_download_title">Pakua kiotomatiki</string>
@@ -3640,7 +3638,6 @@
     <string name="languages_ansi_version_subtitle">Chagua ile ambayo fonti yako ya ANSI imeundwa kwa ajili yake</string>
     <string name="languages_ansi_version_title">Toleo la ANSI</string>
     <string name="languages_auto_pair_toast">%1$s na %2$s sasa zinapendekeza maneno ya kila mmoja. Unaweza kubadilisha hili kwenye ukurasa wa kila lugha.</string>
-    <string name="languages_autocorrect_global_off_subtitle">Usahihishaji otomatiki umezimwa kwa lugha zote katika Kuandika</string>
     <string name="languages_autocorrect_group">Usahihishaji otomatiki</string>
     <string name="languages_autocorrect_info">Zima hii ili kuhifadhi kila neno unaloandika katika %1$s jinsi ulivyoliandika, huku lugha zingine zikiendelea kusahihishwa. Upau wa mapendekezo bado utaonyesha mapendekezo yake, na unaweza kugonga moja. Swichi ya kusahihisha kiotomatiki katika Kuandika huzima kusahihisha kiotomatiki kwa lugha zote.</string>
     <string name="languages_autocorrect_subtitle">Rekebisha makosa ya kuandika unapobonyeza nafasi</string>
@@ -3935,7 +3932,6 @@
     </plurals>
     <string name="languages_secondary_info">Kibodi hutoa maneno kutoka lugha hizi unapoandika %1$s. Usahihishaji otomatiki hauyabadilishi kamwe.</string>
     <string name="languages_secondary_title">Pendekeza pia kutoka</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">Nafasi baada ya pendekezo imezimwa kwa lugha zote katika Kuandika</string>
     <string name="languages_space_after_suggestion_info">Zima kipengele hiki ili kuandika neno unalochagua kutoka kwenye utepe wa mapendekezo katika %1$s bila nafasi baada yake, ili uweze kuongeza kiambishi moja kwa moja. Lugha nyingine bado zitapata nafasi. Kibadilishaji cha Nafasi baada ya pendekezo katika Kuandika huzima nafasi kwa lugha zote.</string>
     <string name="languages_space_after_suggestion_subtitle">Ongeza nafasi unapochagua neno kutoka kwenye utepe wa mapendekezo</string>
     <string name="languages_space_after_suggestion_title">Nafasi baada ya pendekezo</string>
@@ -4629,7 +4625,6 @@
     <string name="layout_globe_guard_info">Ufunguo wa 🌐 upo kando ya ufunguo wa nafasi na ufunguo wa koma, kwa hivyo kidole gumba kinachofanya kazi kwa kasi kinaweza kuubonyeza kwa bahati mbaya katikati ya neno na kubadilisha lugha. Weka muda hapa ili mguso wowote kwenye 🌐 unaotokea kabla ya muda huu baada ya kubonyeza herufi usifanye kazi. Mguso baada ya kusita kidogo utabadilisha lugha kama kawaida, na vivyo hivyo kwa mibonyezo ya haraka inayofuatana kwenye 🌐 lenyewe. Bonyeza na ushikilie 🌐 ili kufungua orodha ya lugha wakati wowote. Herufi, nafasi, ufutaji (backspace) na uingizaji (enter) huhesabiwa kama uandishi. Ufunguo wa Shift na funguo za kubadili hali hazihesabiwi. Mpangilio huu umezimwa kwa chaguo-msingi.</string>
     <string name="layout_globe_guard_subtitle">Kugonga 🌐 mara baada ya herufi hakufanyi chochote</string>
     <string name="layout_globe_guard_title">Puuza 🌐 mara baada ya kuandika</string>
-    <string name="layout_globe_hidden_subtitle">Hakuna athari wakati ufunguo wa 🌐 umefichwa</string>
     <string name="layout_globe_in_one_place_info">Baadhi ya mipangilio huweka kitufe cha 🌐 mahali tofauti, kwa mfano upande wa kushoto kabisa, au moja kwa moja baada ya kitufe cha ?123. Hii huhamishia mahali ambapo mipangilio iliyojengewa ndani hutumia, ili kidole chako kikipate mahali pamoja katika kila lugha. Vitufe vilivyo upande wake wa kushoto huwa vipana au mwembamba ili kutengeneza nafasi, na upau wa nafasi hubadilika ili kutoshea. Mpangilio ambao ungeifanya vitufe kuwa vidogo sana huachwa kama ulivyo, na hivyo ndivyo ilivyo kwa mpangilio wa pili unaofungua kutoka kwa kitufe. Zima hii ili kuona kila mpangilio kama mwandishi wake alivyotengeneza.</string>
     <string name="layout_globe_in_one_place_subtitle">Mahali pamoja kwenye kila mpangilio, kando ya upau wa nafasi</string>
     <string name="layout_globe_in_one_place_title">Weka kitufe cha 🌐 mahali pamoja</string>

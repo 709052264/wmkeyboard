@@ -1146,7 +1146,6 @@
     <string name="backup_sync_keep_layouts_title">زبان‌ها و چیدمان‌ها</string>
     <string name="backup_sync_keep_local_info">تنظیماتی که در اینجا انتخاب می‌کنید در این دستگاه به همان صورت باقی می‌مانند. تغییراتی که در اینجا اعمال می‌کنید ارسال نمی‌شوند و تغییرات از دستگاه‌های دیگر شما اعمال نخواهند شد. اگر بعداً تیک آن را بردارید، این دستگاه تنظیمات دستگاه‌های دیگر شما را دریافت می‌کند.</string>
     <string name="backup_sync_keep_local_title">نگهداری روی این دستگاه</string>
-    <string name="backup_sync_keep_needs_settings">نیاز دارد که تنظیمات در بخش «آنچه همگام‌سازی می‌شود» تیک خورده باشد</string>
     <string name="backup_sync_keep_toolbar_subtitle">کدام ابزارها، به چه ترتیبی و ظاهر آن‌ها چگونه باشد</string>
     <string name="backup_sync_keep_toolbar_title">نوار ابزار و جعبه‌ابزار</string>
     <string name="backup_sync_local_note">برخی تنظیمات روی هر دستگاه باقی می‌مانند، زیرا فقط با همان دستگاه سازگارند: اندازه و موقعیت صفحه‌کلید، حالت یک‌دستی، صفحه‌کلید سخت‌افزاری، رایانه‌های جفت‌شده و قفل برنامه. برای نگهداری موارد بیشتر روی این دستگاه، از گزینه «نگهداری روی این دستگاه» در زیر استفاده کنید.</string>
@@ -1556,7 +1555,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">حذف لیست کلمات %1$s</string>
     <string name="customdict_delete_pack_desc">حذف بسته ایموجی %1$s</string>
-    <string name="customdict_emoji_auto_download_blocked">خاموش شد، زیرا «دانلود خودکار داده‌ها» در بخش زبان‌ها غیرفعال است</string>
     <string name="customdict_emoji_auto_download_info">هنگامی که زبانی را روشن می‌کنید، برنامه کلمات کلیدی ایموجی آن را در پس‌زمینه دانلود می‌کند. این حدود ۱۰۰ کیلوبایت است، یک بار برای همیشه. اگر این را خاموش کنید، دکمه‌های دانلود در زیر تنها راه دریافت کلمات کلیدی هستند.</string>
     <string name="customdict_emoji_auto_download_subtitle">کلمات کلیدی را برای زبان‌هایی که تایپ می‌کنید بارگیری کنید</string>
     <string name="customdict_emoji_auto_download_title">دانلود خودکار</string>
@@ -3637,7 +3635,6 @@
     <string name="languages_ansi_version_subtitle">نسخه‌ای که فونت ANSI شما برای آن ساخته شده را انتخاب کنید</string>
     <string name="languages_ansi_version_title">نسخه ANSI</string>
     <string name="languages_auto_pair_toast">%1$s و %2$s اکنون کلمات یکدیگر را پیشنهاد می‌دهند. می‌توانید این مورد را در صفحه هر زبان تغییر دهید.</string>
-    <string name="languages_autocorrect_global_off_subtitle">تصحیح خودکار برای همه زبان‌ها در تایپ خاموش است</string>
     <string name="languages_autocorrect_group">تصحیح خودکار</string>
     <string name="languages_autocorrect_info">این گزینه را خاموش کنید تا هر کلمه‌ای که در %1$s تایپ می‌کنید همان‌طور که تایپ کرده‌اید باقی بماند، در حالی که زبان‌های دیگر همچنان تصحیح می‌شوند. نوار پیشنهادها همچنان پیشنهادهای خود را نشان می‌دهد و می‌توانید روی یکی از آن‌ها ضربه بزنید. کلید تصحیح خودکار در بخش تایپ، تصحیح خودکار را برای همه زبان‌ها خاموش می‌کند.</string>
     <string name="languages_autocorrect_subtitle">اصلاح غلط‌های تایپی هنگام فشردن کلید فاصله</string>
@@ -3931,7 +3928,6 @@
     </plurals>
     <string name="languages_secondary_info">صفحه‌کلید هنگام تایپ %1$s کلماتی از این زبان‌ها را پیشنهاد می‌دهد. تصحیح خودکار هرگز آن‌ها را تغییر نمی‌دهد.</string>
     <string name="languages_secondary_title">همچنین پیشنهاد از</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">فاصله بعد از پیشنهاد برای همه زبان‌ها در بخش تایپ غیرفعال است</string>
     <string name="languages_space_after_suggestion_info">این گزینه را خاموش کنید تا کلمه‌ای که از نوار پیشنهاد انتخاب می‌کنید در %1$s بدون فاصله بعد از آن تایپ شود، تا بتوانید بلافاصله یک پسوند اضافه کنید. سایر زبان‌ها همچنان فاصله را دریافت می‌کنند. کلید «فاصله بعد از پیشنهاد» در بخش تایپ، فاصله را برای همه زبان‌ها غیرفعال می‌کند.</string>
     <string name="languages_space_after_suggestion_subtitle">هنگام انتخاب کلمه از نوار پیشنهاد، یک فاصله اضافه شود</string>
     <string name="languages_space_after_suggestion_title">فاصله بعد از پیشنهاد</string>
@@ -4625,7 +4621,6 @@
     <string name="layout_globe_guard_info">کلید 🌐 در کنار کلید فاصله و ویرگول قرار دارد، بنابراین یک انگشت شست سریع ممکن است به اشتباه در وسط کلمه آن را لمس کرده و زبان را تغییر دهد. در اینجا یک زمان تعیین کنید تا لمس 🌐 که زودتر از این زمان پس از تایپ یک کلید انجام شود، هیچ کاری نکند. لمس پس از یک مکث، زبان را طبق معمول تغییر می‌دهد، و همین‌طور ضربه‌های سریع پشت سر هم روی خود 🌐. برای باز کردن لیست زبان‌ها در هر زمان، 🌐 را فشار داده و نگه دارید. حروف، فاصله، بازگشت (backspace) و اینتر به عنوان تایپ محسوب می‌شوند. کلید شیفت و کلیدهای حالت این‌طور نیستند. این تنظیم به‌طور پیش‌فرض خاموش است.</string>
     <string name="layout_globe_guard_subtitle">ضربه زدن روی 🌐 درست پس از یک حرف، کاری انجام نمی‌دهد</string>
     <string name="layout_globe_guard_title">نادیده گرفتن 🌐 بلافاصله پس از تایپ</string>
-    <string name="layout_globe_hidden_subtitle">زمانی که کلید 🌐 پنهان است، اثری ندارد</string>
     <string name="layout_globe_in_one_place_info">برخی از طرح‌بندی‌ها کلید 🌐 را در جای متفاوتی قرار می‌دهند، برای مثال در سمت چپ دور یا مستقیماً بعد از کلید ?123. این گزینه آن را به جایی که طرح‌بندی‌های پیش‌فرض استفاده می‌کنند منتقل می‌کند تا انگشت شست شما در هر زبانی آن را در همان مکان پیدا کند. کلیدهای سمت چپ آن پهن‌تر یا باریک‌تر می‌شوند تا جا باز شود و کلید فاصله نیز تغییر می‌کند تا متناسب شود. طرح‌بندی‌ای که باعث شود کلیدها خیلی کوچک شوند به همان صورت باقی می‌ماند، و همچنین طرح‌بندی دومی که از یک کلید باز می‌کنید. این گزینه را خاموش کنید تا هر طرح‌بندی را همان‌طور که نویسنده‌اش ساخته است ببینید.</string>
     <string name="layout_globe_in_one_place_subtitle">همان مکان در هر طرح‌بندی، کنار کلید فاصله</string>
     <string name="layout_globe_in_one_place_title">کلید 🌐 را در یک مکان ثابت نگه دارید</string>

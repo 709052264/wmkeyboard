@@ -1145,7 +1145,6 @@
     <string name="backup_sync_keep_layouts_title">ਭਾਸ਼ਾਵਾਂ ਅਤੇ ਲੇਆਉਟ</string>
     <string name="backup_sync_keep_local_info">ਜੋ ਸੈਟਿੰਗਾਂ ਤੁਸੀਂ ਇੱਥੇ ਟਿੱਕ ਕਰਦੇ ਹੋ ਉਹ ਇਸ ਡਿਵਾਈਸ \'ਤੇ ਉਸੇ ਤਰ੍ਹਾਂ ਰਹਿੰਦੀਆਂ ਹਨ। ਉਹਨਾਂ ਵਿੱਚ ਤੁਹਾਡੇ ਦੁਆਰਾ ਕੀਤੇ ਗਏ ਬਦਲਾਅ ਨਹੀਂ ਭੇਜੇ ਜਾਂਦੇ ਹਨ, ਅਤੇ ਤੁਹਾਡੀਆਂ ਹੋਰ ਡਿਵਾਈਸਾਂ ਤੋਂ ਬਦਲਾਅ ਨਹੀਂ ਲਏ ਜਾਂਦੇ ਹਨ। ਬਾਅਦ ਵਿੱਚ ਇੱਕ ਨੂੰ ਅਨਟਿੱਕ ਕਰੋ ਅਤੇ ਇਹ ਡਿਵਾਈਸ ਉਹ ਲੈਂਦੀ ਹੈ ਜੋ ਤੁਹਾਡੀਆਂ ਹੋਰ ਡਿਵਾਈਸਾਂ ਕੋਲ ਹੈ।</string>
     <string name="backup_sync_keep_local_title">ਇਸ ਡਿਵਾਈਸ \'ਤੇ ਰੱਖੋ</string>
-    <string name="backup_sync_keep_needs_settings">ਸਿੰਕ ਕਰਨ ਲਈ ਸੈਟਿੰਗਾਂ ਵਿੱਚੋਂ ਚੋਣ ਕਰਨ ਦੀ ਲੋੜ ਹੈ</string>
     <string name="backup_sync_keep_toolbar_subtitle">ਕਿਹੜੇ ਟੂਲ, ਕਿਸ ਕ੍ਰਮ ਵਿੱਚ, ਅਤੇ ਉਹ ਕਿਵੇਂ ਦਿਖਾਈ ਦਿੰਦੇ ਹਨ</string>
     <string name="backup_sync_keep_toolbar_title">ਟੂਲਬਾਰ ਅਤੇ ਟੂਲਬਾਕਸ</string>
     <string name="backup_sync_local_note">ਕੁਝ ਸੈਟਿੰਗਾਂ ਹਰ ਡਿਵਾਈਸ ਉੱਤੇ ਹੀ ਰਹਿੰਦੀਆਂ ਹਨ, ਕਿਉਂਕਿ ਉਹ ਸਿਰਫ਼ ਉਸੇ ਡਿਵਾਈਸ ਲਈ ਢੁਕਵੀਆਂ ਹਨ: ਕੀਬੋਰਡ ਦਾ ਆਕਾਰ ਅਤੇ ਸਥਿਤੀ, ਇੱਕ-ਹੱਥ ਮੋਡ, ਹਾਰਡਵੇਅਰ ਕੀਬੋਰਡ, ਪੇਅਰ ਕੀਤੇ ਕੰਪਿਊਟਰ ਅਤੇ ਐਪ ਲੌਕ।</string>
@@ -1555,7 +1554,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">ਸ਼ਬਦ ਸੂਚੀ %1$s ਨੂੰ ਮਿਟਾਓ</string>
     <string name="customdict_delete_pack_desc">ਇਮੋਜੀ ਪੈਕ %1$s ਨੂੰ ਮਿਟਾਓ</string>
-    <string name="customdict_emoji_auto_download_blocked">ਬੰਦ ਕੀਤਾ ਗਿਆ, ਕਿਉਂਕਿ ਭਾਸ਼ਾਵਾਂ ਦੇ ਅਧੀਨ “ਡੇਟਾ ਸਵੈਚਲਿਤ ਤੌਰ \'ਤੇ ਡਾਊਨਲੋਡ ਕਰੋ” ਬੰਦ ਹੈ</string>
     <string name="customdict_emoji_auto_download_info">ਜਦੋਂ ਤੁਸੀਂ ਕਿਸੇ ਭਾਸ਼ਾ ਨੂੰ ਚਾਲੂ ਕਰਦੇ ਹੋ, ਤਾਂ ਐਪ ਬੈਕਗ੍ਰਾਉਂਡ ਵਿੱਚ ਇਸਦੇ ਇਮੋਜੀ ਕੀਵਰਡਸ ਨੂੰ ਡਾਊਨਲੋਡ ਕਰਦੀ ਹੈ। ਇਹ ਲਗਭਗ 100 KB ਹੈ, ਇੱਕ ਵਾਰ ਲਈ। ਜੇਕਰ ਤੁਸੀਂ ਇਸਨੂੰ ਬੰਦ ਕਰਦੇ ਹੋ, ਤਾਂ ਹੇਠਾਂ ਦਿੱਤੇ ਡਾਊਨਲੋਡ ਬਟਨ ਹੀ ਕੀਵਰਡਸ ਪ੍ਰਾਪਤ ਕਰਨ ਦਾ ਇੱਕੋ ਇੱਕ ਤਰੀਕਾ ਹਨ।</string>
     <string name="customdict_emoji_auto_download_subtitle">ਤੁਹਾਡੇ ਦੁਆਰਾ ਟਾਈਪ ਕੀਤੀਆਂ ਭਾਸ਼ਾਵਾਂ ਲਈ ਕੀਵਰਡ ਡਾਊਨਲੋਡ ਕਰੋ</string>
     <string name="customdict_emoji_auto_download_title">ਆਟੋਮੈਟਿਕ ਡਾਊਨਲੋਡ ਕਰੋ</string>
@@ -3642,7 +3640,6 @@
     <string name="languages_ansi_version_subtitle">ਉਹ ਚੁਣੋ ਜਿਸ ਲਈ ਤੁਹਾਡਾ ANSI ਫੌਂਟ ਬਣਾਇਆ ਗਿਆ ਹੈ</string>
     <string name="languages_ansi_version_title">ANSI ਵਰਜਨ</string>
     <string name="languages_auto_pair_toast">%1$s ਅਤੇ %2$s ਹੁਣ ਇੱਕ ਦੂਜੇ ਦੇ ਸ਼ਬਦਾਂ ਦਾ ਸੁਝਾਅ ਦਿੰਦੇ ਹਨ। ਤੁਸੀਂ ਇਸਨੂੰ ਹਰੇਕ ਭਾਸ਼ਾ ਦੇ ਪੰਨੇ \'ਤੇ ਬਦਲ ਸਕਦੇ ਹੋ।</string>
-    <string name="languages_autocorrect_global_off_subtitle">ਟਾਈਪਿੰਗ ਵਿੱਚ ਸਾਰੀਆਂ ਭਾਸ਼ਾਵਾਂ ਲਈ ਆਟੋਕਰੈਕਟ ਬੰਦ ਹੈ</string>
     <string name="languages_autocorrect_group">ਆਟੋਕਰੈਕਟ</string>
     <string name="languages_autocorrect_info">ਜਦੋਂ ਤੁਸੀਂ %1$s ਵਿੱਚ ਕੋਈ ਸ਼ਬਦ ਟਾਈਪ ਕਰਦੇ ਹੋ, ਤਾਂ ਉਸਨੂੰ ਉਸੇ ਤਰ੍ਹਾਂ ਰੱਖਣ ਲਈ ਇਸਨੂੰ ਬੰਦ ਕਰੋ, ਜਦੋਂ ਕਿ ਹੋਰ ਭਾਸ਼ਾਵਾਂ ਅਜੇ ਵੀ ਸਹੀ ਕੀਤੀਆਂ ਜਾਣਗੀਆਂ। ਸੁਝਾਅ ਪੱਟੀ ਅਜੇ ਵੀ ਆਪਣੇ ਸੁਝਾਅ ਦਿਖਾਉਂਦੀ ਹੈ, ਅਤੇ ਤੁਸੀਂ ਕਿਸੇ ਇੱਕ \'ਤੇ ਟੈਪ ਕਰ ਸਕਦੇ ਹੋ। ਟਾਈਪਿੰਗ ਵਿੱਚ ਆਟੋਕਰੈਕਟ ਸਵਿੱਚ ਸਾਰੀਆਂ ਭਾਸ਼ਾਵਾਂ ਲਈ ਆਟੋਕਰੈਕਟ ਨੂੰ ਬੰਦ ਕਰ ਦਿੰਦਾ ਹੈ।</string>
     <string name="languages_autocorrect_subtitle">ਸਪੇਸ ਦਬਾਉਣ \'ਤੇ ਟਾਈਪਿੰਗ ਦੀਆਂ ਗਲਤੀਆਂ ਨੂੰ ਠੀਕ ਕਰੋ</string>
@@ -3935,7 +3932,6 @@
     </plurals>
     <string name="languages_secondary_info">ਜਦੋਂ ਤੁਸੀਂ %1$s ਟਾਈਪ ਕਰਦੇ ਹੋ ਤਾਂ ਕੀਬੋਰਡ ਇਹਨਾਂ ਭਾਸ਼ਾਵਾਂ ਦੇ ਸ਼ਬਦ ਪੇਸ਼ ਕਰਦਾ ਹੈ। ਆਟੋਕਰੈਕਟ ਉਹਨਾਂ ਨੂੰ ਕਦੇ ਨਹੀਂ ਬਦਲਦਾ।</string>
     <string name="languages_secondary_title">ਇੱਥੋਂ ਵੀ ਸੁਝਾਅ ਦਿਓ</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">ਟਾਈਪਿੰਗ ਵਿੱਚ ਸਾਰੀਆਂ ਭਾਸ਼ਾਵਾਂ ਲਈ ਸੁਝਾਅ ਤੋਂ ਬਾਅਦ ਸਪੇਸ ਬੰਦ ਹੈ</string>
     <string name="languages_space_after_suggestion_info">ਜੇ ਤੁਸੀਂ ਚਾਹੁੰਦੇ ਹੋ ਕਿ ਸੁਝਾਅ ਪੱਟੀ ਵਿੱਚੋਂ ਚੁਣੇ ਗਏ ਕਿਸੇ ਸ਼ਬਦ ਤੋਂ ਬਾਅਦ %1$s ਵਿੱਚ ਸਪੇਸ ਨਾ ਪਵੇ, ਤਾਂ ਇਸਨੂੰ ਬੰਦ ਕਰੋ, ਤਾਂ ਜੋ ਤੁਸੀਂ ਤੁਰੰਤ ਅੰਤ ਜੋੜ ਸਕੋ। ਹੋਰ ਭਾਸ਼ਾਵਾਂ ਵਿੱਚ ਅਜੇ ਵੀ ਸਪੇਸ ਮਿਲੇਗੀ। ਟਾਈਪਿੰਗ ਵਿੱਚ \'ਸੁਝਾਅ ਤੋਂ ਬਾਅਦ ਸਪੇਸ\' ਸਵਿੱਚ ਸਾਰੀਆਂ ਭਾਸ਼ਾਵਾਂ ਲਈ ਸਪੇਸ ਨੂੰ ਬੰਦ ਕਰ ਦਿੰਦਾ ਹੈ।</string>
     <string name="languages_space_after_suggestion_subtitle">ਜਦੋਂ ਤੁਸੀਂ ਸੁਝਾਅ ਪੱਟੀ ਤੋਂ ਕੋਈ ਸ਼ਬਦ ਚੁਣਦੇ ਹੋ ਤਾਂ ਇੱਕ ਸਪੇਸ ਜੋੜੋ</string>
     <string name="languages_space_after_suggestion_title">ਸੁਝਾਅ ਤੋਂ ਬਾਅਦ ਸਪੇਸ</string>
@@ -4629,7 +4625,6 @@
     <string name="layout_globe_guard_info">🌐 ਕੁੰਜੀ ਸਪੇਸਬਾਰ ਅਤੇ ਕੌਮੇ ਦੇ ਨਾਲ ਹੁੰਦੀ ਹੈ, ਇਸ ਲਈ ਇੱਕ ਤੇਜ਼ ਅੰਗੂਠਾ ਕਿਸੇ ਸ਼ਬਦ ਦੇ ਵਿਚਕਾਰ ਇਸਨੂੰ ਗਲਤੀ ਨਾਲ ਦਬਾ ਸਕਦਾ ਹੈ ਅਤੇ ਭਾਸ਼ਾ ਬਦਲ ਸਕਦਾ ਹੈ। ਇੱਥੇ ਇੱਕ ਸਮਾਂ ਨਿਰਧਾਰਤ ਕਰੋ ਅਤੇ ਕੋਈ ਵੀ ਟਾਈਪ ਕੀਤੀ ਕੁੰਜੀ ਤੋਂ ਤੁਰੰਤ ਬਾਅਦ 🌐 ਉੱਤੇ ਇੱਕ ਟੈਪ ਕੁਝ ਨਹੀਂ ਕਰੇਗਾ। ਇੱਕ ਵਿਰਾਮ ਤੋਂ ਬਾਅਦ ਇੱਕ ਟੈਪ ਆਮ ਵਾਂਗ ਭਾਸ਼ਾ ਬਦਲਦਾ ਹੈ, ਅਤੇ 🌐 ਉੱਤੇ ਹੀ ਇੱਕ ਤੋਂ ਬਾਅਦ ਇੱਕ ਤੇਜ਼ ਟੈਪ ਵੀ ਇਹੀ ਕੰਮ ਕਰਦੇ ਹਨ। ਕਿਸੇ ਵੀ ਸਮੇਂ ਭਾਸ਼ਾ ਦੀ ਸੂਚੀ ਖੋਲ੍ਹਣ ਲਈ 🌐 ਨੂੰ ਦਬਾ ਕੇ ਰੱਖੋ। ਅੱਖਰ, ਸਪੇਸ, ਬੈਕਸਪੇਸ ਅਤੇ ਐਂਟਰ ਨੂੰ ਟਾਈਪਿੰਗ ਵਜੋਂ ਗਿਣਿਆ ਜਾਂਦਾ ਹੈ। ਸ਼ਿਫਟ ਅਤੇ ਮੋਡ ਕੁੰਜੀਆਂ ਨੂੰ ਨਹੀਂ। ਇਹ ਸੈਟਿੰਗ ਡਿਫੌਲਟ ਰੂਪ ਵਿੱਚ ਬੰਦ ਹੈ।</string>
     <string name="layout_globe_guard_subtitle">ਇੱਕ ਅੱਖਰ ਤੋਂ ਤੁਰੰਤ ਬਾਅਦ 🌐 \'ਤੇ ਟੈਪ ਕਰਨ ਨਾਲ ਕੁਝ ਨਹੀਂ ਹੁੰਦਾ</string>
     <string name="layout_globe_guard_title">ਟਾਈਪ ਕਰਨ ਤੋਂ ਤੁਰੰਤ ਬਾਅਦ 🌐 ਨੂੰ ਨਜ਼ਰਅੰਦਾਜ਼ ਕਰੋ</string>
-    <string name="layout_globe_hidden_subtitle">ਜਦੋਂ 🌐 ਕੁੰਜੀ ਲੁਕੀ ਹੋਈ ਹੋਵੇ ਤਾਂ ਕੋਈ ਪ੍ਰਭਾਵ ਨਹੀਂ</string>
     <string name="layout_globe_in_one_place_info">ਕੁਝ ਲੇਆਉਟ 🌐 ਕੁੰਜੀ ਨੂੰ ਇੱਕ ਵੱਖਰੀ ਥਾਂ \'ਤੇ ਰੱਖਦੇ ਹਨ, ਉਦਾਹਰਣ ਲਈ ਬਿਲਕੁਲ ਖੱਬੇ ਪਾਸੇ, ਜਾਂ ਸਿੱਧਾ ?123 ਕੁੰਜੀ ਦੇ ਬਾਅਦ। ਇਹ ਇਸਨੂੰ ਉਸ ਥਾਂ \'ਤੇ ਲੈ ਜਾਂਦਾ ਹੈ ਜਿੱਥੇ ਬਿਲਟ-ਇਨ ਲੇਆਉਟ ਵਰਤਦੇ ਹਨ, ਤਾਂ ਜੋ ਤੁਹਾਡਾ ਅੰਗੂਠਾ ਹਰ ਭਾਸ਼ਾ ਵਿੱਚ ਇਸਨੂੰ ਇੱਕੋ ਥਾਂ \'ਤੇ ਲੱਭ ਸਕੇ। ਇਸਦੇ ਖੱਬੇ ਪਾਸੇ ਦੀਆਂ ਕੁੰਜੀਆਂ ਜਗ੍ਹਾ ਬਣਾਉਣ ਲਈ ਚੌੜੀਆਂ ਜਾਂ ਤੰਗ ਹੋ ਜਾਂਦੀਆਂ ਹਨ, ਅਤੇ ਸਪੇਸਬਾਰ ਫਿੱਟ ਹੋਣ ਲਈ ਬਦਲ ਜਾਂਦੀ ਹੈ। ਇੱਕ ਲੇਆਉਟ ਜਿੱਥੇ ਇਹ ਕੁੰਜੀਆਂ ਨੂੰ ਬਹੁਤ ਛੋਟਾ ਕਰ ਦੇਵੇਗਾ, ਉਸਨੂੰ ਉਸੇ ਤਰ੍ਹਾਂ ਹੀ ਰਹਿਣ ਦਿੱਤਾ ਜਾਂਦਾ ਹੈ, ਅਤੇ ਇਸੇ ਤਰ੍ਹਾਂ ਦੂਜੇ ਲੇਆਉਟ ਨੂੰ ਜੋ ਤੁਸੀਂ ਇੱਕ ਕੁੰਜੀ ਤੋਂ ਖੋਲ੍ਹਦੇ ਹੋ। ਇਸ ਨੂੰ ਬੰਦ ਕਰਨ \'ਤੇ ਹਰ ਲੇਆਉਟ ਉਸੇ ਤਰ੍ਹਾਂ ਦਿਖਾਈ ਦੇਵੇਗਾ ਜਿਵੇਂ ਇਸਦੇ ਲੇਖਕ ਨੇ ਬਣਾਇਆ ਹੈ।</string>
     <string name="layout_globe_in_one_place_subtitle">ਹਰੇਕ ਲੇਆਉਟ \'ਤੇ ਇੱਕੋ ਥਾਂ, ਸਪੇਸਬਾਰ ਦੇ ਨਾਲ</string>
     <string name="layout_globe_in_one_place_title">🌐 ਕੁੰਜੀ ਨੂੰ ਇੱਕ ਹੀ ਥਾਂ \'ਤੇ ਰੱਖੋ</string>

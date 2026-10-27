@@ -1862,14 +1862,15 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
         }
     }
 
+    // What to keep out of the synced settings, so gone with them.
+    val syncsSettings = settings.watch { ConfigBackup.Section.SETTINGS in it.autoBackup.sync.sectionSet }
     SettingsGroup(
         stringResource(R.string.backup_sync_keep_local_title),
         info = stringResource(R.string.backup_sync_keep_local_info),
         level = SettingLevel.ADVANCED,
     ) {
         for (group in SyncKeys.LocalGroup.entries) {
-            item {
-                val syncsSettings = settings.watch { ConfigBackup.Section.SETTINGS in it.autoBackup.sync.sectionSet }
+            item(visible = syncsSettings) {
                 ToggleSetting(
                     when (group) {
                         SyncKeys.LocalGroup.TOOLBAR -> R.string.backup_sync_keep_toolbar_title
@@ -1877,15 +1878,13 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
                         SyncKeys.LocalGroup.THEME -> R.string.backup_sync_keep_theme_title
                     },
                     stringResource(
-                        when {
-                            !syncsSettings -> R.string.backup_sync_keep_needs_settings
-                            group == SyncKeys.LocalGroup.TOOLBAR -> R.string.backup_sync_keep_toolbar_subtitle
-                            group == SyncKeys.LocalGroup.THEME -> R.string.backup_sync_keep_theme_subtitle
+                        when (group) {
+                            SyncKeys.LocalGroup.TOOLBAR -> R.string.backup_sync_keep_toolbar_subtitle
+                            SyncKeys.LocalGroup.THEME -> R.string.backup_sync_keep_theme_subtitle
                             else -> R.string.backup_sync_keep_layouts_subtitle
                         },
                     ),
                     settings.watch { group in it.autoBackup.sync.keepLocalGroups },
-                    enabled = syncsSettings,
                     default = false,
                 ) { on ->
                     scope.launch {

@@ -1144,7 +1144,6 @@
     <string name="backup_sync_keep_layouts_title">Talen en lay-outs</string>
     <string name="backup_sync_keep_local_info">Instellingen die je hier aanvinkt, blijven zoals ze zijn op dit apparaat. Wijzigingen die je hier aanbrengt, worden niet verzonden en wijzigingen van je andere apparaten worden niet overgenomen. Vink er later een uit en dit apparaat neemt de instellingen van je andere apparaten over.</string>
     <string name="backup_sync_keep_local_title">Op dit apparaat behouden</string>
-    <string name="backup_sync_keep_needs_settings">Vereist dat Instellingen is aangevinkt bij Wat synchroniseert</string>
     <string name="backup_sync_keep_toolbar_subtitle">Welke hulpmiddelen, in welke volgorde en hoe ze eruitzien</string>
     <string name="backup_sync_keep_toolbar_title">Werkbalk en toolbox</string>
     <string name="backup_sync_local_note">Sommige instellingen blijven op elk apparaat, omdat ze alleen bij dat apparaat passen: de toetsenbordgrootte en -positie, de modus voor één hand, het fysieke toetsenbord, gekoppelde computers en de app-vergrendeling.</string>
@@ -1554,7 +1553,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">De woordenlijst %1$s verwijderen</string>
     <string name="customdict_delete_pack_desc">Verwijder het emoji-pakket %1$s</string>
-    <string name="customdict_emoji_auto_download_blocked">Uitgeschakeld, omdat \"Gegevens automatisch downloaden\" is uitgeschakeld onder Talen</string>
     <string name="customdict_emoji_auto_download_info">Wanneer je een taal inschakelt, downloadt de app de emoji-trefwoorden op de achtergrond. Dit is ongeveer 100 KB, eenmalig. Als je dit uitschakelt, zijn de downloadknoppen hieronder de enige manier om de trefwoorden te krijgen.</string>
     <string name="customdict_emoji_auto_download_subtitle">Trefwoorden downloaden voor de talen die je typt</string>
     <string name="customdict_emoji_auto_download_title">Automatisch downloaden</string>
@@ -3631,7 +3629,6 @@
     <string name="languages_ansi_version_subtitle">Kies degene waarvoor uw ANSI-lettertype is gemaakt</string>
     <string name="languages_ansi_version_title">ANSI-versie</string>
     <string name="languages_auto_pair_toast">%1$s en %2$s suggereren nu elkaars woorden. Je kunt dit wijzigen op de pagina van elke taal.</string>
-    <string name="languages_autocorrect_global_off_subtitle">Autocorrectie is uitgeschakeld voor alle talen in Typen</string>
     <string name="languages_autocorrect_group">Autocorrectie</string>
     <string name="languages_autocorrect_info">Schakel dit uit om elk woord dat je typt in %1$s te behouden zoals je het hebt getypt, terwijl andere talen nog steeds worden gecorrigeerd. De suggestiebalk toont nog steeds suggesties en je kunt er een aantikken. De autocorrectieschakelaar in \'Typen\' schakelt autocorrectie voor alle talen uit.</string>
     <string name="languages_autocorrect_subtitle">Corrigeer typefouten wanneer u op de spatiebalk drukt</string>
@@ -3925,7 +3922,6 @@
     </plurals>
     <string name="languages_secondary_info">Het toetsenbord biedt woorden uit deze talen aan terwijl je %1$s typt. Automatische correctie wijzigt deze nooit.</string>
     <string name="languages_secondary_title">Ook suggesties van</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">Spatie na een suggestie is uitgeschakeld voor alle talen in Typen</string>
     <string name="languages_space_after_suggestion_info">Schakel dit uit om een woord dat u selecteert uit de suggestiebalk in %1$s te typen zonder spatie erachter, zodat u direct een uitgang kunt toevoegen. Andere talen krijgen nog steeds de spatie. De schakelaar \'Spatie na suggestie\' bij Typen zet de spatie uit voor alle talen.</string>
     <string name="languages_space_after_suggestion_subtitle">Voeg een spatie toe wanneer je een woord uit de suggestiebalk selecteert</string>
     <string name="languages_space_after_suggestion_title">Spatie na een suggestie</string>
@@ -4619,7 +4615,6 @@
     <string name="layout_globe_guard_info">De 🌐-toets bevindt zich naast de spatiebalk en de komma, dus een snelle duim kan er per ongeluk midden in een woord op drukken en de taal wijzigen. Stel hier een tijd in; een tik op 🌐 die korter dan deze tijd na een getypte toets plaatsvindt, doet niets. Een tik na een pauze wijzigt de taal zoals gebruikelijk, evenals snel achter elkaar tikken op 🌐 zelf. Houd 🌐 ingedrukt om op elk gewenst moment de talenlijst te openen. Letters, spatie, backspace en enter tellen als typen. Shift en de modustoetsen niet. Deze instelling staat standaard uit.</string>
     <string name="layout_globe_guard_subtitle">Een tik op 🌐 direct na een letter doet niets</string>
     <string name="layout_globe_guard_title">Negeer 🌐 direct na het typen</string>
-    <string name="layout_globe_hidden_subtitle">Geen effect terwijl de 🌐-toets verborgen is</string>
     <string name="layout_globe_in_one_place_info">Sommige lay-outs plaatsen de 🌐-toets op een andere plek, bijvoorbeeld helemaal links of direct na de ?123-toets. Dit verplaatst de toets naar de locatie die de ingebouwde lay-outs gebruiken, zodat je duim hem in elke taal op dezelfde plek vindt. De toetsen links ervan worden breder of smaller om ruimte te maken, en de spatiebalk past zich aan. Een lay-out waarbij dit de toetsen te klein zou maken, blijft ongewijzigd, evenals een tweede lay-out die je vanuit een toets opent. Schakel dit uit om elke lay-out te zien zoals de auteur hem heeft ontworpen.</string>
     <string name="layout_globe_in_one_place_subtitle">Op elke lay-out op dezelfde plek, naast de spatiebalk</string>
     <string name="layout_globe_in_one_place_title">Houd de 🌐-toets op één plek</string>

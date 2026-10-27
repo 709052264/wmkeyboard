@@ -679,6 +679,7 @@ internal fun ClipboardSettings(
     val historyOn = settings.watch { it.clipboard.history }
     val swipeToDelete = settings.watch { it.clipboard.swipeToDelete }
     val clipSearch = settings.watch { it.clipboard.search }
+    val clipView = settings.watch { it.clipboard.view }
     // The slider readouts are plain lambdas, so their format strings are
     // resolved here and captured. The format also puts the number through the
     // locale, which is what gives Bengali or Arabic digits.
@@ -778,11 +779,11 @@ internal fun ClipboardSettings(
                 subtitle = stringResource(R.string.clipboard_view_subtitle),
                 info = stringResource(R.string.clipboard_view_info),
                 options = ClipboardView.entries.map { it to stringResource(it.labelRes) },
-                selected = settings.watch { it.clipboard.view },
+                selected = clipView,
                 default = SettingsDefaults.clipboard.view,
             ) { scope.launch { repository.setClipboardView(it) } }
         }
-        item {
+        item(visible = clipView == ClipboardView.GRID) {
             SliderSetting(
                 R.string.clipboard_columns_title,
                 subtitle = stringResource(R.string.clipboard_columns_subtitle),
@@ -790,11 +791,6 @@ internal fun ClipboardSettings(
                 range = ClipGridColumnsRange.first.toFloat()..ClipGridColumnsRange.last.toFloat(),
                 display = { numberFormat.format(it.roundToInt()) },
                 info = stringResource(R.string.clipboard_columns_info),
-                enabled = settings.watch { it.clipboard.view == ClipboardView.GRID },
-                disabledReason = rememberDisabledReason(
-                    stringResource(R.string.clipboard_columns_needs_grid_reason),
-                    R.string.clipboard_view_title,
-                ),
                 default = SettingsDefaults.clipboard.gridColumns.toFloat(),
             ) { scope.launch { repository.setClipboardGridColumns(it.roundToInt()) } }
         }
@@ -1076,28 +1072,16 @@ internal fun ClipboardHistorySettings(
             ) { scope.launch { repository.setClipboardMaxTextChars(steps[it.roundToInt().coerceIn(steps.indices)]) } }
         }
     }
+    // The tabs put pinned clips on a tab of their own, and in place keeps them
+    // where they were copied: either way there is no end of the list left for
+    // them to go to, so the row goes while one of those is on.
+    val pinnedEndFree = !settings.watch { it.clipboard.pinnedTabs } && !settings.watch { it.clipboard.pinnedInPlace }
     SettingsGroup(stringResource(R.string.clipboard_pinned_group)) {
-        item(level = SettingLevel.ADVANCED) {
-            // The tabs put pinned clips on a tab of their own, where there is
-            // no end of the list left for them to go to.
-            val pinnedTabs = settings.watch { it.clipboard.pinnedTabs }
+        item(visible = pinnedEndFree, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.clipboard_pinned_last_title,
                 stringResource(R.string.clipboard_pinned_last_subtitle),
                 settings.watch { it.clipboard.pinnedLast },
-                enabled = !pinnedTabs && !settings.watch { it.clipboard.pinnedInPlace },
-                // Whichever of the two is holding it is the switch to send
-                // the user to; the tabs first, as they are the one drawn first.
-                disabledReason = rememberDisabledReason(
-                    stringResource(
-                        if (pinnedTabs) {
-                            R.string.clipboard_pinned_last_tabs_reason
-                        } else {
-                            R.string.clipboard_pinned_last_in_place_reason
-                        },
-                    ),
-                    if (pinnedTabs) R.string.clipboard_pinned_tabs_title else R.string.clipboard_pinned_in_place_title,
-                ),
                 default = SettingsDefaults.clipboard.pinnedLast,
             ) { scope.launch { repository.setClipboardPinnedLast(it) } }
         }

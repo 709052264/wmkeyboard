@@ -1141,7 +1141,6 @@
     <string name="backup_sync_keep_layouts_title">Jazyky a rozložení</string>
     <string name="backup_sync_keep_local_info">Nastavení, která zde zaškrtnete, zůstanou v tomto zařízení beze změny. Změny, které zde provedete, se neodesílají a změny z vašich ostatních zařízení se nepřebírají. Pokud nastavení později odškrtnete, zařízení převezme to, co mají vaše ostatní zařízení.</string>
     <string name="backup_sync_keep_local_title">Ponechat v tomto zařízení</string>
-    <string name="backup_sync_keep_needs_settings">Vyžaduje zaškrtnuté Nastavení v části Co se synchronizuje</string>
     <string name="backup_sync_keep_toolbar_subtitle">Jaké nástroje, v jakém pořadí a jak vypadají</string>
     <string name="backup_sync_keep_toolbar_title">Panel nástrojů a sada nástrojů</string>
     <string name="backup_sync_local_note">Některá nastavení zůstávají v každém zařízení, protože jsou specifická pouze pro dané zařízení: velikost a pozice klávesnice, režim ovládání jednou rukou, hardwarová klávesnice, spárované počítače a zámek aplikace. Chcete-li v tomto zařízení zachovat více, použijte níže možnost Ponechat v tomto zařízení.</string>
@@ -1551,7 +1550,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">Smazat seznam slov %1$s</string>
     <string name="customdict_delete_pack_desc">Smazat balíček emoji %1$s</string>
-    <string name="customdict_emoji_auto_download_blocked">Vypnuto, protože v sekci Jazyky je vypnuto „Automaticky stahovat data“</string>
     <string name="customdict_emoji_auto_download_info">Když zapnete jazyk, aplikace na pozadí stáhne jeho klíčová slova emoji. Je to přibližně 100 KB, jednorázově. Pokud tuto možnost vypnete, tlačítka Stáhnout níže jsou jediným způsobem, jak klíčová slova získat.</string>
     <string name="customdict_emoji_auto_download_subtitle">Stáhnout klíčová slova pro jazyky, ve kterých píšete</string>
     <string name="customdict_emoji_auto_download_title">Stahovat automaticky</string>
@@ -3627,7 +3625,6 @@
     <string name="languages_ansi_version_subtitle">Vyberte tu, pro kterou je vaše písmo ANSI vytvořeno</string>
     <string name="languages_ansi_version_title">ANSI verze</string>
     <string name="languages_auto_pair_toast">%1$s a %2$s si nyní navzájem navrhují slova. Toto nastavení můžete změnit na stránce každého jazyka.</string>
-    <string name="languages_autocorrect_global_off_subtitle">Automatické opravy jsou pro všechny jazyky v psaní vypnuty</string>
     <string name="languages_autocorrect_group">Automatické opravy</string>
     <string name="languages_autocorrect_info">Vypněte tuto funkci, aby každé slovo, které napíšete v %1$s, zůstalo tak, jak jste ho napsali, zatímco ostatní jazyky budou stále opravovány. Panel návrhů bude stále zobrazovat své návrhy a můžete na jeden z nich klepnout. Přepínač automatických oprav v sekci Psaní vypne automatické opravy pro všechny jazyky.</string>
     <string name="languages_autocorrect_subtitle">Opravit překlepy po stisknutí mezerníku</string>
@@ -3920,7 +3917,6 @@
     </plurals>
     <string name="languages_secondary_info">Klávesnice nabízí slova z těchto jazyků, zatímco píšete %1$s. Automatické opravy je nikdy nemění.</string>
     <string name="languages_secondary_title">Navrhovat také z</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">Mezera po návrhu je v Psaní vypnuta pro všechny jazyky</string>
     <string name="languages_space_after_suggestion_info">Vypněte tuto možnost, chcete-li napsat slovo vybrané z panelu návrhů v %1$s bez mezery za ním, abyste mohli ihned přidat koncovku. Ostatní jazyky budou mít mezeru i nadále. Přepínač Mezera po návrhu v Psaní vypne mezeru pro všechny jazyky.</string>
     <string name="languages_space_after_suggestion_subtitle">Po výběru slova z pruhu návrhů přidat mezeru</string>
     <string name="languages_space_after_suggestion_title">Mezera po návrhu</string>
@@ -4614,7 +4610,6 @@
     <string name="layout_globe_guard_info">Klávesa 🌐 je vedle mezerníku a čárky, takže rychlý palec ji může omylem zasáhnout uprostřed slova a změnit jazyk. Nastavte zde čas a klepnutí na 🌐, ke kterému dojde dříve než po napsání klávesy, nic neudělá. Klepnutí po pauze změní jazyk jako obvykle, stejně jako rychlá klepnutí jedno po druhém na samotnou 🌐. Stisknutím a podržením 🌐 kdykoli otevřete seznam jazyků. Písmena, mezera, backspace a enter se počítají jako psaní. Shift a klávesy režimu nikoli. Toto nastavení je ve výchozím nastavení vypnuto.</string>
     <string name="layout_globe_guard_subtitle">Klepnutí na 🌐 těsně po zadání písmene nic neudělá</string>
     <string name="layout_globe_guard_title">Ignorovat 🌐 ihned po psaní</string>
-    <string name="layout_globe_hidden_subtitle">Žádný efekt, když je klávesa 🌐 skrytá</string>
     <string name="layout_globe_in_one_place_info">Některá rozložení umísťují klávesu 🌐 na jiné místo, například úplně vlevo nebo přímo za klávesu ?123. Toto nastavení ji přesune na místo, které používají vestavěná rozložení, takže ji váš palec najde na stejném místě v každém jazyce. Klávesy nalevo od ní se rozšíří nebo zúží, aby vytvořily prostor, a mezerník se přizpůsobí. Rozložení, kde by to způsobilo příliš malé klávesy, zůstane tak, jak je, stejně jako druhé rozložení, které otevřete z klávesy. Vypněte toto nastavení, pokud chcete vidět každé rozložení tak, jak ho vytvořil jeho autor.</string>
     <string name="layout_globe_in_one_place_subtitle">Na stejném místě v každém rozložení, vedle mezerníku</string>
     <string name="layout_globe_in_one_place_title">Ponechte 🌐 klávesu na jednom místě</string>

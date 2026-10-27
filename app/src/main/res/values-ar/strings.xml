@@ -1146,7 +1146,6 @@
     <string name="backup_sync_keep_layouts_title">اللغات والتخطيطات</string>
     <string name="backup_sync_keep_local_info">ستبقى الإعدادات التي تضع علامة عليها هنا كما هي على هذا الجهاز. التغييرات التي تجريها عليها هنا لن يتم إرسالها، ولن يتم اعتماد التغييرات القادمة من أجهزتك الأخرى. في حال إلغاء تحديد خيار ما لاحقًا، سيأخذ هذا الجهاز إعدادات أجهزتك الأخرى.</string>
     <string name="backup_sync_keep_local_title">الاحتفاظ على هذا الجهاز</string>
-    <string name="backup_sync_keep_needs_settings">يحتاج إلى تحديد الإعدادات في \"ما الذي تتم مزامنته\"</string>
     <string name="backup_sync_keep_toolbar_subtitle">أي الأدوات، وبأي ترتيب، وكيف تبدو</string>
     <string name="backup_sync_keep_toolbar_title">شريط الأدوات وصندوق الأدوات</string>
     <string name="backup_sync_local_note">تبقى بعض الإعدادات على كل جهاز لأنها تناسب ذلك الجهاز فقط: حجم لوحة المفاتيح وموقعها، ووضع اليد الواحدة، ولوحة المفاتيح الفعلية، وأجهزة الكمبيوتر المقترنة، وقفل التطبيق. للاحتفاظ بالمزيد على هذا الجهاز، استخدم خيار \"الاحتفاظ على هذا الجهاز\" أدناه.</string>
@@ -1556,7 +1555,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">حذف قائمة الكلمات %1$s</string>
     <string name="customdict_delete_pack_desc">حذف حزمة الرموز التعبيرية %1$s</string>
-    <string name="customdict_emoji_auto_download_blocked">تم إيقاف التشغيل، لأن خيار \"تنزيل البيانات تلقائيًا\" معطل ضمن اللغات</string>
     <string name="customdict_emoji_auto_download_info">عند تفعيل لغة ما، يقوم التطبيق بتنزيل كلمات الإيموجي الخاصة بها في الخلفية. هذا يستهلك حوالي 100 كيلوبايت، لمرة واحدة. إذا قمت بإيقاف هذا، فإن أزرار التنزيل أدناه هي الطريقة الوحيدة للحصول على الكلمات.</string>
     <string name="customdict_emoji_auto_download_subtitle">تنزيل الكلمات الرئيسية للغات التي تكتب بها</string>
     <string name="customdict_emoji_auto_download_title">تنزيل تلقائي</string>
@@ -3635,7 +3633,6 @@
     <string name="languages_ansi_version_subtitle">اختر الإصدار الذي صُمم خط ANSI الخاص بك من أجله</string>
     <string name="languages_ansi_version_title">إصدار ANSI</string>
     <string name="languages_auto_pair_toast">أصبحت %1$s و %2$s تقترحان كلمات بعضهما البعض الآن. يمكنك تغيير هذا في صفحة كل لغة.</string>
-    <string name="languages_autocorrect_global_off_subtitle">التصحيح التلقائي متوقف لجميع اللغات في الكتابة</string>
     <string name="languages_autocorrect_group">التصحيح التلقائي</string>
     <string name="languages_autocorrect_info">أوقف هذا الخيار للإبقاء على كل كلمة تكتبها بـ %1$s كما هي، بينما تظل اللغات الأخرى مصححة. سيظل شريط الاقتراحات يعرض اقتراحاته، ويمكنك النقر على أحدها. مفتاح التصحيح التلقائي في \"الكتابة\" يوقف التصحيح التلقائي لجميع اللغات.</string>
     <string name="languages_autocorrect_subtitle">تصحيح الأخطاء الإملائية عند الضغط على المسافة</string>
@@ -3928,7 +3925,6 @@
     </plurals>
     <string name="languages_secondary_info">توفر لوحة المفاتيح كلمات من هذه اللغات أثناء الكتابة بـ %1$s. التصحيح التلقائي لا يغيرها أبدًا.</string>
     <string name="languages_secondary_title">اقتراح أيضاً من</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">تم إيقاف المسافة بعد الاقتراح لجميع اللغات في الكتابة</string>
     <string name="languages_space_after_suggestion_info">أوقف هذا الخيار لكتابة كلمة تختارها من شريط الاقتراحات في %1$s بدون مسافة بعدها، حتى تتمكن من إضافة نهاية للكلمة مباشرة. لا تزال اللغات الأخرى تحصل على المسافة. مفتاح \"المسافة بعد الاقتراح\" في \"الكتابة\" يوقف المسافة لجميع اللغات.</string>
     <string name="languages_space_after_suggestion_subtitle">إضافة مسافة عند اختيار كلمة من شريط الاقتراحات</string>
     <string name="languages_space_after_suggestion_title">مسافة بعد الاقتراح</string>
@@ -4623,7 +4619,6 @@
     <string name="layout_globe_guard_info">مفتاح 🌐 موجود بجوار شريط المسافة والفاصلة، لذا يمكن لإبهام سريع أن يضربه عن طريق الخطأ في منتصف الكلمة ويغير اللغة. قم بتعيين وقت هنا ولن يؤدي النقر على 🌐 الذي يأتي قبل هذا الوقت بعد كتابة مفتاح إلى أي شيء. النقر بعد توقف مؤقت يغير اللغة كالمعتاد، وكذلك النقرات السريعة الواحدة تلو الأخرى على 🌐 نفسه. اضغط مع الاستمرار على 🌐 لفتح قائمة اللغة في أي وقت. تُحتسب الحروف والمسافة والمسافة الخلفية والإدخال ككتابة. لا تُحتسب مفاتيح Shift ومفاتيح الوضع. هذا الإعداد متوقف افتراضيًا.</string>
     <string name="layout_globe_guard_subtitle">النقر على 🌐 مباشرة بعد حرف لا يؤدي إلى أي إجراء</string>
     <string name="layout_globe_guard_title">تجاهل 🌐 مباشرة بعد الكتابة</string>
-    <string name="layout_globe_hidden_subtitle">لا يوجد تأثير بينما مفتاح 🌐 مخفي</string>
     <string name="layout_globe_in_one_place_info">تضع بعض التنسيقات مفتاح 🌐 في مكان مختلف، على سبيل المثال في أقصى اليسار، أو مباشرة بعد مفتاح 123?. ينقل هذا المفتاح إلى المكان الذي تستخدمه التنسيقات المدمجة، حتى يجده إبهامك في نفس المكان في كل لغة. تصبح المفاتيح الموجودة على يساره أعرض أو أضيق لإفساح المجال، وتتغير مسطرة المسافة لتتناسب مع ذلك. يظل التنسيق الذي قد يجعل المفاتيح صغيرة جدًا كما هو، وكذلك التنسيق الثاني الذي تفتحه من مفتاح. أوقف تشغيل هذا الخيار لرؤية كل تنسيق كما صممه مؤلفه.</string>
     <string name="layout_globe_in_one_place_subtitle">نفس المكان في كل تخطيط، بجانب شريط المسافة</string>
     <string name="layout_globe_in_one_place_title">احتفظ بمفتاح 🌐 في مكان واحد</string>

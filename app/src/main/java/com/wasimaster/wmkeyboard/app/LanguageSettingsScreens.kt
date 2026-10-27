@@ -1116,28 +1116,17 @@ internal fun LanguageDetailScreen(
     }
 
     // Autocorrect per language (#802): English corrected and romanized
-    // Bengali kept as typed, on the same phone. Greyed out under the global
-    // switch, which still rules every language; the row keeps its own answer
-    // for when that comes back on.
+    // Bengali kept as typed, on the same phone. Hidden, group and all, while
+    // the global switch is off, which still rules every language; the row
+    // keeps its own answer for when that comes back on.
+    val autocorrectOn = settings.watch { it.correction.enabled }
     SettingsGroup(stringResource(R.string.languages_autocorrect_group)) {
-        item {
-            val globalOn = settings.watch { it.correction.enabled }
+        item(visible = autocorrectOn) {
             ToggleSetting(
                 R.string.languages_autocorrect_title,
-                stringResource(
-                    if (globalOn) {
-                        R.string.languages_autocorrect_subtitle
-                    } else {
-                        R.string.languages_autocorrect_global_off_subtitle
-                    },
-                ),
+                stringResource(R.string.languages_autocorrect_subtitle),
                 settings.watch { langId !in it.correction.offLanguages },
                 info = stringResource(R.string.languages_autocorrect_info, lang.englishName),
-                enabled = globalOn,
-                disabledReason = rememberDisabledReason(
-                    stringResource(R.string.languages_autocorrect_global_off_subtitle),
-                    R.string.typing_autocorrect_title,
-                ),
                 default = true,
             ) { scope.launch { repository.setAutocorrectForLanguage(langId, it) } }
         }
@@ -1146,21 +1135,14 @@ internal fun LanguageDetailScreen(
     // The space after a picked suggestion, per language the same way (#813):
     // Bangla words take their case markers and suffixes straight after the
     // pick, so the space only gets in the way there.
+    val autoSpaceOn = settings.watch { it.suggestionStrip.autoSpaceAfterSuggestion }
     SettingsGroup(stringResource(R.string.languages_spacing_group)) {
-        item(level = SettingLevel.STANDARD) {
-            val globalOn = settings.watch { it.suggestionStrip.autoSpaceAfterSuggestion }
+        item(visible = autoSpaceOn, level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.languages_space_after_suggestion_title,
-                stringResource(
-                    if (globalOn) {
-                        R.string.languages_space_after_suggestion_subtitle
-                    } else {
-                        R.string.languages_space_after_suggestion_global_off_subtitle
-                    },
-                ),
+                stringResource(R.string.languages_space_after_suggestion_subtitle),
                 settings.watch { langId !in it.suggestionStrip.spaceAfterSuggestionOffLangs },
                 info = stringResource(R.string.languages_space_after_suggestion_info, lang.englishName),
-                enabled = globalOn,
                 default = true,
             ) { scope.launch { repository.setAutoSpaceAfterSuggestionForLanguage(langId, it) } }
         }

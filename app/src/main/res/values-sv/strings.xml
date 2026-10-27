@@ -1144,7 +1144,6 @@
     <string name="backup_sync_keep_layouts_title">Språk och layouter</string>
     <string name="backup_sync_keep_local_info">Inställningar du markerar här förblir som de är på den här enheten. Ändringar du gör i dem här skickas inte, och ändringar från dina andra enheter tas inte emot. Avmarkera en senare och den här enheten tar det som dina andra enheter har.</string>
     <string name="backup_sync_keep_local_title">Behåll på den här enheten</string>
-    <string name="backup_sync_keep_needs_settings">Kräver att Inställningar är ikryssat i Vad som synkroniseras</string>
     <string name="backup_sync_keep_toolbar_subtitle">Vilka verktyg, i vilken ordning och hur de ser ut</string>
     <string name="backup_sync_keep_toolbar_title">Verktygsfält och verktygslåda</string>
     <string name="backup_sync_local_note">Vissa inställningar stannar på varje enhet, eftersom de bara passar den enheten: tangentbordsstorlek och position, enhändsläge, maskinvarutangentbordet, parkopplade datorer och applåset. Om du vill behålla mer på den här enheten, använd Behåll på den här enheten nedan.</string>
@@ -1554,7 +1553,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">Ta bort ordlistan %1$s</string>
     <string name="customdict_delete_pack_desc">Ta bort emojipaketet %1$s</string>
-    <string name="customdict_emoji_auto_download_blocked">Avstängd, eftersom \"Ladda ner data automatiskt\" är avstängt under Språk</string>
     <string name="customdict_emoji_auto_download_info">När du aktiverar ett språk laddar appen ner dess emoji-nyckelord i bakgrunden. Detta är cirka 100 KB, en gång. Om du stänger av detta är nedladdningsknapparna nedan det enda sättet att få nyckelorden.</string>
     <string name="customdict_emoji_auto_download_subtitle">Ladda ner nyckelord för språken du skriver på</string>
     <string name="customdict_emoji_auto_download_title">Ladda ner automatiskt</string>
@@ -3635,7 +3633,6 @@
     <string name="languages_ansi_version_subtitle">Välj den som ditt ANSI-typsnitt är gjort för</string>
     <string name="languages_ansi_version_title">ANSI-version</string>
     <string name="languages_auto_pair_toast">%1$s och %2$s föreslår nu varandras ord. Du kan ändra detta på varje språks sida.</string>
-    <string name="languages_autocorrect_global_off_subtitle">Autokorrekt är avstängd för alla språk i Skrivande</string>
     <string name="languages_autocorrect_group">Autokorrigering</string>
     <string name="languages_autocorrect_info">Stäng av detta för att behålla varje ord du skriver på %1$s precis som du skrev det, medan andra språk fortfarande korrigeras. Förslagsfältet visar fortfarande sina förslag och du kan trycka på ett. Autokorrigeringsomkopplaren i Skrivande stänger av autokorrigering för alla språk.</string>
     <string name="languages_autocorrect_subtitle">Rätta stavfel när du trycker på mellanslag</string>
@@ -3928,7 +3925,6 @@
     </plurals>
     <string name="languages_secondary_info">Tangentbordet föreslår ord från dessa språk medan du skriver %1$s. Autokorrigering ändrar dem aldrig.</string>
     <string name="languages_secondary_title">Föreslå även från</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">Mellanslag efter förslag är avstängt för alla språk i Skrivande</string>
     <string name="languages_space_after_suggestion_info">Stäng av detta om du vill skriva ett ord som du väljer från förslagsfältet i %1$s utan ett efterföljande mellanslag, så att du kan lägga till en avslutning direkt. Andra språk behåller mellanslaget. Reglaget för mellanslag efter förslag i Skriva stänger av mellanslaget för alla språk.</string>
     <string name="languages_space_after_suggestion_subtitle">Lägg till ett mellanslag när du väljer ett ord från förslagsfältet</string>
     <string name="languages_space_after_suggestion_title">Blanksteg efter förslag</string>
@@ -4622,7 +4618,6 @@
     <string name="layout_globe_guard_info">🌐-tangenten sitter bredvid blanksteg och kommatecknet, så en snabb tumme kan råka trycka på den mitt i ett ord och ändra språket. Ställ in en tid här så kommer ett tryck på 🌐 som sker tidigare än så efter en skriven tangent inte göra något. Ett tryck efter en paus ändrar språket som vanligt, liksom snabba tryck efter varandra på själva 🌐. Tryck och håll in 🌐 för att när som helst öppna språklistan. Bokstäver, blanksteg, backsteg och retur räknas som inmatning. Skift- och lägestangenter gör det inte. Den här inställningen är avstängd som standard.</string>
     <string name="layout_globe_guard_subtitle">Ett tryck på 🌐 precis efter en bokstav gör ingenting</string>
     <string name="layout_globe_guard_title">Ignorera 🌐 direkt efter att du skrivit</string>
-    <string name="layout_globe_hidden_subtitle">Ingen effekt medan 🌐-tangenten är dold</string>
     <string name="layout_globe_in_one_place_info">Vissa layouter placerar 🌐-tangenten på ett annat ställe, till exempel längst till vänster eller direkt efter ?123-tangenten. Detta flyttar den till samma plats som de inbyggda layouterna använder, så att din tumme hittar den på samma ställe på alla språk. Tangenterna till vänster blir bredare eller smalare för att ge plats, och mellanslagstangenten justeras för att passa. En layout där detta skulle göra tangenterna för små lämnas som den är, liksom en andra layout som du öppnar från en tangent. Stäng av detta om du vill se varje layout precis som skaparen utformade den.</string>
     <string name="layout_globe_in_one_place_subtitle">Samma plats på varje layout, bredvid mellanslagstangenten</string>
     <string name="layout_globe_in_one_place_title">Behåll 🌐-tangenten på samma plats</string>

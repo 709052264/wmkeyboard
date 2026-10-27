@@ -1142,7 +1142,6 @@
     <string name="backup_sync_keep_layouts_title">Diller ve düzenler</string>
     <string name="backup_sync_keep_local_info">Burada işaretlediğiniz ayarlar bu cihazda oldukları gibi kalır. Burada yaptığınız değişiklikler gönderilmez ve diğer cihazlarınızdaki değişiklikler alınmaz. Daha sonra birini işaretini kaldırırsanız, bu cihaz diğer cihazlarınızda olanları alır.</string>
     <string name="backup_sync_keep_local_title">Bu cihazda tut</string>
-    <string name="backup_sync_keep_needs_settings">Nelerin eşitleneceği kısmında Ayarlar\'ın işaretlenmesi gerekir</string>
     <string name="backup_sync_keep_toolbar_subtitle">Hangi araçların, hangi sırada ve nasıl göründüğü</string>
     <string name="backup_sync_keep_toolbar_title">Araç çubuğu ve araç kutusu</string>
     <string name="backup_sync_local_note">Bazı ayarlar her cihazda kalır çünkü bunlar yalnızca o cihaza uygundur: klavye boyutu ve konumu, tek elle kullanım modu, donanım klavyesi, eşleştirilmiş bilgisayarlar ve uygulama kilidi. Bu cihazda daha fazlasını tutmak için aşağıdaki Bu cihazda tut seçeneğini kullanın.</string>
@@ -1552,7 +1551,6 @@
     </plurals>
     <string name="customdict_delete_list_desc">%1$s kelime listesini sil</string>
     <string name="customdict_delete_pack_desc">%1$s emoji paketini sil</string>
-    <string name="customdict_emoji_auto_download_blocked">Diller altında \"Verileri otomatik indir\" kapalı olduğu için kapatıldı</string>
     <string name="customdict_emoji_auto_download_info">Bir dili açtığınızda, uygulama emoji anahtar kelimelerini arka planda indirir. Bu yaklaşık 100 KB\'lık tek seferlik bir işlemdir. Bunu kapatırsanız, aşağıdaki İndir düğmeleri anahtar kelimeleri almanın tek yoludur.</string>
     <string name="customdict_emoji_auto_download_subtitle">Yazdığınız diller için anahtar kelimeleri indirin</string>
     <string name="customdict_emoji_auto_download_title">Otomatik indir</string>
@@ -3626,7 +3624,6 @@
     <string name="languages_ansi_version_subtitle">ANSI yazı tipinizin tasarlandığı sürümü seçin</string>
     <string name="languages_ansi_version_title">ANSI sürümü</string>
     <string name="languages_auto_pair_toast">%1$s ve %2$s artık birbirlerinin kelimelerini öneriyor. Bunu her dilin sayfasından değiştirebilirsiniz.</string>
-    <string name="languages_autocorrect_global_off_subtitle">Otomatik düzeltme, Yazma ayarlarındaki tüm diller için kapalıdır</string>
     <string name="languages_autocorrect_group">Otomatik düzeltme</string>
     <string name="languages_autocorrect_info">%1$s dilinde yazdığınız her kelimeyi, diğer diller düzeltilmeye devam ederken, yazdığınız gibi tutmak için bunu kapatın. Öneri şeridi hala önerilerini gösterir ve birine dokunabilirsiniz. Yazma ayarlarındaki otomatik düzeltme anahtarı, tüm diller için otomatik düzeltmeyi kapatır.</string>
     <string name="languages_autocorrect_subtitle">Boşluk tuşuna bastığınızda yazım hatalarını düzeltin</string>
@@ -3919,7 +3916,6 @@
     </plurals>
     <string name="languages_secondary_info">%1$s yazarken klavye bu dillerden kelimeler önerir. Otomatik düzeltme bunları asla değiştirmez.</string>
     <string name="languages_secondary_title">Şuradan da öner:</string>
-    <string name="languages_space_after_suggestion_global_off_subtitle">Yazma ayarlarındaki tüm diller için öneriden sonra boşluk bırakma kapalı</string>
     <string name="languages_space_after_suggestion_info">Öneri şeridinden seçtiğiniz bir kelimeyi %1$s dilinde sonuna boşluk eklemeden yazmak için bunu kapatın, böylece hemen bir ek ekleyebilirsiniz. Diğer diller yine de boşluk alır. Yazma ayarlarındaki Öneriden sonra boşluk anahtarı, tüm diller için boşluğu kapatır.</string>
     <string name="languages_space_after_suggestion_subtitle">Öneri şeridinden bir kelime seçtiğinizde boşluk ekle</string>
     <string name="languages_space_after_suggestion_title">Öneriden sonra boşluk</string>
@@ -4613,7 +4609,6 @@
     <string name="layout_globe_guard_info">🌐 tuşu boşluk çubuğu ve virgülün yanındadır, bu nedenle hızlı bir başparmak bir kelimenin ortasında yanlışlıkla ona basıp dili değiştirebilir. Buradan bir süre ayarlayın; yazılan bir tuştan sonra bu süreden daha kısa sürede 🌐 tuşuna basılması hiçbir işlem yapmaz. Bir duraklamadan sonra basıldığında dil her zamanki gibi değişir, 🌐 tuşunun kendisine art arda hızlı basıldığında da aynı şekilde değişir. Dil listesini istediğiniz zaman açmak için 🌐 tuşuna basılı tutun. Harfler, boşluk, silme ve enter tuşları yazma olarak sayılır. Shift ve mod tuşları sayılmaz. Bu ayar varsayılan olarak kapalıdır.</string>
     <string name="layout_globe_guard_subtitle">Bir harften hemen sonra 🌐 simgesine dokunmak hiçbir şey yapmaz</string>
     <string name="layout_globe_guard_title">Yazdıktan hemen sonra 🌐 tuşunu yoksay</string>
-    <string name="layout_globe_hidden_subtitle">🌐 tuşu gizliyken hiçbir etkisi olmaz</string>
     <string name="layout_globe_in_one_place_info">Bazı düzenler 🌐 tuşunu farklı bir yere, örneğin en sola veya ?123 tuşundan hemen sonraya koyar. Bu ayar, tuşu yerleşik düzenlerin kullandığı yere taşır, böylece başparmağınız onu her dilde aynı yerde bulur. Solundaki tuşlar yer açmak için genişler veya daralır ve boşluk tuşu buna uyacak şekilde değişir. Tuşları çok küçültecek bir düzen olduğu gibi bırakılır, bir tuştan açtığınız ikinci bir düzen de aynı şekilde kalır. Her düzeni yazarının yaptığı gibi görmek için bunu kapatın.</string>
     <string name="layout_globe_in_one_place_subtitle">Her yerleşimde aynı konumda, boşluk tuşunun yanında</string>
     <string name="layout_globe_in_one_place_title">🌐 tuşunu tek bir yerde tutun</string>
