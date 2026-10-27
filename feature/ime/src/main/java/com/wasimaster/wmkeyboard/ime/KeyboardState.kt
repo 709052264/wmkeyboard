@@ -599,11 +599,20 @@ data class LayoutSet(
      * claim whatever a layout does, and emitted once: exactly one key on the board
      * means an apostrophe, and two would blur both of them. Null (the default)
      * leaves the grid exactly as it was.
+     *
+     * [carriers] are the keys that type no letter themselves but carry one on
+     * Shift, in the corner or behind a hold (#970), each at its measured
+     * centre: a number-row digit with a letter on its hold, a symbol whose
+     * shifted form is a letter. Emitted after every letter key's passes, and
+     * only for a letter nothing on the grid claims yet, so a letter key always
+     * keeps its own letters and a carrier whose letters are all taken adds no
+     * key at all (see [carriedGlideSpellings]).
      */
     fun glideKeys(
         apostropheCenter: Pair<Float, Float>? = null,
         /** Non-letter keys the composer spells through, by character, at their centres (Khipro's `/`). */
         extraCenters: List<Pair<Int, Pair<Float, Float>>> = emptyList(),
+        carriers: List<Pair<Key, Pair<Float, Float>>> = emptyList(),
         centerOf: (Int) -> Pair<Float, Float>?,
     ): List<KeyCenter> {
         val out = ArrayList<KeyCenter>(letters.rows.sumOf { it.size } * 2)
@@ -652,6 +661,18 @@ data class LayoutSet(
                         SHIFT_PASS -> emit(key.shiftLabel, x, y)
                         else -> for (alternate in key.longPress) emit(alternate, x, y)
                     }
+                }
+            }
+        }
+        if (carriers.isNotEmpty()) {
+            val claimed = out.mapTo(HashSet()) { Character.toLowerCase(it.codePoint) }
+            for ((key, center) in carriers) {
+                for (spelling in key.carriedGlideSpellings()) {
+                    val letters = keySpelling(spelling) ?: continue
+                    if (letters.all { it in claimed }) continue
+                    val before = out.size
+                    emit(spelling, center.first, center.second)
+                    for (i in before until out.size) claimed.add(Character.toLowerCase(out[i].codePoint))
                 }
             }
         }
@@ -4894,6 +4915,27 @@ fun Key.glideAnchor(): Int? {
     if (action != KeyAction.Text) return null
     letters?.takeIf { it.isNotEmpty() }?.let { return Character.toLowerCase(it.codePointAt(0)) }
     return keySpelling(label)?.first()
+}
+
+/**
+ * What a key that types no letter carries in letters (#970): its shifted label,
+ * its corner hint and its long presses, each one that [keySpelling] reads as a
+ * letter. A number row's `8` with `i` behind its hold, an Arabic layout's
+ * punctuation key with a letter on Shift. Empty for a letter key, whose own
+ * passes in [LayoutSet.glideKeys] already cover every one of these, and for a
+ * key that carries nothing a word could hold.
+ *
+ * The test the renderer puts a key through before measuring it for the glide
+ * grid, so it has to be cheap on the common key: one anchor check, then three
+ * short lists.
+ */
+fun Key.carriedGlideSpellings(): List<String> {
+    if (action != KeyAction.Text || glideAnchor() != null) return emptyList()
+    val out = ArrayList<String>(0)
+    for (spelling in listOfNotNull(shiftLabel, hint) + longPress) {
+        if (keySpelling(spelling) != null && spelling !in out) out.add(spelling)
+    }
+    return out
 }
 
 /**

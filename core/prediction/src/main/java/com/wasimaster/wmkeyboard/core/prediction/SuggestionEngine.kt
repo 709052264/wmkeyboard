@@ -10,6 +10,7 @@ import com.wasimaster.wmkeyboard.core.gesture.GlideShapeSource
 import com.wasimaster.wmkeyboard.core.gesture.GlideToken
 import com.wasimaster.wmkeyboard.core.gesture.GlideCoverage
 import com.wasimaster.wmkeyboard.core.gesture.GlideKeyMap
+import com.wasimaster.wmkeyboard.core.gesture.GlideOverhang
 import com.wasimaster.wmkeyboard.core.gesture.GlideWorkspace
 import com.wasimaster.wmkeyboard.core.gesture.GlideDecoder
 import com.wasimaster.wmkeyboard.core.gesture.RomanizedIndex
@@ -1480,6 +1481,9 @@ class SuggestionEngine(
          */
         tuning: GlideBeam.Tuning? = null,
     ): List<GlideBeam.Candidate> {
+        // A stroke that overshot into the number row reads as the top row it
+        // was reaching for (#970), whichever engine decodes it.
+        val stroke = GlideOverhang.fold(path, keys, keyWidth)
         val romanization = glideRomanization
         val sources = if (romanization.isEmpty) {
             (walkSources() + glideTriggerSources() + glideContractionSources() + glideApostropheSources())
@@ -1491,7 +1495,7 @@ class SuggestionEngine(
         // The other engines read the layout's own spellings only, so never
         // on a phonetic layout, where the answer is the romanization's own.
         val neural = externalGlide?.takeIf { romanization.isEmpty && tuning == null }?.decode(
-            path = path,
+            path = stroke,
             keys = keys,
             keyWidth = keyWidth,
             sources = sources,
@@ -1514,7 +1518,7 @@ class SuggestionEngine(
             else -> glideBeam
         }
         val decoded = beam.decode(
-            path = path,
+            path = stroke,
             keys = keys,
             keyWidth = keyWidth,
             sources = sources,

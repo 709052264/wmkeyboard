@@ -109,6 +109,9 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Digit-slip correction `RARE` — One digit inside a word read as a number-row miss
     - Same-length single-digit swap only — "as3" becomes "ase"; "room3" is never shortened to "room"
     - Only on the path that buffers number-row digits — The standalone spell checker never rewrites genuine alphanumerics
+    - The layout's own number row — A layout that authored one (Eastern Arabic digits) has those keys checked against the letters under them, not 1234567890 (#970)
+  - Letters on the same key `uncommon` — A letter on the pressed key's Shift, corner hint or hold reads like a missing accent, no edit: Arabic "اخبار" finds "أخبار" (#970)
+    - One way, letters only — The shifted or held letter typed on purpose stays itself; harakat on Shift never stand in for a tapped letter
   - Learns from your own fixes `RARE` — A typo you repair by hand teaches the pair and the slip behind it
     - Taught pairs — Fixed twice, autocorrect makes the fix for you; fixed once, it offers it and never applies a different guess over it
     - A real word swapped for another — "form" for "from" needs three fixes and the bigram context on its side
@@ -403,6 +406,8 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - A crossing reaches the bar's midline — Clipping the top of the spacebar on the way to a bottom-row letter stays part of the word, so a long word along the bottom row is not cut in two (#428)
     - Sequential context — Each segment decoded after the previous one is committed and learned, so word 2 sees word 1 as context
     - Toggleable — Off makes a spacebar-crossing stroke decode as one word
+  - Overshoot into the number row `uncommon` — Stroke points above the top letter row are moved down onto its upper edge before any engine decodes, so m-a-8-n reads "main" and a stroke started on the digit over its first letter decodes at all (GlideOverhang, #970)
+  - Letters carried by non-letter keys `RARE` — A digit or symbol key with a letter on Shift, in its corner or behind its hold puts that letter on the glide grid at its own centre, when no letter key already carries it (#970)
   - Capitalize by gliding over Shift `uncommon` — Drawing through the Shift key mid-stroke capitalizes the word, twice shouts it; the key's points are dropped from the word the way the spacebar's are, so the detour spells nothing
     - The one capital a swipe can teach — A capital the decoder chose is never case evidence; a capital the finger drew is
   - Readings kept for proofreading — The last 500 swiped words in the field keep their stroke's other readings; putting the caret back on one puts them in front of the strip, and taking one counts as a correction of that stroke
