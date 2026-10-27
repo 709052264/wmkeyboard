@@ -159,6 +159,8 @@
     <!-- Menu item that looks up synonyms for the held word, to put one in its
          place (#321). %1$s is the word the user held. -->
     <string name="ime_word_menu_synonyms">Synonyms for \"<xliff:g id="word" example="happy">%1$s</xliff:g>\"</string>
+    <string name="ime_word_menu_rank_up">Suggest \"<xliff:g id="word" example="form">%1$s</xliff:g>\" higher</string>
+    <string name="ime_word_menu_rank_down">Suggest \"<xliff:g id="word" example="form">%1$s</xliff:g>\" lower</string>
 
     <!-- The synonyms sheet: a panel over the keyboard that lists synonyms for
          a held word. Tapping one puts it in place of the word. -->

@@ -47734,6 +47734,7 @@ open class WMKeyboardService : InputMethodService() {
             // Only while it is still the word the menu named.
             is WordMenuAction.Retype -> if (retypeTarget() == action.word) retypeWord()
             is WordMenuAction.Synonyms -> openSynonyms(action.word)
+            is WordMenuAction.RankStep -> onSuggestionRankSlide(action.word, action.steps, block = false)
         }
     }
 

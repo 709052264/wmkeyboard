@@ -6050,6 +6050,19 @@ internal fun RowScope.LatinSuggestionChips(
                         icon = Icons.Outlined.SwapHoriz,
                     ) { act(WordMenuAction.Synonyms(held)) }
                 }
+                // The slide's rank steps as two taps (#970), for whoever never
+                // finds the slide. Not on a blacklisted word, which no rank
+                // brings back.
+                if (WordMenuItem.RANK in menuItems && !heldFacts.blacklisted) {
+                    WordMenuRow(
+                        label = stringResource(R.string.ime_word_menu_rank_up, held),
+                        icon = Icons.Outlined.KeyboardArrowUp,
+                    ) { act(WordMenuAction.RankStep(held, heldFacts.rankSteps + 1)) }
+                    WordMenuRow(
+                        label = stringResource(R.string.ime_word_menu_rank_down, held),
+                        icon = Icons.Outlined.KeyboardArrowDown,
+                    ) { act(WordMenuAction.RankStep(held, heldFacts.rankSteps - 1)) }
+                }
                 // About the caret's word too, like the search above: take it
                 // back out and type it again (#844), with no binding needed.
                 val retypable = heldFacts.retypable

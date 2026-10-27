@@ -1234,6 +1234,7 @@ internal fun TypingSuggestionsSettings(
             val add = stringResource(R.string.typing_word_menu_item_add)
             val delete = stringResource(R.string.typing_word_menu_item_delete)
             val synonyms = stringResource(R.string.typing_word_menu_item_synonyms)
+            val rank = stringResource(R.string.typing_word_menu_item_rank)
             MultiChoiceSetting(
                 R.string.typing_word_menu_title,
                 subtitle = stringResource(R.string.typing_word_menu_subtitle),
@@ -1244,6 +1245,7 @@ internal fun TypingSuggestionsSettings(
                         WordMenuItem.ADD -> add
                         WordMenuItem.DELETE -> delete
                         WordMenuItem.SYNONYMS -> synonyms
+                        WordMenuItem.RANK -> rank
                     }
                 },
                 selected = settings.watch { it.suggestionStrip.wordMenuItems },

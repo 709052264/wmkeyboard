@@ -1161,6 +1161,7 @@
     <string name="typing_word_menu_item_add">Add</string>
     <string name="typing_word_menu_item_delete">Delete</string>
     <string name="typing_word_menu_item_synonyms">Synonyms</string>
+    <string name="typing_word_menu_item_rank">Suggest higher or lower</string>
     <string name="typing_synonym_sources_title">Synonym sources</string>
     <string name="typing_synonym_sources_subtitle">Where the word menu looks for synonyms, in order</string>
     <string name="typing_synonym_sources_info">The keyboard asks the first source that is on. When it has no synonyms for the word, or cannot be reached, the keyboard asks the next one. Drag a source to change the order, and turn off a source to never ask it. Online sources receive only the word you held, and a look-up is not stopped by Data saver, because you ask for it.</string>

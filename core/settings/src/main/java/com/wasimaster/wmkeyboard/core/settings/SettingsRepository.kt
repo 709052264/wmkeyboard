@@ -9199,7 +9199,15 @@ enum class LanguageDetectionStrength { GENTLE, BALANCED, AGGRESSIVE }
  * is the one the card does not carry (#321): it replaces the word in the
  * text rather than editing it in the dictionary.
  */
-enum class WordMenuItem { NEVER_SUGGEST, ADD, DELETE, SYNONYMS }
+enum class WordMenuItem {
+    NEVER_SUGGEST,
+    ADD,
+    DELETE,
+    SYNONYMS,
+
+    /** "Suggest higher" and "Suggest lower", a rank step each (#970). */
+    RANK,
+}
 
 /**
  * What the word card's rank control changes (#99).
@@ -10599,6 +10607,9 @@ class SettingsRepository(private val context: Context) {
          * switched off by someone who never saw it.
          */
         private const val WORD_MENU_SYNONYMS_MARK = "~synonyms"
+
+        /** The same for [WordMenuItem.RANK] (#970): a set stored without it predates it. */
+        private const val WORD_MENU_RANK_MARK = "~rank"
         private val SYNONYM_SOURCES = stringPreferencesKey("synonym_sources")
         private val WORD_RANK_CONTROL = stringPreferencesKey("word_rank_control")
         private val DELETE_EDITS_IMPORTED_LISTS = booleanPreferencesKey("delete_edits_imported_lists")
@@ -13230,7 +13241,8 @@ class SettingsRepository(private val context: Context) {
             wordMenuItems = p[WORD_MENU_ITEMS]
                 ?.let { stored ->
                     val items = stored.mapNotNullTo(mutableSetOf()) { runCatching { WordMenuItem.valueOf(it) }.getOrNull() }
-                    if (WORD_MENU_SYNONYMS_MARK in stored) items else items + WordMenuItem.SYNONYMS
+                    val withSynonyms = if (WORD_MENU_SYNONYMS_MARK in stored) items else items + WordMenuItem.SYNONYMS
+                    if (WORD_MENU_RANK_MARK in stored) withSynonyms else withSynonyms + WordMenuItem.RANK
                 }
                 ?: defaults.suggestionStrip.wordMenuItems,
             synonymSources = p[SYNONYM_SOURCES]?.let(SynonymSources::decode)
@@ -19477,7 +19489,9 @@ class SettingsRepository(private val context: Context) {
 
     /** Replaces the whole set of optional held-word menu items (#99). */
     suspend fun setWordMenuItems(value: Set<WordMenuItem>) =
-        editPrefs { it[WORD_MENU_ITEMS] = value.mapTo(mutableSetOf(WORD_MENU_SYNONYMS_MARK)) { item -> item.name } }
+        editPrefs {
+            it[WORD_MENU_ITEMS] = value.mapTo(mutableSetOf(WORD_MENU_SYNONYMS_MARK, WORD_MENU_RANK_MARK)) { item -> item.name }
+        }
 
     /** Replaces the synonym sources, order and switches together (#321). */
     suspend fun setSynonymSources(value: List<SynonymSourceChoice>) =

@@ -2630,6 +2630,12 @@ sealed interface WordMenuAction {
 
     /** Look up synonyms for [word] and offer them in its place (#321). */
     data class Synonyms(val word: String) : WordMenuAction
+
+    /**
+     * Set [word]'s rank adjustment to [steps], one up or down from where the
+     * menu found it (#970): the word card's rank, without opening the card.
+     */
+    data class RankStep(val word: String, val steps: Int) : WordMenuAction
 }
 
 /** What the word card can ask of the service, once open (#99). */
