@@ -26,6 +26,7 @@ import com.wasimaster.wmkeyboard.core.theme.ThemeCodec
 import com.wasimaster.wmkeyboard.core.theme.ThemeSpec
 import com.wasimaster.wmkeyboard.core.theme.withExtractedImages
 import com.wasimaster.wmkeyboard.core.theme.withFreshIds
+import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.core.util.readCapped
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
@@ -60,7 +61,9 @@ import java.util.concurrent.TimeUnit
  *
  * The in directory holds `request.json`, `{"type":"theme"|"layout","id":…,"file":…}`,
  * beside the file it names. The out directory gets `<id>.png` (a theme also
- * `<id>-landscape.png` when it has a landscape image; a layout `<id>-dark.png`)
+ * `<id>-tools.png`, `<id>-clipboard.png` and `<id>-editing.png`, the same
+ * keyboard with a tool panel open, and `<id>-landscape.png` when it has a
+ * landscape image; a layout `<id>-dark.png`)
  * and always `<id>.report.json`, `{"ok","refusal","warnings","images"}`, which
  * the bot reads whatever happened: a refused file and a render that threw both
  * still write one.
@@ -117,11 +120,11 @@ class AddonShots {
                         refusal = app.getString(R.string.theme_import_wrong_file_error)
                     } else {
                         warnings += themeWarnings(theme)
-                        shoot("$id.png", dark = theme.dark, landscape = false)
-                        images += "$id.png"
+                        // One boot, four captures: the typing shot, then the
+                        // panels a theme also paints, each one opened in turn.
+                        images += shoot("$id.png", dark = theme.dark, landscape = false, panels = themePanels(id))
                         if (theme.backgroundImageLandscape != null) {
-                            shoot("$id-landscape.png", dark = theme.dark, landscape = true)
-                            images += "$id-landscape.png"
+                            images += shoot("$id-landscape.png", dark = theme.dark, landscape = true)
                         }
                     }
                 }
@@ -131,10 +134,8 @@ class AddonShots {
                         refusal = app.getString(R.string.layout_editor_import_wrong_file_error)
                     } else {
                         warnings += notes
-                        shoot("$id.png", dark = false, landscape = false)
-                        images += "$id.png"
-                        shoot("$id-dark.png", dark = true, landscape = false)
-                        images += "$id-dark.png"
+                        images += shoot("$id.png", dark = false, landscape = false)
+                        images += shoot("$id-dark.png", dark = true, landscape = false)
                     }
                 }
                 else -> refusal = "Unknown addon type \"$type\"."
@@ -200,11 +201,31 @@ class AddonShots {
     }
 
     /**
+     * The tool panels a theme is shown on besides the letters: the toolbox
+     * grid (tool circles and their labels), the clipboard (chips and cards)
+     * and text editing (modifier-coloured keys). Emoji are left out: the JVM
+     * draws no emoji glyphs, so that panel would be a grid of blanks.
+     */
+    private fun themePanels(id: String): List<Pair<String, PanelMode>> = listOf(
+        "$id-tools.png" to PanelMode.TOOLBOX,
+        "$id-clipboard.png" to PanelMode.CLIPBOARD,
+        "$id-editing.png" to PanelMode.TEXT_EDIT,
+    )
+
+    /**
      * One capture of the keyboard as it stands in settings, docked under the
      * host's field after a few typed words, the way [KeyboardShots.capture]
-     * takes its shots.
+     * takes its shots; then one more per entry of [panels], with that panel
+     * open. Returns the names written, in order. A panel that fails to open is
+     * left out rather than failing the shots before it.
      */
-    private fun shoot(name: String, dark: Boolean, landscape: Boolean) {
+    private fun shoot(
+        name: String,
+        dark: Boolean,
+        landscape: Boolean,
+        panels: List<Pair<String, PanelMode>> = emptyList(),
+    ): List<String> {
+        val written = mutableListOf<String>()
         val app = ApplicationProvider.getApplicationContext<Application>()
         RuntimeEnvironment.setQualifiers(if (dark) "+night" else "+notnight")
         RuntimeEnvironment.setQualifiers(if (landscape) "+land" else "+port")
@@ -250,10 +271,28 @@ class AddonShots {
                 }
                 settle()
                 captureScreenRoboImage(File(out, name).path)
+                written += name
+                if (panels.isNotEmpty()) {
+                    // Clips for the clipboard panel to show, copied while the
+                    // keyboard is up so its history listener records them.
+                    val clipboard = service.getSystemService(android.content.ClipboardManager::class.java)
+                    for (clip in CLIPS) {
+                        clipboard.setPrimaryClip(android.content.ClipData.newPlainText("", clip))
+                        settle()
+                    }
+                }
+                for ((panelName, panel) in panels) {
+                    runCatching {
+                        service.onPanelChange(panel)
+                        settle()
+                        captureScreenRoboImage(File(out, panelName).path)
+                    }.onSuccess { written += panelName }
+                }
             } finally {
                 runCatching { controller.destroy() }
             }
         }
+        return written
     }
 
     private fun settle(first: Boolean = false) {
@@ -287,5 +326,12 @@ class AddonShots {
     private companion object {
         /** Stops mid-word, so the strip shows completions rather than what follows a space. */
         const val PHRASE = "See you tomo"
+
+        /** What the clipboard panel shows: a note, a link and a code, so its chips appear too. */
+        val CLIPS = listOf(
+            "Pick up milk and eggs on the way home",
+            "https://wmkeyboard.app/themes/",
+            "Your code is 482913",
+        )
     }
 }
