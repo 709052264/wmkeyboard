@@ -2897,8 +2897,28 @@ open class WMKeyboardService : InputMethodService() {
             val map = settings.suggestionStrip.spellingMapEnabledFor(language)
             wanted.add(if (map) "$language$WITH_SPELLING_MAP" else language)
         }
+        // A phonetic language only suggested from, on another language's
+        // keyboard: its readings join that keyboard's strip, and they want
+        // the language's word list and spelling map behind them as much as
+        // its own phonetic layout would.
+        for (lang in settings.enabledLanguages) {
+            for (language in phoneticSecondaryIds(settings, lang.id)) {
+                if (language == PhoneticSchemes.BENGALI.languageId) continue
+                val map = settings.suggestionStrip.spellingMapEnabledFor(language)
+                wanted.add(if (map) "$language$WITH_SPELLING_MAP" else language)
+            }
+        }
         return wanted
     }
+
+    /**
+     * The phonetic languages among [langId]'s "Also suggest from", whose
+     * readings a Latin keyboard's strip offers in their own script: मराठी for
+     * `marathi` typed on English ([SuggestionEngine.phoneticSecondaries]).
+     */
+    private fun phoneticSecondaryIds(settings: KeyboardSettings, langId: String): List<String> =
+        settings.secondaryLanguages[langId].orEmpty()
+            .filter { it != langId && PhoneticSchemes.forLanguage(it) != null }
 
     /**
      * Builds the backend of every phonetic language [extraPhoneticWanted]
@@ -5873,6 +5893,7 @@ open class WMKeyboardService : InputMethodService() {
                 secondaryDictionaries = secondaryIds.filter { it != "en" }
                     .mapNotNull { id -> customTries[id]?.let { SecondaryDictionary(id, it) } }
                 englishAsSecondary = "en" in secondaryIds && !lang.isEnglish
+                phoneticSecondaries = phoneticSecondaryIds(_uiState.value.settings, lang.id)
                 secondaryEnglishNgramPack = if (englishAsSecondary) loadNgramPack("en") else NgramPack.EMPTY
                 phoneticAutoEnglish = _uiState.value.let { typesEnglishAsEnglish(it.settings, it.composer) }
                 phoneticSiblingsOff = _uiState.value.settings.suggestionStrip.phoneticSiblingsOffLangs
@@ -14763,7 +14784,19 @@ open class WMKeyboardService : InputMethodService() {
      * counted as Bengali by the field's language detection.
      */
     private fun learnLanguageId(word: String, state: KeyboardUiState): String =
-        if (isLatinOnPhonetic(word, state)) "en" else state.language.id
+        if (isLatinOnPhonetic(word, state)) "en" else nativeOnLatin(word, state) ?: state.language.id
+
+    /**
+     * The phonetic secondary whose script [word] is in, on a keyboard that is
+     * not phonetic: a reading picked from the strip (मराठी on English) is that
+     * language's word, and filed under English it would count as English in
+     * the field's language detection.
+     */
+    private fun nativeOnLatin(word: String, state: KeyboardUiState): String? {
+        if (state.composer.phoneticLanguage != null || state.composer.completionLanguage != null) return null
+        return phoneticSecondaryIds(state.settings, state.language.id)
+            .firstOrNull { id -> PhoneticSchemes.forLanguage(id)?.let { word.any(it.isNative) } == true }
+    }
 
     /**
      * The ⌦ key: deletes forward, over the character *after* the cursor.
@@ -16960,6 +16993,9 @@ open class WMKeyboardService : InputMethodService() {
         engine.secondaryDictionaries = secondaryIds.filter { it != "en" }
             .map { id -> SecondaryDictionary(id, customDictionaries[id] ?: PackedTrie.EMPTY) }
         engine.englishAsSecondary = "en" in secondaryIds && !lang.isEnglish
+        // A phonetic secondary (Marathi on English) reads the Latin letters
+        // through its own scheme and offers its words in its own script.
+        engine.phoneticSecondaries = phoneticSecondaryIds(settings, lang.id)
         // English's own word pairs, for the word after an English one typed on
         // a layout that is not English's (`hello` on Avro).
         engine.secondaryEnglishNgramPack =

@@ -95,6 +95,23 @@ The strip's button is pinned, so it cannot be dragged off the way a tool can. **
 
 After an English word, the next-word predictions come from English too (your own pairs, the bundled ones, and the English word-pair pack if you downloaded it). Which language each app's fields start out leaning towards is the same per-app tally described above. Glide typing on these layouts still decodes Bangla or Hindi only.
 
+## Bangla, Hindi or Marathi on the English keyboard
+
+The other way round works too. Pick a language that has a [phonetic layout](/languages/phonetic/) (Bangla, Hindi, Marathi, Urdu, Tamil and the rest) under **Also suggest from** on English's own screen, and the English keyboard reads each word you type through that language's phonetic rules as well. Its readings show up on the strip in its own script: type `marathi` and मराठी is one tap away, with no layout switch.
+
+Where a reading lands depends on who knows the word:
+
+| You type | The strip | Why |
+| --- | --- | --- |
+| `kemon` | কেমন right after the first chip | only Bangla knows it |
+| `because` | English only | only English knows it |
+| `to`, `hello` | English first, তো or হ্যালো on the last visible chip | both languages have it |
+| a word neither list has | its reading on the last visible chip | unless English still has words that start with it |
+
+The first chip never moves, and the space bar still writes what you typed in English letters; a reading goes in only when you tap it. A word you pick this way counts for its own language when the keyboard reads which language the field is in, so after a few Marathi words the readings of a word both languages know get weighed toward Marathi too.
+
+How good the readings are depends on that language's word list. With the list downloaded (from the language's own screen) the keyboard offers real words; without it only the phonetic rules and the bundled spellings are there to go on. A language only picked under Also suggest from still gets its word list and spellings read in, whether or not its phonetic layout is on.
+
 ## Options
 
 <SettingsPath path="Typing / Automatic corrections" />

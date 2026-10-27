@@ -546,6 +546,17 @@ class SuggestionEngine(
     }
 
     /**
+     * The phonetic languages among the primary's secondaries ("Also suggest
+     * from"), by language id. On a Latin layout that is not phonetic itself, a
+     * word typed in Latin letters is also read through each one's scheme and
+     * its readings join the strip in that language's script: `marathi` typed
+     * on English offers मराठी (see [withPhoneticSecondaries]). Empty leaves
+     * the strip as it was. Not part of the walk, so no generation.
+     */
+    @Volatile
+    var phoneticSecondaries: List<String> = emptyList()
+
+    /**
      * Whether a phonetic layout may commit an English word as English: `hello`
      * typed on Avro stays hello, where it used to come out হ্যালো. Decided per
      * buffer by [PhoneticScriptVerdict]; off, the layout only ever commits its
@@ -1115,6 +1126,13 @@ class SuggestionEngine(
                 // "I"), and counting it would have the mistake vote for itself.
                 backend.index.isEmpty && lower.any(backend.scheme.isNative) -> owners.add(primaryLanguageId)
             }
+        }
+        // A word in a phonetic secondary's script, picked from the strip of a
+        // Latin layout: the layout's own words are never in that script, so
+        // the script alone says whose word it is.
+        for (id in phoneticSecondaries) {
+            val scheme = phoneticBackend(id)?.scheme ?: continue
+            if (lower.any(scheme.isNative)) owners.add(id)
         }
         return owners
     }
@@ -2504,6 +2522,12 @@ class SuggestionEngine(
         /** Chips a strip is assumed to show when the caller does not say. */
         const val DEFAULT_PHONETIC_SLOTS = 3
 
+        /** Shortest Latin word read through a secondary's scheme: one letter is every scheme's vowel. */
+        private const val PHONETIC_SECONDARY_MIN_LENGTH = 2
+
+        /** Readings one secondary may put on the strip when the word reads as its own. */
+        private const val PHONETIC_SECONDARY_READINGS = 2
+
         /** How deep the candidate list is read when it is folded into the strip. */
         private const val PHONETIC_CANDIDATE_STRIP_DEPTH = 12
 
@@ -3168,7 +3192,7 @@ class SuggestionEngine(
                 .take(limit)
                 .toList()
         }
-        return (reordered ?: ranked)
+        val latin = (reordered ?: ranked)
             .take(limit)
             // Emails are stored verbatim; case-matching the typed prefix would
             // corrupt the address ("John" -> "John.doe@..."). Commit as stored.
@@ -3176,6 +3200,69 @@ class SuggestionEngine(
             // re-cased to follow what they have typed so far — the typed
             // pattern still wins, so a deliberate "BOSTON" is not undone.
             .map { if (it.contains('@')) it else matchCase(composing, displayForm(it)) }
+        if (ambiguous) return latin
+        return withPhoneticSecondaries(latin, composing, previousWord, previousWord2, limit, phoneticSlots)
+    }
+
+    /**
+     * [latin], a Latin layout's strip, with the readings of
+     * [phoneticSecondaries] joined in: what [composing] spells in each such
+     * language's script, placed by how the word reads ([readScript], the
+     * check that tells Banglish from English on Avro, asked the other way).
+     *
+     *  - English alone knows it (`because`): nothing joins.
+     *  - Only the language's list or spelling map knows it: its readings come
+     *    straight after the head, best first.
+     *  - Both know it (`to`, तो), or neither does and English has no word
+     *    starting with it: the best reading sits on the last visible chip, as
+     *    the Latin word does on Avro's mixed strip.
+     *
+     * The head never moves. On a Latin layout it is what the space bar and
+     * autocorrect work from, and a space keeps writing Latin letters here
+     * whatever the strip offers; a reading goes in with a tap.
+     */
+    private fun withPhoneticSecondaries(
+        latin: List<String>,
+        composing: String,
+        previousWord: String?,
+        previousWord2: String?,
+        limit: Int,
+        slots: Int,
+    ): List<String> {
+        val languages = phoneticSecondaries
+        if (languages.isEmpty() || composing.length < PHONETIC_SECONDARY_MIN_LENGTH) return latin
+        // A romanization is letters, and a capital past the first is a
+        // scheme's notation nobody types on an English keyboard. The first is
+        // the sentence's, not Avro's T or D.
+        if (!composing.all { it in 'a'..'z' || it in 'A'..'Z' }) return latin
+        if (composing.drop(1).any { it.isUpperCase() }) return latin
+        val roman = composing.lowercase()
+        val leading = ArrayList<String>()
+        val trailing = ArrayList<String>()
+        for (id in languages) {
+            val backend = phoneticBackend(id) ?: continue
+            val verdict = readScript(backend, roman, previousWord)
+            if (verdict.script == PhoneticScript.LATIN && !verdict.contested) continue
+            val readings = phoneticSuggestions(backend, roman, PHONETIC_SECONDARY_READINGS, previousWord, previousWord2)
+            if (readings.isEmpty()) continue
+            val known = backend.spellings.contains(roman) || readings.any { knownPhoneticWord(backend, it) }
+            when {
+                // Uncontested: English does not know it. A collision leans
+                // native on a phonetic layout, which was chosen to write the
+                // language; this one was chosen to write English.
+                verdict.script == PhoneticScript.NATIVE && !verdict.contested && known -> leading.addAll(readings)
+                // Nobody knows it, and English could still be on its way to a
+                // word: every prefix of `because` would offer its reading.
+                !known && dictionary.complete(roman, 1).isNotEmpty() -> Unit
+                else -> trailing.add(readings.first())
+            }
+        }
+        if (leading.isEmpty() && trailing.isEmpty()) return latin
+        val joined = (latin.take(1) + leading + latin.drop(1)).distinct()
+        if (trailing.isEmpty()) return joined.take(limit)
+        val rest = joined.filterNot(trailing::contains)
+        val at = (slots - 1).coerceIn(1, maxOf(1, limit - 1)).coerceAtMost(rest.size)
+        return (rest.subList(0, at) + trailing + rest.subList(at, rest.size)).distinct().take(limit)
     }
 
     /**
