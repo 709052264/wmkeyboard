@@ -7840,6 +7840,12 @@ val EmojiGridCellSizeRange = 36..64
 /** What [EmojiSettings.tabMinWidth] can be set to: a 20 dp icon fits at the narrow end. */
 val EmojiTabWidthRange = 24..48
 
+/** What the corner hint's offsets take, in dp: negative pulls it out toward the key's edge (#970). */
+val HintOffsetRange = -6..16
+
+/** What the main label's offsets take, in dp (#970). */
+val LabelOffsetRange = -12..12
+
 /** Bounds for a fixed [EmojiSettings.gridColumns]; 0, outside them, means "fit". */
 val EmojiGridColumnsRange = 5..14
 
@@ -8777,6 +8783,19 @@ data class LayoutBehaviorSettings(
      * label.
      */
     val hintOffsetDp: Int = 1,
+    /**
+     * How far the corner hint sits in from the key's end edge, past the few
+     * dp it always keeps (#970). Negative moves it out toward the edge, for
+     * a large hint the label would otherwise cover.
+     */
+    val hintOffsetXDp: Int = 0,
+    /**
+     * The main label moved sideways and down from the key's centre, in dp
+     * (#970): out of the way of a large corner hint. Negative moves it left
+     * (toward the start) and up.
+     */
+    val labelOffsetXDp: Int = 0,
+    val labelOffsetYDp: Int = 0,
     /**
      * On a transliterating layout (Avro), each key's corner hint shows the
      * script it is about to type rather than its long-press alternate: ক on
@@ -10729,6 +10748,9 @@ class SettingsRepository(private val context: Context) {
         private val SPACE_CURSOR_2D = booleanPreferencesKey("space_cursor_2d")
         private val HINT_FONT_SCALE = floatPreferencesKey("hint_font_scale")
         private val HINT_OFFSET = intPreferencesKey("hint_offset_dp")
+        private val HINT_OFFSET_X = intPreferencesKey("hint_offset_x_dp")
+        private val LABEL_OFFSET_X = intPreferencesKey("label_offset_x_dp")
+        private val LABEL_OFFSET_Y = intPreferencesKey("label_offset_y_dp")
         private val FLICK_HINTS = booleanPreferencesKey("flick_hints")
         private val FLICK_POPUP = booleanPreferencesKey("flick_popup")
         private val FLICK_DISTANCE = intPreferencesKey("flick_distance_dp")
@@ -13348,7 +13370,10 @@ class SettingsRepository(private val context: Context) {
             pickerHiddenLanguages = p[PICKER_HIDDEN_LANGUAGES]
                 ?: defaults.layoutBehavior.pickerHiddenLanguages,
             hintFontScale = p[HINT_FONT_SCALE] ?: defaults.layoutBehavior.hintFontScale,
-            hintOffsetDp = p[HINT_OFFSET] ?: defaults.layoutBehavior.hintOffsetDp,
+            hintOffsetDp = p[HINT_OFFSET]?.coerceIn(HintOffsetRange) ?: defaults.layoutBehavior.hintOffsetDp,
+            hintOffsetXDp = p[HINT_OFFSET_X]?.coerceIn(HintOffsetRange) ?: defaults.layoutBehavior.hintOffsetXDp,
+            labelOffsetXDp = p[LABEL_OFFSET_X]?.coerceIn(LabelOffsetRange) ?: defaults.layoutBehavior.labelOffsetXDp,
+            labelOffsetYDp = p[LABEL_OFFSET_Y]?.coerceIn(LabelOffsetRange) ?: defaults.layoutBehavior.labelOffsetYDp,
             flickHints = p[FLICK_HINTS] ?: defaults.layoutBehavior.flickHints,
             flickPopup = p[FLICK_POPUP] ?: defaults.layoutBehavior.flickPopup,
             flickDistanceDp = p[FLICK_DISTANCE]?.coerceIn(FlickDistanceRange)
@@ -19173,6 +19198,9 @@ class SettingsRepository(private val context: Context) {
         it.remove(FONT_SCALE)
         it.remove(HINT_FONT_SCALE)
         it.remove(HINT_OFFSET)
+        it.remove(HINT_OFFSET_X)
+        it.remove(LABEL_OFFSET_X)
+        it.remove(LABEL_OFFSET_Y)
     }
 
     /** The Toolbar page's reset: the bar, its labels, the suggestion strip and the tool shape. */
@@ -20041,10 +20069,19 @@ class SettingsRepository(private val context: Context) {
         editPrefs { it[SPACE_CURSOR_2D] = value }
 
     suspend fun setHintFontScale(value: Float) =
-        editPrefs { it[HINT_FONT_SCALE] = value.coerceIn(0.5f, 2.0f) }
+        editPrefs { it[HINT_FONT_SCALE] = value.coerceIn(0.5f, 3.0f) }
 
     suspend fun setHintOffsetDp(value: Int) =
-        editPrefs { it[HINT_OFFSET] = value.coerceIn(0, 16) }
+        editPrefs { it[HINT_OFFSET] = value.coerceIn(HintOffsetRange) }
+
+    suspend fun setHintOffsetXDp(value: Int) =
+        editPrefs { it[HINT_OFFSET_X] = value.coerceIn(HintOffsetRange) }
+
+    suspend fun setLabelOffsetXDp(value: Int) =
+        editPrefs { it[LABEL_OFFSET_X] = value.coerceIn(LabelOffsetRange) }
+
+    suspend fun setLabelOffsetYDp(value: Int) =
+        editPrefs { it[LABEL_OFFSET_Y] = value.coerceIn(LabelOffsetRange) }
 
     suspend fun setFlickHints(value: Boolean) =
         editPrefs { it[FLICK_HINTS] = value }

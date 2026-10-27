@@ -486,6 +486,9 @@ internal object SettingsRowIcons {
         put(R.string.appearance_key_label_size_title) { Icons.Outlined.FormatSize }
         put(R.string.appearance_key_hint_size_title) { Icons.Outlined.FormatSize }
         put(R.string.appearance_key_hint_offset_title) { Icons.Outlined.SwapVert }
+        put(R.string.appearance_key_hint_offset_x_title) { Icons.Outlined.SwapHoriz }
+        put(R.string.appearance_key_label_offset_x_title) { Icons.Outlined.SwapHoriz }
+        put(R.string.appearance_key_label_offset_y_title) { Icons.Outlined.SwapVert }
         put(R.string.appearance_toolbar_show_title) { Icons.Outlined.Visibility }
         put(R.string.appearance_toolbar_swipe_down_title) { Icons.Outlined.SwipeDown }
         put(R.string.appearance_toolbar_drag_title) { Icons.Outlined.DragIndicator }

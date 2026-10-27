@@ -8,6 +8,7 @@ import com.wasimaster.wmkeyboard.core.layout.CurrentPanelLayoutVersion
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.layout.KeyAlternate
+import com.wasimaster.wmkeyboard.core.layout.KeyHintScaleRange
 import com.wasimaster.wmkeyboard.core.layout.KeyLabelScaleRange
 import com.wasimaster.wmkeyboard.core.layout.InputMethodBinding
 import com.wasimaster.wmkeyboard.core.layout.KeymanBinding
@@ -334,6 +335,10 @@ object LayoutJsonHints {
             "Key.labelScale" to PropertyHint(
                 examples = listOf(JsonValueExample("0.8"), JsonValueExample("1"), JsonValueExample("1.2")),
                 range = KeyLabelScaleRange.toDoubles(),
+            ),
+            "Key.hintScale" to PropertyHint(
+                examples = listOf(JsonValueExample("1.5"), JsonValueExample("2")),
+                range = KeyHintScaleRange.toDoubles(),
             ),
             "Key.icon" to PropertyHint(domain = JsonValueDomain.ICON),
             "Key.iconHint" to PropertyHint(domain = JsonValueDomain.ICON),

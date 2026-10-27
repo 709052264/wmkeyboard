@@ -5974,6 +5974,9 @@ internal fun KeyEditSheet(
         if (!isField && drawsScalableLabel(key)) item(level = SettingLevel.STANDARD) {
             KeyLabelScaleRow(key) { scale -> onChange { it.copy(labelScale = scale) } }
         }
+        if (!isField && !key.hideHint) item(level = SettingLevel.ADVANCED) {
+            KeyHintScaleRow(key) { scale -> onChange { it.copy(hintScale = scale) } }
+        }
         // Every key but a component's cell can wear an icon (issue #187). The
         // space bar and the action keys used to have no field for one, and the
         // letters' field wanted a name typed from memory; a picker shows the
@@ -7665,6 +7668,40 @@ internal fun LayoutFontScaleRow(
             for (preset in listOf(0.8f, 1f, 1.2f)) {
                 FilterChip(
                     selected = scale != null && kotlin.math.abs(shown - preset) < GridUnitStep / 2f,
+                    onClick = { onChange(preset) },
+                    label = { Text("×%.2f".format(preset).trimEnd('0').trimEnd('.')) },
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Corner hint size for one key, as a multiple of every hint's size (#970): for
+ * the key whose hint is a mark too small to read, an Arabic haraka on a corner,
+ * without making every other hint bigger with it.
+ */
+@Composable
+private fun KeyHintScaleRow(key: Key, onChange: (Float?) -> Unit) {
+    val scale = key.hintScale
+    ControlSetting(
+        if (scale == null) {
+            stringResource(R.string.layout_editor_key_hint_scale_auto_label)
+        } else {
+            stringResource(R.string.layout_editor_key_hint_scale_label, scale)
+        },
+        subtitle = stringResource(R.string.layout_editor_key_hint_scale_hint),
+        icon = SettingsRowIcons[R.string.layout_editor_key_label_scale_label],
+    ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            FilterChip(
+                selected = scale == null,
+                onClick = { onChange(null) },
+                label = { Text(stringResource(R.string.layout_editor_font_scale_auto_chip)) },
+            )
+            for (preset in listOf(0.75f, 1.5f, 2f, 3f)) {
+                FilterChip(
+                    selected = scale != null && kotlin.math.abs(scale - preset) < 0.01f,
                     onClick = { onChange(preset) },
                     label = { Text("×%.2f".format(preset).trimEnd('0').trimEnd('.')) },
                 )

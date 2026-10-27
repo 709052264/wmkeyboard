@@ -35,7 +35,13 @@
     <string name="appearance_key_hint_offset_title">Key hint position</string>
     <string name="appearance_key_hint_offset_subtitle">Distance of the corner hint from the top edge of the key</string>
     <!-- dp is the Android unit for screen size. Keep the two letters. -->
-    <string name="appearance_key_hint_offset_info">At 0 dp the hint touches the top edge of the key. Larger values move the hint down, nearer to the label. The default is 1 dp.</string>
+    <string name="appearance_key_hint_offset_info">At 0 dp the hint touches the top edge of the key, and below 0 it moves up past the key\'s inner margin. Larger values move the hint down, nearer to the label. The default is 1 dp.</string>
+    <string name="appearance_key_hint_offset_x_title">Key hint side position</string>
+    <string name="appearance_key_hint_offset_x_subtitle">How far in from the side of the key the hint sits. Below 0 moves it out to the edge</string>
+    <string name="appearance_key_label_offset_x_title">Key label across</string>
+    <string name="appearance_key_label_offset_x_subtitle">Moves the letter on each key to the side, away from a large hint</string>
+    <string name="appearance_key_label_offset_y_title">Key label up or down</string>
+    <string name="appearance_key_label_offset_y_subtitle">Moves the letter on each key down, or up below 0, away from a large hint</string>
     <string name="appearance_key_hint_size_info">This changes the size of the small hint that the keyboard prints in the corner of a key. The keyboard shows the hint when \"Press and hold hints\" is on. Larger values make the hints easier to read. The default is ×1.00.</string>
 
     <!-- Appearance screen, Toolbar group: the strip above the keys. -->

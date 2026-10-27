@@ -3,6 +3,8 @@ package com.wasimaster.wmkeyboard.app
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import com.wasimaster.wmkeyboard.core.layout.isShippedLayoutId
+import com.wasimaster.wmkeyboard.core.settings.HintOffsetRange
+import com.wasimaster.wmkeyboard.core.settings.LabelOffsetRange
 import com.wasimaster.wmkeyboard.core.settings.ArrowKey
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import androidx.compose.material3.AlertDialog
@@ -131,7 +133,10 @@ internal fun AppearanceSettings(
         s.keyCornerRadiusDp != d.keyCornerRadiusDp ||
             s.fontScale != d.fontScale ||
             s.layoutBehavior.hintFontScale != d.layoutBehavior.hintFontScale ||
-            s.layoutBehavior.hintOffsetDp != d.layoutBehavior.hintOffsetDp
+            s.layoutBehavior.hintOffsetDp != d.layoutBehavior.hintOffsetDp ||
+            s.layoutBehavior.hintOffsetXDp != d.layoutBehavior.hintOffsetXDp ||
+            s.layoutBehavior.labelOffsetXDp != d.layoutBehavior.labelOffsetXDp ||
+            s.layoutBehavior.labelOffsetYDp != d.layoutBehavior.labelOffsetYDp
     }
     // Turning the toolbar off is guarded — it hides suggestions and every tool.
     SettingsGroup(stringResource(R.string.appearance_style_section_title)) {
@@ -225,7 +230,8 @@ internal fun AppearanceSettings(
                 R.string.appearance_key_hint_size_title,
                 subtitle = pin?.text ?: stringResource(R.string.appearance_key_hint_size_subtitle),
                 value = settings.watch { it.layoutBehavior.hintFontScale },
-                range = 0.5f..2.0f,
+                // To ×3 (#970): an Arabic haraka at ×2 was still a speck.
+                range = 0.5f..3.0f,
                 display = { multiplierFormat.format(it) },
                 info = stringResource(R.string.appearance_key_hint_size_info),
                 enabled = pin == null,
@@ -238,11 +244,42 @@ internal fun AppearanceSettings(
                 R.string.appearance_key_hint_offset_title,
                 subtitle = stringResource(R.string.appearance_key_hint_offset_subtitle),
                 value = settings.watch { it.layoutBehavior.hintOffsetDp }.toFloat(),
-                range = 0f..16f,
+                // Below 0 too (#970): a large hint can sit right up in the corner.
+                range = HintOffsetRange.first.toFloat()..HintOffsetRange.last.toFloat(),
                 display = { dpFormat.format(it.roundToInt()) },
                 info = stringResource(R.string.appearance_key_hint_offset_info),
                 default = SettingsDefaults.layoutBehavior.hintOffsetDp.toFloat(),
             ) { scope.launch { repository.setHintOffsetDp(it.roundToInt()) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                R.string.appearance_key_hint_offset_x_title,
+                subtitle = stringResource(R.string.appearance_key_hint_offset_x_subtitle),
+                value = settings.watch { it.layoutBehavior.hintOffsetXDp }.toFloat(),
+                range = HintOffsetRange.first.toFloat()..HintOffsetRange.last.toFloat(),
+                display = { dpFormat.format(it.roundToInt()) },
+                default = SettingsDefaults.layoutBehavior.hintOffsetXDp.toFloat(),
+            ) { scope.launch { repository.setHintOffsetXDp(it.roundToInt()) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                R.string.appearance_key_label_offset_x_title,
+                subtitle = stringResource(R.string.appearance_key_label_offset_x_subtitle),
+                value = settings.watch { it.layoutBehavior.labelOffsetXDp }.toFloat(),
+                range = LabelOffsetRange.first.toFloat()..LabelOffsetRange.last.toFloat(),
+                display = { dpFormat.format(it.roundToInt()) },
+                default = SettingsDefaults.layoutBehavior.labelOffsetXDp.toFloat(),
+            ) { scope.launch { repository.setLabelOffsetXDp(it.roundToInt()) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            SliderSetting(
+                R.string.appearance_key_label_offset_y_title,
+                subtitle = stringResource(R.string.appearance_key_label_offset_y_subtitle),
+                value = settings.watch { it.layoutBehavior.labelOffsetYDp }.toFloat(),
+                range = LabelOffsetRange.first.toFloat()..LabelOffsetRange.last.toFloat(),
+                display = { dpFormat.format(it.roundToInt()) },
+                default = SettingsDefaults.layoutBehavior.labelOffsetYDp.toFloat(),
+            ) { scope.launch { repository.setLabelOffsetYDp(it.roundToInt()) } }
         }
         // Drawn only once something has actually moved. Theme, font and icons
         // are excluded: they lead to their own screens and are not what "reset

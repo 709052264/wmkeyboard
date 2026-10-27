@@ -4930,7 +4930,8 @@ fun ThemeEditorScreen(
                 SliderRow(
                     R.string.theme_hint_scale_title,
                     value = look.watch { it.hintFontScale ?: 1f },
-                    range = 0.5f..2f,
+                    // The same ×3 ceiling as the Appearance slider (#970).
+                    range = 0.5f..3f,
                     display = { "%.2f×".format(it) },
                 ) { update { t -> t.copy(hintFontScale = (it * 20).toInt() / 20f) } }
             }

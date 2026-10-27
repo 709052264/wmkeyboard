@@ -619,6 +619,7 @@ import com.wasimaster.wmkeyboard.core.layout.deletesBackward
 import com.wasimaster.wmkeyboard.core.layout.deletesForward
 import com.wasimaster.wmkeyboard.core.layout.drawnFontScale
 import com.wasimaster.wmkeyboard.core.layout.drawnLabel
+import com.wasimaster.wmkeyboard.core.layout.drawnHintScale
 import com.wasimaster.wmkeyboard.core.layout.drawnLabelScale
 import com.wasimaster.wmkeyboard.core.layout.fallbackLabel
 import com.wasimaster.wmkeyboard.core.layout.shiftLabelReplacesIcon
@@ -7818,7 +7819,7 @@ private fun SymbolCell(
                     text = labels.first(),
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(top = settings.layoutBehavior.hintOffsetDp.dp, end = 3.dp),
+                        .hintPlacement(settings, end = 3.dp),
                     fontSize = (HintLabelSp * settings.layoutBehavior.hintFontScale).sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
@@ -26398,10 +26399,7 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                     tint = visual.hintColor ?: contentColor.copy(alpha = 0.55f),
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(
-                            top = settings.layoutBehavior.hintOffsetDp.dp,
-                            end = HintEndPadding,
-                        )
+                        .hintPlacement(settings)
                         .size(
                             (HintIconDp * fontScale * settings.layoutBehavior.hintFontScale).dp,
                         ),
@@ -26629,6 +26627,12 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                     text = text,
                     modifier = Modifier
                         .align(Alignment.Center)
+                        // Moved off the centre when the user asked (#970), to
+                        // clear a corner hint made large enough to read.
+                        .offset(
+                            x = settings.layoutBehavior.labelOffsetXDp.dp,
+                            y = settings.layoutBehavior.labelOffsetYDp.dp,
+                        )
                         .padding(
                             horizontal = if (sideArms) FlickArmInsetDp else 0.dp,
                             vertical = if (endArms) FlickArmInsetDp else 0.dp,
@@ -26719,7 +26723,9 @@ private fun KeyContent(visual: KeyVisual, settings: KeyboardSettings, contentCol
                     ?: hint.takeIf { showHints && !cornerTaken && key.opensAlternatesPopup() },
                 hintMask = hintMask,
                 hintColor = hintColor,
-                fontScale = fontScale,
+                // The key's own hint size on top (#970), for the one hint a
+                // layout needs larger than the rest.
+                fontScale = fontScale * key.drawnHintScale(),
                 settings = settings,
             )
         }
@@ -26948,7 +26954,7 @@ private fun BoxScope.KeyCornerHint(
             modifier = Modifier
                 .clearAndSetSemantics {}
                 .align(Alignment.TopEnd)
-                .padding(top = settings.layoutBehavior.hintOffsetDp.dp, end = HintEndPadding),
+                .hintPlacement(settings),
             fontSize = (TranslitHintSp * fontScale * settings.layoutBehavior.hintFontScale).sp,
             color = hintColor,
             fontWeight = hintWeight,
@@ -26962,7 +26968,7 @@ private fun BoxScope.KeyCornerHint(
             tint = hintColor,
             modifier = hintMask
                 .align(Alignment.TopEnd)
-                .padding(top = settings.layoutBehavior.hintOffsetDp.dp, end = HintEndPadding)
+                .hintPlacement(settings)
                 .size((HintIconDp * fontScale * settings.layoutBehavior.hintFontScale).dp),
         )
         hint != null -> Text(
@@ -26970,7 +26976,7 @@ private fun BoxScope.KeyCornerHint(
             modifier = hintMask
                 .clearAndSetSemantics {}
                 .align(Alignment.TopEnd)
-                .padding(top = settings.layoutBehavior.hintOffsetDp.dp, end = HintEndPadding),
+                .hintPlacement(settings),
             fontSize = (HintLabelSp * fontScale * settings.layoutBehavior.hintFontScale).sp,
             color = hintColor,
             fontWeight = hintWeight,
@@ -27014,6 +27020,26 @@ private const val HintIconDp = 9.5f
 
 /** How far the hint lane sits from the key's trailing edge. */
 private val HintEndPadding = 4.dp
+
+/**
+ * Where the corner hint sits: [LayoutBehaviorSettings.hintOffsetDp] down from
+ * the top and [LayoutBehaviorSettings.hintOffsetXDp] further in than [end] from
+ * the trailing edge (#208, #970). Either may be negative, which padding cannot
+ * be, so the part past the edge goes in as an offset instead: a large hint can
+ * then sit right in the corner, clear of the label.
+ */
+internal fun Modifier.hintPlacement(settings: KeyboardSettings, end: Dp = HintEndPadding): Modifier {
+    val top = settings.layoutBehavior.hintOffsetDp.dp
+    val side = end + settings.layoutBehavior.hintOffsetXDp.dp
+    val padded = padding(top = top.coerceAtLeast(0.dp), end = side.coerceAtLeast(0.dp))
+    return if (top >= 0.dp && side >= 0.dp) {
+        padded
+    } else {
+        // Toward the end edge is +x in a left-to-right row; offset mirrors it
+        // for a right-to-left one, the way the end padding does.
+        padded.offset(x = -side.coerceAtMost(0.dp), y = top.coerceAtMost(0.dp))
+    }
+}
 
 /**
  * The hint lane's text style: no font padding, so the glyph hugs the top edge
