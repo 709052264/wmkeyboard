@@ -43,7 +43,7 @@ internal object PredictionNative {
     external fun ngramIdOf(handle: Long, word: String): Int
 
     // The fuzzy correction walk (FuzzyBeamSearch) and the models it reads.
-    external fun proximityOpen(rows: Array<String>): Long
+    external fun proximityOpen(rows: Array<String>, carried: CharArray): Long
     external fun proximityClose(handle: Long)
 
     @Suppress("LongParameterList")

@@ -347,6 +347,7 @@ import com.wasimaster.wmkeyboard.ime.DUET_PING_ALL_UP
 import com.wasimaster.wmkeyboard.ime.DUET_PING_DOWN
 import com.wasimaster.wmkeyboard.ime.CaretDragSource
 import com.wasimaster.wmkeyboard.ime.top
+import com.wasimaster.wmkeyboard.ime.carriedGlideSpellings
 import com.wasimaster.wmkeyboard.ime.glideAnchor
 import com.wasimaster.wmkeyboard.ime.HINT_FLICK_MIN_TRAVEL_HEIGHTS
 import com.wasimaster.wmkeyboard.ime.hintFlick
@@ -17762,6 +17763,11 @@ private fun KeyRows(
     // it draws the area a favoured letter has claimed, and a centre alone does
     // not say how big a cell is. Per layout, like the centres above.
     val keyBounds = remember(layout) { mutableStateMapOf<Int, Rect>() }
+    // Keys that type no letter but carry one on Shift, in the corner or on a
+    // hold (#970), at their centres: a number-row digit with a letter behind
+    // it. Kept apart from [keyCenters] because nothing about typing reads
+    // them; only the glide grid does. Per layout, like the centres above.
+    val carrierCenters = remember(layout) { mutableStateMapOf<Key, Offset>() }
     // The pointer loops below are keyed on the gesture settings, not on the
     // layout, so they outlive a layout change — and both the centres map and the
     // grid they read are per-layout values. Captured bare, a loop started under
@@ -17770,6 +17776,7 @@ private fun KeyRows(
     // against the previous layout's key positions: real words, none of them the
     // one that was drawn. Read them through a State, the way `keyWidth` is.
     val liveCenters = rememberUpdatedState(keyCenters)
+    val liveCarriers = rememberUpdatedState(carrierCenters)
     val liveRects = rememberUpdatedState(keyRects)
     val liveLayouts = rememberUpdatedState(state.layouts)
     // Non-letter keys the composer lets a stroke spell through (Khipro's `/`).
@@ -18696,6 +18703,7 @@ private fun KeyRows(
                                 extraCenters = liveGlideKeys.value.mapNotNull { codePoint ->
                                     liveCenters.value[codePoint]?.let { codePoint to (it.x to it.y) }
                                 },
+                                carriers = liveCarriers.value.map { (key, c) -> key to (c.x to c.y) },
                             ) { codePoint ->
                                 liveCenters.value[codePoint]?.let { it.x to it.y }
                             }
@@ -18965,6 +18973,7 @@ private fun KeyRows(
                             extraCenters = liveGlideKeys.value.mapNotNull { codePoint ->
                                 liveCenters.value[codePoint]?.let { codePoint to (it.x to it.y) }
                             },
+                            carriers = liveCarriers.value.map { (key, c) -> key to (c.x to c.y) },
                         ) { codePoint ->
                             liveCenters.value[codePoint]?.let { it.x to it.y }
                         }
@@ -19672,7 +19681,7 @@ private fun KeyRows(
             // hand every key a new lambda and cost the whole board a skip.
             val liveToken = rememberUpdatedState(gridToken)
             val onKeyPositioned: (Key, LayoutCoordinates) -> Unit =
-                remember(keyCenters, keyRects, keyBounds) {
+                remember(keyCenters, keyRects, keyBounds, carrierCenters) {
                     { key, coords ->
                         keyRects.record(liveToken.value, key, coords.boundsInRoot())
                         // The key's centre is reported under the first character
@@ -19692,6 +19701,13 @@ private fun KeyRows(
                         // the letter it carries on the glide grid, when it has one.
                         val letter = key.glideAnchor() ?: liveLayouts.value.digraphAnchors[key]
                             ?: key.glidePunctuationCodePoint()
+                        if (letter == null && key.carriedGlideSpellings().isNotEmpty()) {
+                            val topLeft = coords.positionInRoot() - boxOrigin
+                            carrierCenters[key] = Offset(
+                                topLeft.x + coords.size.width / 2f,
+                                topLeft.y + coords.size.height / 2f,
+                            )
+                        }
                         if (letter != null) {
                             val topLeft = coords.positionInRoot() - boxOrigin
                             val center = Offset(
