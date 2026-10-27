@@ -75,7 +75,12 @@ import com.wasimaster.wmkeyboard.core.settings.dictionaryLanguageGroups
 import com.wasimaster.wmkeyboard.core.settings.LEARNED_CORRECTIONS_FILE
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.sortDictionaryWords
+import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryStore
+import com.wasimaster.wmkeyboard.core.directboot.DirectBoot
 import com.wasimaster.wmkeyboard.core.prediction.CorrectionMemory
+import com.wasimaster.wmkeyboard.core.prediction.CustomDictionaries
+import com.wasimaster.wmkeyboard.core.prediction.MappedTrie
+import com.wasimaster.wmkeyboard.core.prediction.WordSource
 import com.wasimaster.wmkeyboard.core.prediction.PendingLearn
 import com.wasimaster.wmkeyboard.core.prediction.SystemUserDictionary
 import com.wasimaster.wmkeyboard.core.prediction.WordKey
@@ -136,6 +141,10 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
     var rankEntries by remember { mutableStateOf<List<Pair<String, Int>>>(emptyList()) }
     var showAdd by remember { mutableStateOf(false) }
     var showTidy by remember { mutableStateOf(false) }
+    // Words a word list already holds (#981), worked out off the main thread
+    // whenever the words or the lists the keyboard reads change.
+    var listed by remember { mutableStateOf<List<String>>(emptyList()) }
+    var showTrimListed by remember { mutableStateOf(false) }
     // The row being edited (#47): its spelling and weight, as they are now.
     var editing by remember { mutableStateOf<Pair<String, Int>?>(null) }
     var androidPicker by remember { mutableStateOf<AndroidWordPicker?>(null) }
@@ -247,14 +256,28 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
     val seenOnce = remember(words, added) {
         words.filter { it.second <= 1 && it.first !in added }.map { it.first }
     }
+    val enabledLanguages = settings.watch { it.enabledLanguages }
+    val importedOnly = settings.watch { it.suggestionStrip.importedOnlyLangs }
+    LaunchedEffect(words, langs, pinned, enabledLanguages, importedOnly) {
+        val ids = enabledLanguages.map { it.id }
+        val candidates = words.map { it.first }.filter { it !in pinned }
+        listed = withContext(Dispatchers.IO) {
+            wordsTheListsHold(context, candidates, langs, ids) { it !in importedOnly }
+        }
+    }
     RegisterAddFab(stringResource(R.string.backup_add_word_action)) { showAdd = true }
-    Row(
+    FlowRow(
         modifier = Modifier.padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         if (seenOnce.isNotEmpty()) {
             OutlinedButton(onClick = { showTidy = true }) {
                 Text(stringResource(R.string.backup_tidy_words_action))
+            }
+        }
+        if (listed.isNotEmpty()) {
+            OutlinedButton(onClick = { showTrimListed = true }) {
+                Text(stringResource(R.string.backup_trim_listed_action))
             }
         }
     }
@@ -343,7 +366,6 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
     // By language (#930): a chip per language the words are filed under, and
     // one for the words that belong to every language. Shown once there is
     // more than one group to choose between.
-    val enabledLanguages = settings.watch { it.enabledLanguages }
     val groups = remember(words, langs, enabledLanguages) {
         dictionaryLanguageGroups(words.map { it.first }, langs, enabledLanguages.map { it.id })
     }
@@ -630,6 +652,80 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
                 }
             },
         )
+    }
+
+    if (showTrimListed) {
+        AlertDialog(
+            onDismissRequest = { showTrimListed = false },
+            title = { Text(stringResource(R.string.backup_trim_listed_title)) },
+            text = {
+                Text(
+                    pluralStringResource(
+                        R.plurals.backup_trim_listed_body,
+                        listed.size,
+                        listed.size,
+                    ),
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val victims = listed
+                        persist { it.forgetAll(victims) }
+                        showTrimListed = false
+                    },
+                ) { Text(stringResource(CommonR.string.common_remove)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTrimListed = false }) {
+                    Text(stringResource(CommonR.string.common_cancel))
+                }
+            },
+        )
+    }
+}
+
+/**
+ * The [words] a word list already holds (#981), so the personal dictionary's
+ * copy adds nothing but its count: the downloaded or bundled list of the
+ * word's language, or one of its imported lists. A word filed under no
+ * language counts when any of [enabled]'s lists hold it. A language that reads
+ * its imported lists alone ([shipped] false) is asked about those only, the
+ * way the keyboard reads it, so nothing is removed that the keyboard would
+ * then not know.
+ */
+private fun wordsTheListsHold(
+    context: android.content.Context,
+    words: List<String>,
+    langs: Map<String, String>,
+    enabled: List<String>,
+    shipped: (String) -> Boolean,
+): List<String> {
+    if (words.isEmpty()) return emptyList()
+    val filesDir = context.filesDir
+    val bundled = DictionaryStore.bundledLanguageIds(context)
+    val device = DirectBoot.deviceContext(context)
+    val sources = HashMap<String, List<WordSource>>()
+    fun sourcesOf(langId: String): List<WordSource> = sources.getOrPut(langId) {
+        buildList {
+            if (shipped(langId)) {
+                val own = MappedTrie.open(DictionaryStore.downloadedFile(filesDir, langId))
+                    ?: if (langId in bundled) {
+                        DictionaryStore.ensureBundled(device, langId)?.let { MappedTrie.open(it) }
+                    } else {
+                        null
+                    }
+                own?.let(::add)
+            }
+            // Catches an OutOfMemoryError too: lists too big to build are
+            // left out, which only keeps more words (#693).
+            runCatching { CustomDictionaries.trie(filesDir, langId) }.getOrNull()?.let(::add)
+        }
+    }
+    return words.filter { word ->
+        val key = WordKey.of(word)
+        val ids = langs[word]?.let(::listOf) ?: enabled
+        ids.any { id -> sourcesOf(id).any { it.contains(key) } }
     }
 }
 /** Regex for the gaps inside a multi-word Android dictionary row. */
