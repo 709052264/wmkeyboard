@@ -376,6 +376,18 @@
     <string name="backup_auto_staggered_title">Keep older backups spread out</string>
     <string name="backup_auto_staggered_subtitle">Also keep one a day for a week, one a week for five weeks and one a month for a year</string>
     <string name="backup_auto_staggered_info">Backups to keep counts the newest backups. With this on, the app also spares some older ones instead of deleting them: the newest backup of each of the last 7 days, of each of the last 5 weeks, and of each of the last 12 months. That is at most 24 more files, and fewer when one backup stands for several of them. A setting you changed by mistake a month ago can then still be taken back, without keeping a month of daily backups to do it. The ages count back from your newest backup, so a phone that stops backing up for a while keeps its old copies until new ones replace them. This setting is off by default.</string>
+    <!-- #970: a second automatic backup on its own schedule, smaller and more often than the main one. -->
+    <string name="backup_frequent_title">Frequent backup</string>
+    <string name="backup_frequent_info">A second automatic backup beside the main one, with its own schedule, sections and number of copies. Use it for what changes often and is small, like your settings and layouts, every hour or so, and leave the bulky and personal things to the main backup once a day. It goes to the same locations under the same conditions, and pausing backups pauses it too. Its files are named apart, so each kind keeps its own copies, and the restore list shows both. It never includes API keys.</string>
+    <string name="backup_frequent_enabled_title">Also back up often</string>
+    <string name="backup_frequent_enabled_subtitle">A second, smaller backup on its own schedule, to the same locations</string>
+    <string name="backup_frequent_interval_title">How often, frequent backup</string>
+    <string name="backup_frequent_keep_title">Frequent backups to keep</string>
+    <string name="backup_frequent_keep_subtitle">Counted apart from the main backups</string>
+    <string name="backup_frequent_encrypt_title">Encrypt frequent backups</string>
+    <string name="backup_frequent_encrypt_subtitle">With the passphrase under Protect with a passphrase</string>
+    <string name="backup_frequent_encrypt_needs_passphrase">Set a passphrase under Protect with a passphrase first</string>
+    <string name="backup_frequent_contents_title">What goes in a frequent backup</string>
     <string name="backup_auto_unmetered_title">Only on Wi-Fi</string>
     <string name="backup_auto_unmetered_subtitle">Wait for a connection that costs you nothing</string>
     <string name="backup_auto_unmetered_info">A backup can be a few megabytes, and it goes out every time the timer comes round. With this on, the app waits for Wi-Fi, or for any other connection that Android does not count as metered. With it off, a backup goes out over mobile data as soon as it is due. Folder locations need no connection at all, so this setting only shows when a backup goes to a server or a cloud account. This setting is on by default.</string>

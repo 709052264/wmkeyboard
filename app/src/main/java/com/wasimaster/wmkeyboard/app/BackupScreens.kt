@@ -80,6 +80,7 @@ import com.wasimaster.wmkeyboard.core.settings.AutoBackupKeepRange
 import com.wasimaster.wmkeyboard.core.settings.AutoBackupRunner
 import com.wasimaster.wmkeyboard.core.settings.AutoBackupScheduler
 import com.wasimaster.wmkeyboard.core.settings.AutoBackupSettings
+import com.wasimaster.wmkeyboard.core.settings.FrequentBackup
 import com.wasimaster.wmkeyboard.core.settings.BackupDestination
 import com.wasimaster.wmkeyboard.core.settings.FtpConfig
 import com.wasimaster.wmkeyboard.core.settings.S3Config
@@ -1487,6 +1488,85 @@ internal fun BackupAutoSettings(repository: SettingsRepository, settings: LiveSe
                 scope.launch {
                     repository.setAutoBackupRequireUnmetered(on)
                     resync()
+                }
+            }
+        }
+    }
+
+    // #970: a second, smaller backup on a schedule of its own.
+    val frequentOn = settings.watch { it.autoBackup.frequent.enabled }
+    val hasPassphrase = settings.watch { it.autoBackup.passphrase.isNotEmpty() }
+    if (autoOn && configured) {
+        SettingsGroup(
+            stringResource(R.string.backup_frequent_title),
+            info = stringResource(R.string.backup_frequent_info),
+            level = SettingLevel.STANDARD,
+        ) {
+            item {
+                ToggleSetting(
+                    R.string.backup_frequent_enabled_title,
+                    stringResource(R.string.backup_frequent_enabled_subtitle),
+                    frequentOn,
+                    default = SettingsDefaults.autoBackup.frequent.enabled,
+                ) { on ->
+                    scope.launch {
+                        repository.setFrequentBackupEnabled(on)
+                        resync()
+                    }
+                }
+            }
+            item(visible = frequentOn) {
+                SliderSetting(
+                    R.string.backup_frequent_interval_title,
+                    value = intervalSliderIndex(settings.watch { it.autoBackup.frequent.intervalHours }).toFloat(),
+                    range = 0f..(AutoBackupIntervals.size - 1).toFloat(),
+                    display = { backupIntervalLabel(context, intervalAt(it)) },
+                    typed = false,
+                    default = intervalSliderIndex(SettingsDefaults.autoBackup.frequent.intervalHours).toFloat(),
+                ) { index ->
+                    scope.launch {
+                        repository.setFrequentBackupIntervalHours(intervalAt(index))
+                        resync()
+                    }
+                }
+            }
+            item(visible = frequentOn) {
+                SliderSetting(
+                    R.string.backup_frequent_keep_title,
+                    subtitle = stringResource(R.string.backup_frequent_keep_subtitle),
+                    value = settings.watch { it.autoBackup.frequent.keep }.toFloat(),
+                    range = AutoBackupKeepRange.first.toFloat()..AutoBackupKeepRange.last.toFloat(),
+                    display = { kept ->
+                        context.resources.getQuantityString(R.plurals.backup_auto_keep_value, kept.roundToInt(), kept.roundToInt())
+                    },
+                    default = SettingsDefaults.autoBackup.frequent.keep.toFloat(),
+                ) { kept -> scope.launch { repository.setFrequentBackupKeep(kept.roundToInt()) } }
+            }
+            item(visible = frequentOn) {
+                ToggleSetting(
+                    R.string.backup_frequent_encrypt_title,
+                    stringResource(
+                        if (hasPassphrase) R.string.backup_frequent_encrypt_subtitle else R.string.backup_frequent_encrypt_needs_passphrase,
+                    ),
+                    settings.watch { it.autoBackup.frequent.encrypt } && hasPassphrase,
+                    enabled = hasPassphrase,
+                    default = SettingsDefaults.autoBackup.frequent.encrypt,
+                ) { on -> scope.launch { repository.setFrequentBackupEncrypt(on) } }
+            }
+        }
+        if (frequentOn) {
+            SettingsGroup(stringResource(R.string.backup_frequent_contents_title), level = SettingLevel.STANDARD) {
+                // No API-key switch: the frequent backup never carries them.
+                sectionRows(
+                    settings = settings,
+                    sections = { it.autoBackup.frequent.sectionSet },
+                    defaults = FrequentBackup.DEFAULT_SECTIONS,
+                    secrets = null,
+                ) { section, on ->
+                    scope.launch {
+                        val current = repository.settings.first().autoBackup.frequent.sectionSet
+                        repository.setFrequentBackupSections(if (on) current + section else current - section)
+                    }
                 }
             }
         }

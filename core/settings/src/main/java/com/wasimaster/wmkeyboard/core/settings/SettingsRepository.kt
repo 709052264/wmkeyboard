@@ -4413,6 +4413,9 @@ data class AutoBackupSettings(
      * [BackupPause].
      */
     val pausedUntilMs: Long = 0L,
+
+    /** The second, more frequent schedule (#970). See [FrequentBackup]. */
+    val frequent: FrequentBackup = FrequentBackup(),
 ) {
     companion object {
 
@@ -4447,6 +4450,46 @@ data class AutoBackupSettings(
 
 /** [AutoBackupSettings.sections] as the sections themselves. */
 val AutoBackupSettings.sectionSet: Set<ConfigBackup.Section>
+    get() = ConfigBackup.Section.entries.filterTo(LinkedHashSet()) { it.id in sections }
+
+/**
+ * A second automatic backup on a schedule of its own (#970): small and often,
+ * beside the main one that carries everything once a day. It goes to the
+ * same ticked locations under the same passphrase, but has its own interval,
+ * sections, number of copies and encryption switch, and its files are named
+ * apart (see [com.wasimaster.wmkeyboard.core.settings.sink.AutoBackupNaming])
+ * so each schedule rotates only its own. It never carries API keys: a file
+ * written every hour, perhaps unencrypted, is the wrong place for them.
+ *
+ * Runs only while [AutoBackupSettings.enabled] is on, and a pause holds it too.
+ */
+data class FrequentBackup(
+    val enabled: Boolean = false,
+    /** Wall-clock hours between runs, from [AutoBackupIntervals]. */
+    val intervalHours: Int = 1,
+    /** [ConfigBackup.Section] ids. */
+    val sections: Set<String> = DEFAULT_SECTIONS,
+    /** How many of these survive rotation, counted apart from the main backups. */
+    val keep: Int = 5,
+    /** Whether these files are encrypted under [AutoBackupSettings.passphrase]. */
+    val encrypt: Boolean = false,
+    /** When the last frequent run finished, or 0. Never travels. */
+    val lastRunAtMs: Long = 0L,
+    /** The [com.wasimaster.wmkeyboard.core.settings.sink.SinkError] name it last stopped on, or empty. */
+    val lastError: String = "",
+) {
+    companion object {
+        /** What changes often and is small: the settings, layouts with them, themes and snippets. */
+        val DEFAULT_SECTIONS: Set<String> = setOf(
+            ConfigBackup.Section.SETTINGS.id,
+            ConfigBackup.Section.THEMES.id,
+            ConfigBackup.Section.SNIPPETS.id,
+        )
+    }
+}
+
+/** [FrequentBackup.sections] as the sections themselves. */
+val FrequentBackup.sectionSet: Set<ConfigBackup.Section>
     get() = ConfigBackup.Section.entries.filterTo(LinkedHashSet()) { it.id in sections }
 
 /** [AutoBackupSettings.exportSections] as the sections themselves. */
@@ -11112,6 +11155,13 @@ class SettingsRepository(private val context: Context) {
             longPreferencesKey(SettingsBackup.AUTO_BACKUP_LAST_RUN_AT)
         private val AUTO_BACKUP_LAST_ERROR =
             stringPreferencesKey(SettingsBackup.AUTO_BACKUP_LAST_ERROR)
+        private val FREQUENT_BACKUP_ENABLED = booleanPreferencesKey(SettingsBackup.FREQUENT_BACKUP_ENABLED)
+        private val FREQUENT_BACKUP_INTERVAL_HOURS = intPreferencesKey("frequent_backup_interval_hours")
+        private val FREQUENT_BACKUP_SECTIONS = stringSetPreferencesKey("frequent_backup_sections")
+        private val FREQUENT_BACKUP_KEEP = intPreferencesKey("frequent_backup_keep")
+        private val FREQUENT_BACKUP_ENCRYPT = booleanPreferencesKey("frequent_backup_encrypt")
+        private val FREQUENT_BACKUP_LAST_RUN_AT = longPreferencesKey(SettingsBackup.FREQUENT_BACKUP_LAST_RUN_AT)
+        private val FREQUENT_BACKUP_LAST_ERROR = stringPreferencesKey(SettingsBackup.FREQUENT_BACKUP_LAST_ERROR)
         private val AUTO_BACKUP_DESTINATION = stringPreferencesKey("auto_backup_destination")
         private val AUTO_BACKUP_WEBDAV_URL = stringPreferencesKey("auto_backup_webdav_url")
         private val AUTO_BACKUP_WEBDAV_USER = stringPreferencesKey("auto_backup_webdav_user")
@@ -13109,6 +13159,15 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.autoBackup.exportSections,
             backupIncludeSecrets = p[AUTO_BACKUP_INCLUDE_KEYS] ?: defaults.autoBackup.backupIncludeSecrets,
             pausedUntilMs = p[AUTO_BACKUP_PAUSED_UNTIL] ?: defaults.autoBackup.pausedUntilMs,
+            frequent = FrequentBackup(
+                enabled = p[FREQUENT_BACKUP_ENABLED] ?: defaults.autoBackup.frequent.enabled,
+                intervalHours = p[FREQUENT_BACKUP_INTERVAL_HOURS] ?: defaults.autoBackup.frequent.intervalHours,
+                sections = p[FREQUENT_BACKUP_SECTIONS] ?: defaults.autoBackup.frequent.sections,
+                keep = p[FREQUENT_BACKUP_KEEP] ?: defaults.autoBackup.frequent.keep,
+                encrypt = p[FREQUENT_BACKUP_ENCRYPT] ?: defaults.autoBackup.frequent.encrypt,
+                lastRunAtMs = p[FREQUENT_BACKUP_LAST_RUN_AT] ?: defaults.autoBackup.frequent.lastRunAtMs,
+                lastError = p[FREQUENT_BACKUP_LAST_ERROR] ?: defaults.autoBackup.frequent.lastError,
+            ),
             sync = SyncSettings(
                 enabled = p[SYNC_ENABLED] ?: defaults.autoBackup.sync.enabled,
                 mode = p[SYNC_MODE]?.let { id -> SyncMode.entries.firstOrNull { it.id == id } }
@@ -21226,6 +21285,28 @@ class SettingsRepository(private val context: Context) {
     suspend fun setAutoBackupOutcome(ranAtMs: Long, error: String) = editPrefs {
         if (error.isEmpty()) it[AUTO_BACKUP_LAST_RUN_AT] = ranAtMs
         it[AUTO_BACKUP_LAST_ERROR] = error
+    }
+
+    suspend fun setFrequentBackupEnabled(value: Boolean) =
+        editPrefs { it[FREQUENT_BACKUP_ENABLED] = value }
+
+    suspend fun setFrequentBackupIntervalHours(value: Int) =
+        editPrefs { it[FREQUENT_BACKUP_INTERVAL_HOURS] = value.coerceIn(1, 24 * 30) }
+
+    suspend fun setFrequentBackupKeep(value: Int) =
+        editPrefs { it[FREQUENT_BACKUP_KEEP] = value.coerceIn(AutoBackupKeepRange) }
+
+    suspend fun setFrequentBackupEncrypt(value: Boolean) =
+        editPrefs { it[FREQUENT_BACKUP_ENCRYPT] = value }
+
+    /** Writes the key even when [value] is empty, as [setAutoBackupSections] does. */
+    suspend fun setFrequentBackupSections(value: Set<ConfigBackup.Section>) =
+        editPrefs { prefs -> prefs[FREQUENT_BACKUP_SECTIONS] = value.mapTo(HashSet()) { it.id } }
+
+    /** [setAutoBackupOutcome] for the frequent schedule. */
+    suspend fun setFrequentBackupOutcome(ranAtMs: Long, error: String) = editPrefs {
+        if (error.isEmpty()) it[FREQUENT_BACKUP_LAST_RUN_AT] = ranAtMs
+        it[FREQUENT_BACKUP_LAST_ERROR] = error
     }
 
     /** The stored list, or the legacy single destination until one is written. */

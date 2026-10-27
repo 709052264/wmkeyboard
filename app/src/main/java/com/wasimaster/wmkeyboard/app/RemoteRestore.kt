@@ -261,7 +261,7 @@ private suspend fun list(context: Context, location: BackupLocation, myGroup: St
     // something to restore from.
     val entries = sink.list().getOrElse { failure ->
         return RemoteStage.Failed(errorText(context, (failure as? BackupSinkException)?.reason, location))
-    }.filter { AutoBackupNaming.isOurs(it.name) }
+    }.filter { AutoBackupNaming.isOurs(it.name) || AutoBackupNaming.isOurs(it.name, frequent = true) }
     if (entries.isEmpty()) {
         return RemoteStage.Failed(context.getString(R.string.backup_remote_restore_empty))
     }

@@ -134,6 +134,11 @@ object SettingsBackup {
     const val AUTO_BACKUP_LAST_RUN_AT = "auto_backup_last_run_at"
     const val AUTO_BACKUP_LAST_ERROR = "auto_backup_last_error"
 
+    /** The frequent schedule's switch and record (#970): per install, as the main one's are. */
+    const val FREQUENT_BACKUP_ENABLED = "frequent_backup_enabled"
+    const val FREQUENT_BACKUP_LAST_RUN_AT = "frequent_backup_last_run_at"
+    const val FREQUENT_BACKUP_LAST_ERROR = "frequent_backup_last_error"
+
     /**
      * Until when scheduled backups wait; see [BackupPause]. Per install: a
      * restored bundle that paused the new phone's backups would be the quiet
@@ -227,6 +232,9 @@ object SettingsBackup {
         AUTO_BACKUP_LAST_ERROR,
         AUTO_BACKUP_LOCATION_STATUS,
         AUTO_BACKUP_PAUSED_UNTIL,
+        FREQUENT_BACKUP_ENABLED,
+        FREQUENT_BACKUP_LAST_RUN_AT,
+        FREQUENT_BACKUP_LAST_ERROR,
         SYNC_ENABLED,
         SYNC_MODE,
         SYNC_INTERVAL_HOURS,
