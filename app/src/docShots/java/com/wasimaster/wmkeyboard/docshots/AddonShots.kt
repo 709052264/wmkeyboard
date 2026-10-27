@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.docshots
 import android.app.Application
 import android.content.Intent
 import android.os.Looper
+import android.text.InputType
 import android.view.Gravity
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
@@ -20,6 +21,9 @@ import com.wasimaster.wmkeyboard.app.DocsShotActivity
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.layout.LayoutFile
+import com.wasimaster.wmkeyboard.core.layout.LayoutLayer
+import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
+import com.wasimaster.wmkeyboard.core.layout.PanelKind
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.theme.ThemeAnimation
 import com.wasimaster.wmkeyboard.core.theme.ThemeCodec
@@ -27,6 +31,7 @@ import com.wasimaster.wmkeyboard.core.theme.ThemeSpec
 import com.wasimaster.wmkeyboard.core.theme.withExtractedImages
 import com.wasimaster.wmkeyboard.core.theme.withFreshIds
 import com.wasimaster.wmkeyboard.ime.PanelMode
+import com.wasimaster.wmkeyboard.ime.layoutKind
 import com.wasimaster.wmkeyboard.core.util.readCapped
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
@@ -63,7 +68,8 @@ import java.util.concurrent.TimeUnit
  * beside the file it names. The out directory gets `<id>.png` (a theme also
  * `<id>-tools.png`, `<id>-clipboard.png` and `<id>-editing.png`, the same
  * keyboard with a tool panel open, and `<id>-landscape.png` when it has a
- * landscape image; a layout `<id>-dark.png`)
+ * landscape image; a layout `<id>-dark.png`, `<id>-shift.png`, and one more
+ * per layer it defines, named in [layoutLayers])
  * and always `<id>.report.json`, `{"ok","refusal","warnings","images"}`, which
  * the bot reads whatever happened: a refused file and a render that threw both
  * still write one.
@@ -124,19 +130,22 @@ class AddonShots {
                         warnings += themeWarnings(theme)
                         // One boot, four captures: the typing shot, then the
                         // panels a theme also paints, each one opened in turn.
-                        images += shoot("$id.png", dark = theme.dark, landscape = false, panels = themePanels(id))
+                        images += shoot("$id.png", dark = theme.dark, landscape = false, extras = themePanels(id))
                         if (theme.backgroundImageLandscape != null) {
                             images += shoot("$id-landscape.png", dark = theme.dark, landscape = true)
                         }
                     }
                 }
                 "layout" -> {
-                    val notes = runBlocking { importLayout(app, repo, file) }
-                    if (notes == null) {
+                    val imported = runBlocking { importLayout(app, repo, file) }
+                    if (imported == null) {
                         refusal = app.getString(R.string.layout_editor_import_wrong_file_error)
                     } else {
+                        val (layout, notes) = imported
                         warnings += notes
-                        images += shoot("$id.png", dark = false, landscape = false)
+                        // Every layer the file defines, from the one light boot;
+                        // the dark shot is the letters alone.
+                        images += shoot("$id.png", dark = false, landscape = false, extras = layoutLayers(id, layout))
                         images += shoot("$id-dark.png", dark = true, landscape = false)
                     }
                 }
@@ -170,17 +179,66 @@ class AddonShots {
 
     /**
      * The layout editor's Import, then "Import and turn on", then the layout
-     * picked. The repair notes come back as the editor would list them; null
-     * where it would say the file is not a layout.
+     * picked. Returns the layout as stored, with the repair notes as the
+     * editor would list them; null where it would say the file is not a layout.
      */
-    private suspend fun importLayout(app: Application, repo: SettingsRepository, file: File): List<String>? {
+    private suspend fun importLayout(app: Application, repo: SettingsRepository, file: File): Pair<LayoutSpec, List<String>>? {
         val text = runCatching { file.inputStream().use { it.readCapped() } }.getOrNull()?.decodeToString()
         val imported = text?.let { LayoutFile.decode(it) } ?: return null
         val id = "custom_${System.currentTimeMillis()}"
-        repo.upsertCustomLayout(imported.layout.copy(id = id))
+        val layout = imported.layout.copy(id = id)
+        repo.upsertCustomLayout(layout)
         repo.setEnabledLayoutIds(listOf("builtin_qwerty", id))
         repo.setActiveLayoutId(id)
-        return imported.repairNotes.map { "Repaired on import: " + it.format(app.resources) }
+        return layout to imported.repairNotes.map { "Repaired on import: " + it.format(app.resources) }
+    }
+
+    /**
+     * One shot per layer [layout] defines, beyond the letters the main shot
+     * already shows: the letters with Shift on, then each layer by the way a
+     * user reaches it. Symbols, its second page and Fn by their keys; a page of
+     * the layout's own by a page key; the number, phone, date and time pads by
+     * a field of that kind; a panel layer by opening that panel. A layer the
+     * layout leaves to the shipped one is not shown: it is not the submission.
+     *
+     * Each name is one word after the id, so the bot's preview names stay
+     * `preview-<word>.png`. The layout's own pages are numbered, since their
+     * keys are free text.
+     */
+    private fun layoutLayers(id: String, layout: LayoutSpec): List<Extra> = buildList {
+        val keys = layout.layers.keys
+        fun press(action: KeyAction): (ShotKeyboard, EditorInfo) -> Unit = { service, _ -> service.onKey(Key(label = "", action = action)) }
+        add(Extra("$id-shift.png", press(KeyAction.Shift)))
+        if (LayoutLayer.SYMBOLS.key in keys) add(Extra("$id-symbols.png", press(KeyAction.Symbols)))
+        if (LayoutLayer.SYMBOLS_SHIFTED.key in keys) {
+            add(Extra("$id-symbols2.png") { service, _ ->
+                service.onKey(Key(label = "", action = KeyAction.Symbols))
+                tick()
+                service.onKey(Key(label = "", action = KeyAction.Symbols))
+            })
+        }
+        if (LayoutLayer.FN.key in keys) add(Extra("$id-fn.png", press(KeyAction.Fn)))
+        for ((layer, inputType) in PADS) {
+            if (layer.key !in keys) continue
+            add(Extra("$id-${layer.key}.png") { service, info ->
+                val field = EditorInfo().apply {
+                    packageName = info.packageName
+                    this.inputType = inputType
+                }
+                service.info = field
+                service.onStartInput(field, true)
+                service.onStartInputView(field, true)
+            })
+        }
+        val standard = LayoutLayer.entries.map { it.key }.toSet()
+        keys.filter { it !in standard && !it.startsWith(PANEL_PREFIX) }.sorted().forEachIndexed { index, layer ->
+            add(Extra("$id-page${index + 1}.png", press(KeyAction.LayerSwitch(layer))))
+        }
+        for (key in keys.filter { it.startsWith(PANEL_PREFIX) }.sorted()) {
+            val kind = PanelKind.entries.firstOrNull { it.layerKey == key } ?: continue
+            val panel = PanelMode.entries.firstOrNull { it.layoutKind == kind } ?: continue
+            add(Extra("$id-${kind.name.lowercase().replace("_", "")}.png") { service, _ -> service.onPanelChange(panel) })
+        }
     }
 
     /** What the runner draws with its defaults, since nothing is downloaded or installed here. */
@@ -208,24 +266,27 @@ class AddonShots {
      * and text editing (modifier-coloured keys). Emoji are left out: the JVM
      * draws no emoji glyphs, so that panel would be a grid of blanks.
      */
-    private fun themePanels(id: String): List<Pair<String, PanelMode>> = listOf(
-        "$id-tools.png" to PanelMode.TOOLBOX,
-        "$id-clipboard.png" to PanelMode.CLIPBOARD,
-        "$id-editing.png" to PanelMode.TEXT_EDIT,
+    private fun themePanels(id: String): List<Extra> = listOf(
+        Extra("$id-tools.png") { service, _ -> service.onPanelChange(PanelMode.TOOLBOX) },
+        Extra("$id-clipboard.png") { service, _ -> service.onPanelChange(PanelMode.CLIPBOARD) },
+        Extra("$id-editing.png") { service, _ -> service.onPanelChange(PanelMode.TEXT_EDIT) },
     )
+
+    /** One more capture after the main one: [step] puts the keyboard in the state to draw. */
+    private class Extra(val name: String, val step: (ShotKeyboard, EditorInfo) -> Unit)
 
     /**
      * One capture of the keyboard as it stands in settings, docked under the
      * host's field after a few typed words, the way [KeyboardShots.capture]
-     * takes its shots; then one more per entry of [panels], with that panel
-     * open. Returns the names written, in order. A panel that fails to open is
-     * left out rather than failing the shots before it.
+     * takes its shots; then one more per entry of [extras], each run from the
+     * plain letters in the text field. Returns the names written, in order. An
+     * extra that throws is left out rather than failing the shots before it.
      */
     private fun shoot(
         name: String,
         dark: Boolean,
         landscape: Boolean,
-        panels: List<Pair<String, PanelMode>> = emptyList(),
+        extras: List<Extra> = emptyList(),
     ): List<String> {
         val written = mutableListOf<String>()
         val app = ApplicationProvider.getApplicationContext<Application>()
@@ -274,7 +335,7 @@ class AddonShots {
                 settle()
                 captureScreenRoboImage(File(out, name).path)
                 written += name
-                if (panels.isNotEmpty()) {
+                if (extras.isNotEmpty()) {
                     // Clips for the clipboard panel to show, copied while the
                     // keyboard is up so its history listener records them.
                     val clipboard = service.getSystemService(android.content.ClipboardManager::class.java)
@@ -283,12 +344,22 @@ class AddonShots {
                         settle()
                     }
                 }
-                for ((panelName, panel) in panels) {
+                for (extra in extras) {
                     runCatching {
-                        service.onPanelChange(panel)
+                        // Back to the letters in the text field: no panel, no
+                        // layer, no pad left over from the extra before.
+                        service.onPanelChange(PanelMode.NONE)
+                        service.info = info
+                        service.onStartInput(info, true)
+                        service.onStartInputView(info, true)
                         settle()
-                        captureScreenRoboImage(File(out, panelName).path)
-                    }.onSuccess { written += panelName }
+                        // Clear of the double-tap window, so a Shift press is
+                        // Shift and not caps lock off the last key.
+                        repeat(10) { tick() }
+                        extra.step(service, info)
+                        settle()
+                        captureScreenRoboImage(File(out, extra.name).path)
+                    }.onSuccess { written += extra.name }
                 }
             } finally {
                 runCatching { controller.destroy() }
@@ -328,6 +399,17 @@ class AddonShots {
     private companion object {
         /** Stops mid-word, so the strip shows completions rather than what follows a space. */
         const val PHRASE = "See you tomo"
+
+        const val PANEL_PREFIX = "panel_"
+
+        /** The pads a field of a kind brings up, and an input type that asks for each. */
+        val PADS = listOf(
+            LayoutLayer.NUMBER to InputType.TYPE_CLASS_NUMBER,
+            LayoutLayer.PHONE to InputType.TYPE_CLASS_PHONE,
+            LayoutLayer.DATE to (InputType.TYPE_CLASS_DATETIME or InputType.TYPE_DATETIME_VARIATION_DATE),
+            LayoutLayer.TIME to (InputType.TYPE_CLASS_DATETIME or InputType.TYPE_DATETIME_VARIATION_TIME),
+            LayoutLayer.DATETIME to (InputType.TYPE_CLASS_DATETIME or InputType.TYPE_DATETIME_VARIATION_NORMAL),
+        )
 
         /** What the clipboard panel shows: a note, a link and a code, so its chips appear too. */
         val CLIPS = listOf(
