@@ -12693,6 +12693,16 @@ open class WMKeyboardService : InputMethodService() {
         if (allUpSpaceBehind != null && isWordChar && composingMode && !elisionBreak && composing.isEmpty()) {
             reopenAfterAllUpSpace(ic, state, allUpSpaceBehind, setOf(text.lowercase()))
         }
+        // Keys typed into another word on Khipro are a piece of that word: a
+        // kar put back into কিঞ্চ|ত, not an English word (#986). Asked once,
+        // where the word starts, so the keystrokes after it pay nothing.
+        if (isWordChar && composingMode && !elisionBreak && composing.isEmpty() &&
+            state.composer.completionLanguage != null
+        ) {
+            completionInsideWord =
+                ic.getTextBeforeCursor(1, 0)?.lastOrNull()?.let(WordContext::isWordChar) == true ||
+                ic.getTextAfterCursor(1, 0)?.firstOrNull()?.let(::continuesWordAhead) == true
+        }
         if (isWordChar && composingMode && !elisionBreak && duetTap(text)) {
             consumeShift()
         } else if (isWordChar && composingMode && !elisionBreak) {
@@ -14696,6 +14706,14 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * Whether the word a completion layout (Khipro) is composing began with a
+     * word character right behind or in front of the caret, typed into the
+     * middle of another word. Set where such a word starts, the only way its
+     * buffer starts, since these layouts never resume one.
+     */
+    private var completionInsideWord = false
+
+    /**
      * [latin] with the capital a sentence opens on, when the field asks for
      * one. A phonetic layout's own script has no case, so shift is never armed
      * there and an English word committed from it would otherwise always open
@@ -14717,11 +14735,13 @@ open class WMKeyboardService : InputMethodService() {
     /**
      * The English word [buffer] commits as on a layout whose keys spell the
      * word outright (Khipro), or null when it commits what they spell (#487).
-     * One answer for the preview, the strip and the space bar.
+     * One answer for the preview, the strip and the space bar. Never for keys
+     * typed inside another word ([completionInsideWord]): `if` there is the
+     * ি going back into a word, and English stays a chip on the strip (#986).
      */
     private fun completionLatin(state: KeyboardUiState, buffer: String): String? {
         val language = state.composer.completionLanguage ?: return null
-        if (buffer.isEmpty() || !state.allowsTypingIntelligence) return null
+        if (buffer.isEmpty() || !state.allowsTypingIntelligence || completionInsideWord) return null
         val latin = suggestionEngine?.completionLatin(language, buffer, state.composer.composeBuffer(buffer))
             ?: return null
         return sentenceCasedLatin(latin, buffer, state)
@@ -25753,11 +25773,15 @@ open class WMKeyboardService : InputMethodService() {
         // (A26): off commits the word bare and leaves the caret on it.
         // A shortcut that expands to a gap — a tab, an em space — ends in one
         // already, so it earns no space of its own on top (#552).
+        // A word typed into the middle of another one (a kar put back into
+        // কিঞ্চ|ত) is a piece of that word, and a space after it would split
+        // the word in two (#986).
         val pickState = _uiState.value
+        val after = ic.getTextAfterCursor(1, 0)
         val autoSpace = pickState.settings.suggestionStrip.autoSpaceAfterSuggestionFor(pickState.language.id) &&
             suggestion.lastOrNull()?.isWhitespace() != true &&
-            !spendNoSpaceOnPick()
-        val after = ic.getTextAfterCursor(1, 0)
+            !spendNoSpaceOnPick() &&
+            !composingInsideWord(ic, pickState, after)
         val spaced = autoSpace && spaceToStepOver(after)
         // In front of a mark that closes up onto the word ("question⌶?"), the
         // space waits for a letter instead of landing between them (#679).
@@ -25897,6 +25921,18 @@ open class WMKeyboardService : InputMethodService() {
      * HeliBoard types it everywhere.
      */
     private fun spaceToStepOver(after: CharSequence?): Boolean = !isWebEditField() && spacedAfterCaret(after)
+
+    /**
+     * Whether the word being composed sits inside another one: a word
+     * character on both sides of what the field shows for it, [after] being
+     * what follows the caret. Read only for a pick, never per keystroke.
+     */
+    private fun composingInsideWord(ic: InputConnection, state: KeyboardUiState, after: CharSequence?): Boolean {
+        if (composing.isEmpty() || after.isNullOrEmpty() || !continuesWordAhead(after[0])) return false
+        val shown = composedPreview(state, composing.toString()).length
+        val before = ic.getTextBeforeCursor(shown + 1, 0) ?: return false
+        return before.length > shown && WordContext.isWordChar(before[before.length - shown - 1])
+    }
 
     /** How a pick that replaces a word where it stands is spaced; see [splicedPickSpacing]. */
     private class PickSpacing(val tail: String, val caretOffset: Int, val deferred: Boolean)
