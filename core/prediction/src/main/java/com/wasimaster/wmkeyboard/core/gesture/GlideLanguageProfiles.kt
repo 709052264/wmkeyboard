@@ -28,8 +28,14 @@ package com.wasimaster.wmkeyboard.core.gesture
  * The third weight is [GlideBeam.Tuning.joinCost], the compound reading
  * (issue #966 §5.2): a German list misses 36 % of the 15-letter-plus words
  * people swipe, and the decoder reads those as two or three listed words
- * in a row, each join charged this much. Off (infinite) everywhere but
- * German; the German value is unmeasured on real strokes.
+ * in a row, each join charged this much, every part at least
+ * [GlideBeam.Tuning.joinMinPart] letters, and each part joined past
+ * charged [GlideBeam.Tuning.joinPartPenalty] on its own frequency. Off
+ * (infinite) everywhere but German. On the same 2,588 swipes:
+ *
+ *     freqWeight 0.5, gap 2.0                  74.15 %
+ *     + joinCost 3.0, no guard                 70.63 %
+ *     + joinCost 8.0, 4 letters, penalty 0.1   74.61 %
  *
  * Start with German; the compounding languages (Finnish, Dutch, Swedish,
  * Norwegian) are the next candidates, one harness run each
@@ -40,13 +46,25 @@ package com.wasimaster.wmkeyboard.core.gesture
 object GlideLanguageProfiles {
 
     /** The weights a profile moves; everything else stays as the caller tuned it. */
-    class Profile(val freqWeight: Double, val gapWeight: Float, val joinCost: Double) {
+    class Profile(
+        val freqWeight: Double,
+        val gapWeight: Float,
+        val joinCost: Double,
+        val joinMinPart: Int,
+        val joinPartPenalty: Double,
+    ) {
         /** [tuning] with this profile's weights on it, or [tuning] itself when it already carries them. */
         fun applyTo(tuning: GlideBeam.Tuning): GlideBeam.Tuning =
-            if (tuning.freqWeight == freqWeight && tuning.gapWeight == gapWeight && tuning.joinCost == joinCost) {
+            if (tuning.freqWeight == freqWeight && tuning.gapWeight == gapWeight &&
+                tuning.joinCost == joinCost && tuning.joinMinPart == joinMinPart &&
+                tuning.joinPartPenalty == joinPartPenalty
+            ) {
                 tuning
             } else {
-                tuning.copy(freqWeight = freqWeight, gapWeight = gapWeight, joinCost = joinCost)
+                tuning.copy(
+                    freqWeight = freqWeight, gapWeight = gapWeight, joinCost = joinCost,
+                    joinMinPart = joinMinPart, joinPartPenalty = joinPartPenalty,
+                )
             }
     }
 
@@ -55,16 +73,23 @@ object GlideLanguageProfiles {
         GlideBeam.Tuning.DEFAULT.freqWeight,
         GlideBeam.Tuning.DEFAULT.gapWeight,
         GlideBeam.Tuning.DEFAULT.joinCost,
+        GlideBeam.Tuning.DEFAULT.joinMinPart,
+        GlideBeam.Tuning.DEFAULT.joinPartPenalty,
     )
 
     /**
      * German: shape over frequency, since its targets are rare in every
-     * list (see the class note), and compounds read from their parts. The
-     * join charge is a starting point, not a measurement: three nats is
-     * about a factor of twenty in frequency, enough that a word the list
-     * holds whole outranks the same letters joined from two common parts.
+     * list (see the class note), and compounds read from their parts of
+     * four letters or more, a common part paying for its join. Measured on
+     * FUTO's German strokes only; HeliBoard's were not re-run.
      */
-    val GERMAN = Profile(freqWeight = 0.5, gapWeight = 2.0f, joinCost = 3.0)
+    val GERMAN = Profile(
+        freqWeight = 0.5,
+        gapWeight = 2.0f,
+        joinCost = 8.0,
+        joinMinPart = 4,
+        joinPartPenalty = 0.1,
+    )
 
     private val BY_LANGUAGE: Map<String, Profile> = mapOf(
         "de" to GERMAN,

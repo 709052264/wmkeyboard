@@ -1613,7 +1613,8 @@ class SuggestionEngine(
         val words = if (romanization.isEmpty) decoded else romanization.resolve(decoded)
         val filtered = words.filterNot { suppressed(it.word) }
         if (filtered.isEmpty()) return filtered
-        val reranked = rerankGlide(filtered, previousWord, previousWord2, previousWord3, recentWords)
+        val blended = blendGlideContextModel(filtered)
+        val reranked = rerankGlide(blended, previousWord, previousWord2, previousWord3, recentWords)
         val ranked = shiftGlideScores(reranked)
             // One word per spelling, whatever source it came from (#172). The
             // decoder keys its results on each trie's own spelling, and the
@@ -1773,6 +1774,42 @@ class SuggestionEngine(
      */
     fun glideShapeOf(path: List<GesturePoint>, keyWidth: Float): ByteArray? =
         glideBeam.sampleShape(path, keyWidth, glideWorkspace.get())
+
+    /**
+     * The context model's say on a stroke's candidates, in the decoder's
+     * own nats (#966): each moves by [GLIDE_LM_BLEND] per nat the model
+     * prefers it over the leader, at most [GLIDE_LM_BLEND_CAP] either way,
+     * as [blendContextModel] does for typing. The leader is the reference
+     * and never moves; a word the model cannot read keeps its decoder
+     * score. Before [rerankGlide], which still reorders on its own evidence.
+     *
+     * Heavier than typing's because a stroke says less than taps do: on
+     * 2,294 German swipes with a word before them it took the decoder's
+     * top-1 from 70.84 % to 80.82 %, with a corpus bigram standing in for
+     * the downloaded model, whose nats may sit on another scale.
+     */
+    private fun blendGlideContextModel(decoded: List<GlideBeam.Candidate>): List<GlideBeam.Candidate> {
+        val model = contextModel ?: return decoded
+        if (decoded.size < 2) return decoded
+        val scores = model.scores(decoded.map { it.word.lowercase() })
+        val reference = scores.firstOrNull() ?: return decoded
+        if (reference.isNaN()) return decoded
+        var moved = false
+        val shifted = decoded.mapIndexed { i, c ->
+            val lp = scores.getOrNull(i)
+            if (lp == null || lp.isNaN()) return@mapIndexed c
+            val shift = (GLIDE_LM_BLEND * (lp - reference)).coerceIn(-GLIDE_LM_BLEND_CAP, GLIDE_LM_BLEND_CAP)
+            if (shift == 0.0) {
+                c
+            } else {
+                moved = true
+                GlideBeam.Candidate(c.word, c.score + shift, c.shapeCost, c.tier, c.ahead)
+            }
+        }
+        if (!moved) return decoded
+        // Stable, so ties keep the decoder's order.
+        return shifted.sortedByDescending { it.score }
+    }
 
     /**
      * Reorders a decoded stroke's candidates by context, defended the way
@@ -2738,6 +2775,15 @@ class SuggestionEngine(
          */
         const val LM_BLEND = 0.2
         const val LM_BLEND_CAP = 1.0
+
+        /**
+         * [LM_BLEND] and [LM_BLEND_CAP] for a glide's candidates
+         * ([blendGlideContextModel]): fitted on 2,294 German swipes against
+         * a corpus bigram (#966), the cap where 2 to 3 nats was asked for.
+         * Re-sweep the weight once against the downloaded model.
+         */
+        const val GLIDE_LM_BLEND = 0.7
+        const val GLIDE_LM_BLEND_CAP = 3.0
 
         /**
          * How the blend grows with the taps' spread (mean distance to the

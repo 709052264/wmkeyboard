@@ -13,11 +13,19 @@ class GlideLanguageProfilesTest {
         val tuned = GlideLanguageProfiles.tune(GlideBeam.Tuning.DEFAULT, "de")
         assertEquals(0.5, tuned.freqWeight, 0.0)
         assertEquals(2.0f, tuned.gapWeight, 0f)
-        assertEquals(3.0, tuned.joinCost, 0.0)
+        assertEquals(8.0, tuned.joinCost, 0.0)
+        assertEquals(4, tuned.joinMinPart)
+        assertEquals(0.1, tuned.joinPartPenalty, 0.0)
         // Nothing else moves.
         assertEquals(
             GlideBeam.Tuning.DEFAULT,
-            tuned.copy(freqWeight = 1.0, gapWeight = GlideBeam.Tuning.DEFAULT.gapWeight, joinCost = Double.POSITIVE_INFINITY),
+            tuned.copy(
+                freqWeight = 1.0,
+                gapWeight = GlideBeam.Tuning.DEFAULT.gapWeight,
+                joinCost = Double.POSITIVE_INFINITY,
+                joinMinPart = GlideBeam.Tuning.DEFAULT.joinMinPart,
+                joinPartPenalty = GlideBeam.Tuning.DEFAULT.joinPartPenalty,
+            ),
         )
     }
 
@@ -54,13 +62,19 @@ class GlideLanguageProfilesTest {
         assertEquals(1.4f, tuned.nearRadius, 0f)
         assertEquals(30000, tuned.vocabularyRank)
         assertEquals(0.5, tuned.freqWeight, 0.0)
-        assertEquals(3.0, tuned.joinCost, 0.0)
+        assertEquals(8.0, tuned.joinCost, 0.0)
         // Applying it again changes nothing, so a language re-set is free.
         assertSame(tuned, GlideLanguageProfiles.tune(tuned, "de"))
         // And a switch back to English gives the user's own weights back.
         assertEquals(
             mine,
-            GlideLanguageProfiles.tune(tuned, "en").copy(gapWeight = mine.gapWeight, freqWeight = mine.freqWeight, joinCost = mine.joinCost),
+            GlideLanguageProfiles.tune(tuned, "en").copy(
+                gapWeight = mine.gapWeight,
+                freqWeight = mine.freqWeight,
+                joinCost = mine.joinCost,
+                joinMinPart = mine.joinMinPart,
+                joinPartPenalty = mine.joinPartPenalty,
+            ),
         )
     }
 }

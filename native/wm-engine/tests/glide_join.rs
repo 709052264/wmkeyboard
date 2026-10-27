@@ -1,7 +1,9 @@
 //! `Tuning::join_cost` (issue #966 §5.2): a compound the list lacks is read
 //! as two listed words in a row, on the one stroke, the joined word scoring
 //! on the rarer part less the charge. Infinite, the default, reads no
-//! compounds and the decode is the plain one to the bit.
+//! compounds and the decode is the plain one to the bit. `join_min_part`
+//! and `join_part_penalty` guard it: every part at least that long, and
+//! each part joined past charged on its own frequency.
 
 use wm_engine::fuzzy::Tier;
 use wm_engine::glide::keymap::KeyMap;
@@ -105,9 +107,10 @@ fn with_a_finite_charge_a_two_part_word_absent_from_the_list_is_read() {
         let found = decode(&mut joined, &trie, &swipe(compound));
         let top = found.first().expect("a reading");
         assert_eq!(word_of(top), compound, "{compound}: {:?}", found.iter().map(word_of).collect::<Vec<_>>());
-        // Scored on the rarer part, the join charged once.
+        // Scored on the rarer part, the join charged once. `ln1p_count`
+        // reads the trie's count to about 3e-5 nats, not `f64::ln`'s.
         let expected = (1.0 + frequency(rarer) as f64).ln() - Tuning::default().shape_weight * top.shape_cost - 2.0;
-        assert!((top.score - expected).abs() < 1e-6, "{compound}: {} vs {expected}", top.score);
+        assert!((top.score - expected).abs() < 1e-4, "{compound}: {} vs {expected}", top.score);
     }
 }
 
@@ -129,5 +132,45 @@ fn an_infinite_charge_is_the_plain_decode_to_the_bit() {
     for word in ["haus", "haushalt", "hausaufgabe", "arbeitsplatz"] {
         let path = swipe(word);
         assert_eq!(decode(&mut plain, &trie, &path), decode(&mut explicit, &trie, &path), "{word}");
+    }
+}
+
+#[test]
+fn a_four_letter_floor_keeps_a_three_letter_tail_from_joining() {
+    let trie = list();
+    let mut guarded = Decoder::new(Tuning { join_cost: 2.0, join_min_part: 4, ..Tuning::default() });
+    let false_compound = decode(&mut guarded, &trie, &swipe("hastalt"));
+    assert!(
+        false_compound.iter().all(|c| word_of(c) != "hastalt"),
+        "hastalt read: {:?}",
+        false_compound.iter().map(word_of).collect::<Vec<_>>()
+    );
+    let compound = decode(&mut guarded, &trie, &swipe("haushalt"));
+    assert_eq!(compound.first().map(word_of).as_deref(), Some("haushalt"));
+}
+
+#[test]
+fn a_joined_part_pays_the_penalty_on_its_own_frequency() {
+    let trie = list();
+    let mut plain = joining(2.0);
+    let mut penalised = Decoder::new(Tuning { join_cost: 2.0, join_part_penalty: 0.1, ..Tuning::default() });
+    let path = swipe("haushalt");
+    let a = decode(&mut plain, &trie, &path);
+    let b = decode(&mut penalised, &trie, &path);
+    let top_a = a.iter().find(|c| word_of(c) == "haushalt").expect("read without the penalty");
+    let top_b = b.iter().find(|c| word_of(c) == "haushalt").expect("read with it");
+    // `haus` is joined past and pays; `halt`, the last part, does not.
+    let expected = 0.1 * (1.0 + frequency("haus") as f64).ln();
+    assert!((top_a.score - top_b.score - expected).abs() < 1e-4, "{} vs {expected}", top_a.score - top_b.score);
+}
+
+#[test]
+fn the_guard_at_its_defaults_is_the_unguarded_decode_to_the_bit() {
+    let trie = list();
+    let mut unguarded = joining(2.0);
+    let mut explicit = Decoder::new(Tuning { join_cost: 2.0, join_min_part: 3, join_part_penalty: 0.0, ..Tuning::default() });
+    for word in ["haushalt", "hausarzt", "hastalt", "arbeitsplatz"] {
+        let path = swipe(word);
+        assert_eq!(decode(&mut unguarded, &trie, &path), decode(&mut explicit, &trie, &path), "{word}");
     }
 }

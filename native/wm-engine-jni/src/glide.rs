@@ -70,7 +70,7 @@ fn longs(env: &mut JNIEnv, a: &JLongArray) -> Option<Vec<i64>> {
 /// `Tuning` from the Kotlin order: every field, booleans as 0/1, the
 /// floats exactly representable as doubles.
 fn tuning(v: &[f64]) -> Option<Tuning> {
-    if v.len() < 28 {
+    if v.len() < 30 {
         return None;
     }
     Some(Tuning {
@@ -102,6 +102,8 @@ fn tuning(v: &[f64]) -> Option<Tuning> {
         joiner_cost: v[25] as f32,
         freq_weight: v[26],
         join_cost: v[27],
+        join_min_part: v[28] as i32,
+        join_part_penalty: v[29],
     })
 }
 

@@ -30,6 +30,7 @@ internal object NativeGlide {
             learnedShapeGain, if (shapeSeeding) 1.0 else 0.0, shapeChannel, startRadius.toDouble(),
             endRadius.toDouble(), nearRadius.toDouble(), vocabularyRank.toDouble(), lookAheadCost,
             lookAheadBudget.toDouble(), joinerCost.toDouble(), freqWeight, joinCost,
+            joinMinPart.toDouble(), joinPartPenalty,
         )
     }
 

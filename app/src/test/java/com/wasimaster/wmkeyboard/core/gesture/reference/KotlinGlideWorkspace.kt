@@ -61,6 +61,9 @@ class KotlinGlideWorkspace {
     var partFrom = IntArray(INITIAL); private set
     var joins = IntArray(INITIAL); private set
 
+    /** The `joinPartPenalty` nats the parts this state joined past have earned; 0.0 before any join. */
+    var joinPenalty = DoubleArray(INITIAL); private set
+
     /**
      * Samples the current stroke was resampled to: [SHORT_SAMPLES], or
      * [SAMPLE_POINTS] for a stroke of [LONG_STROKE] key widths or more. Every
@@ -277,20 +280,23 @@ class KotlinGlideWorkspace {
             partFreq[id] = partFreq[parent]
             partFrom[id] = partFrom[parent]
             joins[id] = joins[parent]
+            joinPenalty[id] = joinPenalty[parent]
         } else {
             partFreq[id] = NO_PART
             partFrom[id] = 0
             joins[id] = 0
+            joinPenalty[id] = 0.0
         }
         heapPush(id)
         return id
     }
 
     /** Files state [id] as the start of a compound's next part: `wm-engine`'s walk writes the three fields in place. */
-    fun join(id: Int, partFreq: Int, partFrom: Int, joins: Int) {
+    fun join(id: Int, partFreq: Int, partFrom: Int, joins: Int, joinPenalty: Double) {
         this.partFreq[id] = partFreq
         this.partFrom[id] = partFrom
         this.joins[id] = joins
+        this.joinPenalty[id] = joinPenalty
     }
 
     /** Start of state [id]'s column within [cols]. */
@@ -357,6 +363,7 @@ class KotlinGlideWorkspace {
         partFreq = partFreq.copyOf(capacity)
         partFrom = partFrom.copyOf(capacity)
         joins = joins.copyOf(capacity)
+        joinPenalty = joinPenalty.copyOf(capacity)
         cols = cols.copyOf(capacity * SAMPLE_POINTS)
     }
 

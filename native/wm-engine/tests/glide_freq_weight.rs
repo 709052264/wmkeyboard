@@ -103,10 +103,11 @@ fn the_frequency_term_scales_by_the_weight_and_the_shape_term_does_not() {
 
 #[test]
 fn at_weight_zero_the_order_is_the_shape_order() {
-    // With no frequency term the score is the shape term alone, so the
+    // With no frequency term and no shape channel (a learned-shape term of
+    // its own) the score is the alignment's shape term alone, so the
     // candidates come back best-drawn first whatever the list says.
     let (trie, _) = english();
-    let mut none = Decoder::new(Tuning { freq_weight: 0.0, ..Tuning::default() });
+    let mut none = Decoder::new(Tuning { freq_weight: 0.0, shape_channel: 0.0, ..Tuning::default() });
     for word in ["god", "write", "the"] {
         let found = decode(&mut none, &trie, &swipe(word));
         assert!(found.len() > 1, "{word}");

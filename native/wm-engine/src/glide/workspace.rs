@@ -62,6 +62,9 @@ pub struct Workspace {
     pub part_freq: Vec<i32>,
     pub part_from: Vec<i32>,
     pub joins: Vec<i32>,
+    /// The `join_part_penalty` nats the parts this state has joined past
+    /// have earned between them; 0.0 before any join.
+    pub join_penalty: Vec<f64>,
     pub samples: usize,
     pub cols: Vec<f32>,
     heap: Vec<u32>,
@@ -145,6 +148,7 @@ impl Workspace {
             part_freq: Vec::new(),
             part_from: Vec::new(),
             joins: Vec::new(),
+            join_penalty: Vec::new(),
             samples: SHORT_SAMPLES,
             cols: Vec::new(),
             heap: Vec::new(),
@@ -213,6 +217,7 @@ impl Workspace {
         self.part_freq.clear();
         self.part_from.clear();
         self.joins.clear();
+        self.join_penalty.clear();
         self.heap.clear();
         self.saturated = false;
     }
@@ -279,10 +284,12 @@ impl Workspace {
             self.part_freq.push(self.part_freq[p]);
             self.part_from.push(self.part_from[p]);
             self.joins.push(self.joins[p]);
+            self.join_penalty.push(self.join_penalty[p]);
         } else {
             self.part_freq.push(NO_PART);
             self.part_from.push(0);
             self.joins.push(0);
+            self.join_penalty.push(0.0);
         }
         let needed = (id + 1) * self.samples.max(1);
         if self.cols.len() < needed {

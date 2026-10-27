@@ -355,7 +355,9 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
             val partFreq = ws.partFreq[s]
             val partFrom = ws.partFrom[s]
             val joins = ws.joins[s]
-            val charge = joinCharge(joins)
+            // The join charge plus the common-part penalties this state
+            // already earned; both 0.0 for a plain word.
+            val charge = joinCharge(joins) + ws.joinPenalty[s]
 
             // The prefix's last letter must land on the last sample. For a
             // finished word that is where the finger lifted; for a look-ahead
@@ -376,7 +378,7 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
                 // A compound's last part is held to the same length as its
                 // first; `partFrom` is 0 and `charge` 0.0 for a plain word.
                 if (length >= MIN_WORD_LENGTH &&
-                    length - partFrom >= (if (joins > 0) MIN_JOIN_PART else 0) &&
+                    length - partFrom >= (if (joins > 0) tuning.joinMinPart else 0) &&
                     walker.isWord(node) &&
                     walker.frequency(node) >= minFrequency
                 ) {
@@ -404,18 +406,23 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
             // rarest of its parts, `joinCost` the poorer per join, and the
             // bound carries both, so a join never ranks above what the
             // single-word bound allows and the walk's pruning stays exact.
+            // The part joined past pays `joinPartPenalty` on its own
+            // frequency; the last part, which no join follows, pays nothing.
             if (joinOn &&
                 joins < MAX_JOINS &&
-                length - partFrom >= MIN_JOIN_PART &&
-                length + MIN_JOIN_PART <= n &&
+                length - partFrom >= tuning.joinMinPart &&
+                length + tuning.joinMinPart <= n &&
                 walker.isWord(node) &&
                 walker.frequency(node) >= minFrequency
             ) {
                 val cap = lmCap(partFreq, walker.frequency(node))
                 val floorCost = ws.floorCost[s]
+                val partPenalty = tuning.joinPartPenalty * ln1p(walker.frequency(node))
                 val bound = src.logWeight + tuning.freqWeight * ln1p(lmCap(cap, walker.maxSubtree(walker.root))) -
                     tuning.shapeWeight * (floorCost + extra) -
-                    joinCharge(joins + 1)
+                    joinCharge(joins + 1) -
+                    ws.joinPenalty[s] -
+                    partPenalty
                 if (bound >= floor - EPS) {
                     val id = ws.push(
                         node = walker.root, parent = s, viaLabel = KotlinGlideWorkspace.NO_LABEL, lastKey = lastKey,
@@ -423,7 +430,10 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
                         letterCp = ws.letterCp[s],
                     )
                     if (id >= 0) {
-                        ws.join(id, partFreq = cap, partFrom = length, joins = joins + 1)
+                        ws.join(
+                            id, partFreq = cap, partFrom = length, joins = joins + 1,
+                            joinPenalty = ws.joinPenalty[s] + partPenalty,
+                        )
                         ws.copyColumn(s, id)
                     }
                 }
@@ -565,7 +575,8 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
     ): Boolean {
         val bound = src.logWeight + tuning.freqWeight * ln1p(lmCap(ws.partFreq[s], subtree)) -
             tuning.shapeWeight * (ws.floorCost[s] + extra) -
-            joinCharge(ws.joins[s])
+            joinCharge(ws.joins[s]) -
+            ws.joinPenalty[s]
         if (bound < floor - EPS) return true
         val id = ws.push(
             node = child, parent = s, viaLabel = label, lastKey = ws.lastKey[s],
@@ -640,7 +651,8 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
         val score = src.logWeight + tuning.freqWeight * ln1p(lmCap(ws.partFreq[s], best)) -
             tuning.shapeWeight * shape -
             tuning.lookAheadCost * extra -
-            joinCharge(ws.joins[s])
+            joinCharge(ws.joins[s]) -
+            ws.joinPenalty[s]
         val existing = ahead[spelled]
         if (existing == null || score > existing.score) {
             ahead[spelled] = Candidate(spelled, score, shape.toDouble(), src.tier, extra)
@@ -1681,13 +1693,6 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
 
         private const val MIN_SAMPLES = 3
         private const val MIN_WORD_LENGTH = 2
-
-        /**
-         * Letters each part of a compound must have (#966): `an` + `halt`
-         * is not a reading of `anhalt`, it is a search of every short word
-         * against every other.
-         */
-        private const val MIN_JOIN_PART = 3
 
         /** Most joins in one reading: three parts, and no further. */
         private const val MAX_JOINS = 2

@@ -549,10 +549,25 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
          * both, so the walk's pruning stays exact.
          *
          * No setting reaches it: [GlideLanguageProfiles] sets it per
-         * language, German first. The value there is unmeasured on real
-         * strokes; `glide_beam_eval` takes `join_cost=` for the sweep.
+         * language, German first; `glide_beam_eval` takes `join_cost=` for
+         * the sweep.
          */
         val joinCost: Double = Double.POSITIVE_INFINITY,
+        /**
+         * Letters every part of a joined compound must have, the first and
+         * the last alike ([joinCost]). Three by default; German's four
+         * keeps `hast` + `alt` from reading as a word.
+         */
+        val joinMinPart: Int = 3,
+        /**
+         * Nats each part a join goes on from pays per `ln(1 + frequency)`
+         * of its own (issue #966): the commoner the part, the dearer the
+         * join, so two common short words do not outbid a listed word.
+         * The last part, which no join follows, pays nothing. With the
+         * bare charge, German lost 3.5 swipes in a hundred to such splits;
+         * at `8 / 4 / 0.1` the joining gains half a point over none.
+         */
+        val joinPartPenalty: Double = 0.0,
     ) {
         val invTwoSigmaSq: Float get() = 1f / (2f * sigma * sigma)
         val startRadiusSq: Float get() = startRadius * startRadius

@@ -43,7 +43,12 @@ pub struct Point {
 /// as two or three listed words in a row (#966 §5.2); infinite, the
 /// default, switches the joining off and the decode is the plain one to
 /// the bit. A language profile sets it where the list cannot hold the
-/// compounds people swipe.
+/// compounds people swipe. `join_min_part` is the letters every part must
+/// have, and `join_part_penalty` the nats each part a join goes on from
+/// pays per `ln(1 + frequency)` of its own: the guard that keeps two common
+/// short words (`hast` + `alt`) from outbidding the listed `haushalt`
+/// (#966, measured on 2,588 German swipes at 8 / 4 / 0.1). At their
+/// defaults, 3 and 0, a joined decode is the one before them to the bit.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Tuning {
     pub sigma: f32,
@@ -74,6 +79,8 @@ pub struct Tuning {
     pub look_ahead_budget: i32,
     pub joiner_cost: f32,
     pub join_cost: f64,
+    pub join_min_part: i32,
+    pub join_part_penalty: f64,
 }
 
 impl Default for Tuning {
@@ -107,6 +114,8 @@ impl Default for Tuning {
             look_ahead_budget: 48,
             joiner_cost: 0.2,
             join_cost: f64::INFINITY,
+            join_min_part: MIN_JOIN_PART,
+            join_part_penalty: 0.0,
         }
     }
 }
@@ -223,9 +232,10 @@ impl Marks {
     }
 }
 
-/// Letters each part of a compound must have (#966): `an` + `halt` is not
-/// a reading of `anhalt`, it is a search of every short word against every
-/// other, and the charge alone would not keep that out of the pool.
+/// Letters each part of a compound must have unless the tuning asks for
+/// more (#966): `an` + `halt` is not a reading of `anhalt`, it is a search
+/// of every short word against every other, and the charge alone would not
+/// keep that out of the pool. `Tuning::join_min_part`'s default.
 const MIN_JOIN_PART: i32 = 3;
 /// Most joins in one reading: three parts, `bundes`-`verfassungs`-`gericht`
 /// sized, and no further.
@@ -664,7 +674,9 @@ impl Decoder {
             let part_freq = self.ws.part_freq[s];
             let part_from = self.ws.part_from[s];
             let joins = self.ws.joins[s];
-            let charge = tuning.join_charge(joins);
+            // The join charge plus the common-part penalties this state
+            // already earned; both 0.0 for a plain word.
+            let charge = tuning.join_charge(joins) + self.ws.join_penalty[s];
 
             let total = self.terminal_cost(self.ws.column_of(s));
             let at_end = last_key >= 0 && self.ws.end_key[last_key as usize] && total < UNREACHABLE;
@@ -673,7 +685,7 @@ impl Decoder {
                 // A compound's last part is held to the same length as its
                 // first; `part_from` is 0 and `charge` 0.0 for a plain word.
                 if length >= MIN_WORD_LENGTH
-                    && length - part_from >= if joins > 0 { MIN_JOIN_PART } else { 0 }
+                    && length - part_from >= if joins > 0 { tuning.join_min_part } else { 0 }
                     && walker.is_word(node)
                     && walker.frequency(node) >= min_frequency
                 {
@@ -707,23 +719,30 @@ impl Decoder {
             // rarest of its parts, `join_cost` the poorer per join, and
             // the bound carries both, so a join never ranks above what the
             // single-word bound allows and the walk's pruning stays exact.
+            // The part joined past pays `join_part_penalty` on its own
+            // frequency, so two common parts do not outbid a listed word;
+            // the last part is followed by no join and pays nothing.
             if join_on
                 && joins < MAX_JOINS
-                && length - part_from >= MIN_JOIN_PART
-                && (length + MIN_JOIN_PART) as usize <= n
+                && length - part_from >= tuning.join_min_part
+                && (length + tuning.join_min_part) as usize <= n
                 && walker.is_word(node)
                 && walker.frequency(node) >= min_frequency
             {
                 let cap = lm_cap(part_freq, walker.frequency(node));
                 let floor_cost = self.ws.floor_cost[s];
+                let part_penalty = tuning.join_part_penalty * ln1p(walker.frequency(node));
                 let bound = src.log_weight + tuning.freq_weight * ln1p(lm_cap(cap, walker.max_subtree(root)))
                     - tuning.shape_weight * (floor_cost + extra) as f64
-                    - tuning.join_charge(joins + 1);
+                    - tuning.join_charge(joins + 1)
+                    - self.ws.join_penalty[s]
+                    - part_penalty;
                 if bound >= floor - EPS {
                     if let Some(id) = self.ws.push(root, s as i32, NO_LABEL, last_key, length, extra, floor_cost, bound, self.ws.letter_cp[s]) {
                         self.ws.part_freq[id] = cap;
                         self.ws.part_from[id] = length;
                         self.ws.joins[id] = joins + 1;
+                        self.ws.join_penalty[id] = self.ws.join_penalty[s] + part_penalty;
                         self.ws.copy_column(s, id);
                     }
                 }
@@ -807,7 +826,8 @@ impl Decoder {
     fn descend_silent(&mut self, src: &Source, subtree: i32, s: usize, child: u32, label: u16, extra: f32, floor: f64) -> bool {
         let bound = src.log_weight + self.tuning.freq_weight * ln1p(lm_cap(self.ws.part_freq[s], subtree))
             - self.tuning.shape_weight * (self.ws.floor_cost[s] + extra) as f64
-            - self.tuning.join_charge(self.ws.joins[s]);
+            - self.tuning.join_charge(self.ws.joins[s])
+            - self.ws.join_penalty[s];
         if bound < floor - EPS {
             return true;
         }
@@ -867,7 +887,8 @@ impl Decoder {
         let score = src.log_weight + self.tuning.freq_weight * ln1p(lm_cap(self.ws.part_freq[s], best))
             - self.tuning.shape_weight * shape as f64
             - self.tuning.look_ahead_cost * extra as f64
-            - self.tuning.join_charge(self.ws.joins[s]);
+            - self.tuning.join_charge(self.ws.joins[s])
+            - self.ws.join_penalty[s];
         let replace = match ahead.get(&word) {
             None => true,
             Some(existing) => score > existing.score,

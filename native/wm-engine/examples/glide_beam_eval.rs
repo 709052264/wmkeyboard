@@ -20,7 +20,9 @@
 //! returns (4; the keyboard's strip shows more), `ALL=1` scores every
 //! stroke, a word the list lacks as a miss, so the denominator is the
 //! swipes and not the list (success per swipe), and `DUMP=<path>` writes
-//! one line per stroke (`word`, top-1, hit, in list) for a regression set.
+//! one line per stroke (`word`, top-1, hit, in list, then every candidate
+//! as `word:score` joined by `|`, best first) for a regression set or a
+//! rerank sweep over the scored pool.
 //! Words are read in any alphabet, not Latin letters alone.
 //!
 //! `CHAIN=1` measures chained strokes instead (#968): consecutive records on
@@ -94,6 +96,8 @@ fn set(t: &mut Tuning, name: &str, value: f64) {
         "near_radius" => t.near_radius = value as f32,
         "joiner_cost" => t.joiner_cost = value as f32,
         "join_cost" => t.join_cost = value,
+        "join_min_part" => t.join_min_part = value as i32,
+        "join_part_penalty" => t.join_part_penalty = value,
         _ => panic!("no tuning field {name}"),
     }
 }
@@ -186,7 +190,17 @@ fn main() {
                             let hit = words.first() == Some(&r.word);
                             if dump_on {
                                 let top = words.first().map(String::as_str).unwrap_or("-");
-                                lines.push(format!("{}\t{top}\t{}\t{}", r.word, hit as u8, known.contains(&r.word) as u8));
+                                let pool = out
+                                    .iter()
+                                    .map(|c| format!("{}:{:.6}", String::from_utf16_lossy(&c.word).to_lowercase(), c.score))
+                                    .collect::<Vec<_>>()
+                                    .join("|");
+                                lines.push(format!(
+                                    "{}\t{top}\t{}\t{}\t{pool}",
+                                    r.word,
+                                    hit as u8,
+                                    known.contains(&r.word) as u8
+                                ));
                             }
                             t.n += 1;
                             t.top1 += hit as usize;
