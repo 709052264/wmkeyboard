@@ -104,6 +104,7 @@ import com.wasimaster.wmkeyboard.core.script.SuggestedLanguage
 import com.wasimaster.wmkeyboard.core.script.SuggestionReason
 import com.wasimaster.wmkeyboard.core.script.resolveNumeralDigits
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
+import com.wasimaster.wmkeyboard.core.settings.ReadingOnSwitch
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.TransliterationHintMode
@@ -1895,6 +1896,30 @@ private fun CjkDictPackManager(
             ) { on -> scope.launch { repository.setCjkTraditionalButton(on) } }
         }
 
+        // #973: the reading underlined in the app's field, as Gboard and
+        // Sogou have it, or only on the strip, as fcitx5 has it. Shared by
+        // Chinese and Cantonese, like the two rows above.
+        item(visible = hanLang, level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.languages_cjk_reading_in_field_title,
+                stringResource(R.string.languages_cjk_reading_in_field_subtitle),
+                settings.watch { it.cjk.readingInField },
+                info = stringResource(R.string.languages_cjk_reading_in_field_info),
+                default = SettingsDefaults.cjk.readingInField,
+            ) { on -> scope.launch { repository.setCjkReadingInField(on) } }
+        }
+
+        // #973: what a language switch does with a reading not yet converted.
+        item(visible = hanLang, level = SettingLevel.ADVANCED) {
+            ChoiceSetting(
+                R.string.languages_cjk_reading_on_switch_title,
+                options = ReadingOnSwitch.entries.map { it to stringResource(readingOnSwitchLabelRes(it)) },
+                selected = settings.watch { it.cjk.readingOnSwitch },
+                default = SettingsDefaults.cjk.readingOnSwitch,
+                detail = { choice -> ChoiceDetail(stringResource(readingOnSwitchDescRes(choice))) },
+            ) { choice -> scope.launch { repository.setCjkReadingOnSwitch(choice) } }
+        }
+
         // Taiwan and Hong Kong each prefer some character forms of their own
         // (為, 説). Taiwan wording also swaps vocabulary (出租車 → 計程車), so
         // it is a separate choice and never the plain Taiwan one (#641). Only
@@ -2361,4 +2386,16 @@ private fun cjkRegionLabelRes(region: HanVariant.HanRegion): Int = when (region)
     HanVariant.HanRegion.TAIWAN -> R.string.languages_cjk_region_taiwan_title
     HanVariant.HanRegion.TAIWAN_WORDING -> R.string.languages_cjk_region_taiwan_wording_title
     HanVariant.HanRegion.HONG_KONG -> R.string.languages_cjk_region_hong_kong_title
+}
+
+private fun readingOnSwitchLabelRes(choice: ReadingOnSwitch): Int = when (choice) {
+    ReadingOnSwitch.CONVERT -> R.string.languages_cjk_reading_on_switch_convert
+    ReadingOnSwitch.TYPED -> R.string.languages_cjk_reading_on_switch_typed
+    ReadingOnSwitch.DISCARD -> R.string.languages_cjk_reading_on_switch_discard
+}
+
+private fun readingOnSwitchDescRes(choice: ReadingOnSwitch): Int = when (choice) {
+    ReadingOnSwitch.CONVERT -> R.string.languages_cjk_reading_on_switch_convert_desc
+    ReadingOnSwitch.TYPED -> R.string.languages_cjk_reading_on_switch_typed_desc
+    ReadingOnSwitch.DISCARD -> R.string.languages_cjk_reading_on_switch_discard_desc
 }

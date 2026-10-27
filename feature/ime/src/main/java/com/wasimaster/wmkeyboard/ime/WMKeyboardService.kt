@@ -318,6 +318,7 @@ import com.wasimaster.wmkeyboard.core.settings.LetterSwipeAction
 import com.wasimaster.wmkeyboard.core.settings.HandwritingFullScreenMode
 import android.net.ConnectivityManager
 import com.wasimaster.wmkeyboard.core.settings.PhotoNetworkConditions
+import com.wasimaster.wmkeyboard.core.settings.ReadingOnSwitch
 import com.wasimaster.wmkeyboard.core.settings.RotationState
 import com.wasimaster.wmkeyboard.core.settings.isRotationDue
 import com.wasimaster.wmkeyboard.core.settings.isThemeShuffleDue
@@ -17092,6 +17093,30 @@ open class WMKeyboardService : InputMethodService() {
         return word
     }
 
+    /**
+     * Ends a Chinese or Cantonese reading the way [CjkSettings.readingOnSwitch]
+     * asks, when the layout changes under it before it was converted (#973):
+     * typed as keyed, the way fcitx5 does it, or dropped. False when there is
+     * no such reading or the setting converts it, which is the ordinary commit.
+     */
+    private fun endReadingForSwitch(ic: InputConnection): Boolean {
+        val state = _uiState.value
+        if (composing.isEmpty() || !state.hanReading() || state.captureTarget() != null) return false
+        val policy = state.settings.cjk.readingOnSwitch
+        if (policy == ReadingOnSwitch.CONVERT) return false
+        suggestionJob?.cancel()
+        readingCaret = -1
+        if (policy == ReadingOnSwitch.TYPED) {
+            commitConversionAsTyped(ic)
+        } else {
+            ic.setComposingText("", 1)
+            ic.finishComposingText()
+            CjkContext.before = ""
+            afterConversionFlushed()
+        }
+        return true
+    }
+
     /** The carried word becomes the composing buffer, with no history behind
      * it: the taps were made on another board's keys, and the capitals it may
      * have been typed with are gone ([carriedRomanWord]), so nothing about the
@@ -17120,7 +17145,9 @@ open class WMKeyboardService : InputMethodService() {
         // region is rewritten in the new script by the [updateComposingText]
         // below, once the state and the engine have followed the switch.
         val carried = currentInputConnection?.let { carryWordForSwitch(it, spec) }
-        if (carried == null) currentInputConnection?.let { commitComposing(it, autocorrect = false) }
+        if (carried == null) {
+            currentInputConnection?.let { if (!endReadingForSwitch(it)) commitComposing(it, autocorrect = false) }
+        }
         // An explicit switch beats what the field asked for: the user can
         // see the box they are typing in, FORCE_ASCII and hintLocales are
         // only the app's guess.
@@ -17430,11 +17457,15 @@ open class WMKeyboardService : InputMethodService() {
             r.expectReplaceBefore(revisionFragment.length, preview)
             revisionFragment = preview
         }
-        ic.setComposingText(segmentMarked(preview), 1)
+        // A Chinese reading kept on the strip (#973) leaves the field with no
+        // region at all: an empty composing text clears one left from before
+        // the setting changed, and a pick's commitText then lands at the caret.
+        val inKeyboard = _uiState.value.readingInKeyboard()
+        ic.setComposingText(if (inKeyboard) "" else segmentMarked(preview), 1)
         // Mid-reading, setComposingText left the caret at the region's end:
         // back to where the next key goes (#960).
         val caret = readingCaret
-        if (caret in 0 until composing.length && readingRegionStart >= 0 &&
+        if (!inKeyboard && caret in 0 until composing.length && readingRegionStart >= 0 &&
             editsInsideReading(_uiState.value)
         ) {
             val offset = _uiState.value.composer.previewOffset(composing.toString(), caret)
@@ -17684,6 +17715,9 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun reattachComposing(start: Int, end: Int) {
         if (composing.isEmpty()) return
+        // A reading kept on the strip (#973) has no span in the field to lose:
+        // it carries on from the keyboard as if nothing had happened.
+        if (_uiState.value.readingInKeyboard()) return
         val ic = currentInputConnection
         // What the field actually holds for this buffer: a transliterating
         // composer's text is the composed form, not the roman source mirrored
@@ -23992,8 +24026,9 @@ open class WMKeyboardService : InputMethodService() {
         // the field, since the caret may have moved since the last commit.
         if (typed.length == 1) {
             // The reading itself is already in the field as the composing
-            // text, right before the caret, so it is read and taken back off.
-            val shown = composer.composeBuffer(typed)
+            // text, right before the caret, so it is read and taken back off;
+            // unless it is kept on the strip (#973), when the field has none.
+            val shown = if (state.readingInKeyboard()) "" else composer.composeBuffer(typed)
             val before = currentInputConnection?.getTextBeforeCursor(CjkContext.KEEP + shown.length, 0)?.toString().orEmpty()
             CjkContext.before = before.removeSuffix(shown)
         }
@@ -47437,7 +47472,8 @@ open class WMKeyboardService : InputMethodService() {
      * characters too many off the text before it.
      */
     private fun composingShownLength(): Int {
-        if (composing.isEmpty()) return 0
+        // A Chinese reading kept on the strip shows nothing in the field (#973).
+        if (composing.isEmpty() || _uiState.value.readingInKeyboard()) return 0
         return _uiState.value.composingPreview.length.takeIf { it > 0 } ?: composing.length
     }
 

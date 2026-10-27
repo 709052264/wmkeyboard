@@ -1335,6 +1335,18 @@ fun VoiceBarSettings.armed(): Boolean = enabled && mode == VoiceBarSettings.MODE
 fun KeyboardUiState.voiceStripShown(): Boolean =
     voice.strip && !(voice.status == VoiceStatus.IDLE && (composingPreview.isNotEmpty() || wordComposing))
 
+/** A Chinese or Cantonese layout converting a reading: the boards #973's two settings speak for. */
+fun KeyboardUiState.hanReading(): Boolean =
+    composer.isConversion && (language.id == "zh" || language.id == "yue")
+
+/**
+ * The reading being converted is drawn at the start of the candidate strip and
+ * kept out of the app's field (#973), as fcitx5 has it. A keyboard-owned field
+ * composes in its own box, which is the keyboard already, so it never applies.
+ */
+fun KeyboardUiState.readingInKeyboard(): Boolean =
+    !settings.cjk.readingInField && hanReading() && captureTarget() == null
+
 fun KeyboardUiState.voiceChipOnly(): Boolean =
     settings.voiceBar.interactiveTyping() &&
         !secureField &&

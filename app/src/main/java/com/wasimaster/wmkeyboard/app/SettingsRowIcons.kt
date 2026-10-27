@@ -2215,6 +2215,8 @@ internal object SettingsRowIcons {
         put(R.string.languages_vietnamese_restore_marks_title) { Icons.Outlined.AutoFixHigh }
         put(R.string.languages_bengali_vowel_twice_title) { Icons.Outlined.TouchApp }
         put(R.string.languages_cjk_traditional_button_title) { Icons.Outlined.Translate }
+        put(R.string.languages_cjk_reading_in_field_title) { Icons.Outlined.TextFields }
+        put(R.string.languages_cjk_reading_on_switch_title) { Icons.Outlined.Language }
         put(R.string.languages_avro_dictionary_title) { SymbolIcons.Dictionary }
         put(R.string.languages_khipro_specs_title) { Icons.AutoMirrored.Outlined.Rule }
         put(R.string.languages_khipro_specs_bundled_title) { Icons.Outlined.Inventory2 }

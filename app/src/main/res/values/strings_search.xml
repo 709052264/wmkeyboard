@@ -137,6 +137,8 @@
     <string name="search_kw_langemoji_lang_os_switcher">ime subtype</string>
     <string name="search_kw_languages_cjk_jianpin">mandarin abbreviated pinyin initials shorthand</string>
     <string name="search_kw_languages_cjk_prediction">mandarin association predict commit</string>
+    <string name="search_kw_languages_cjk_reading_in_field">mandarin cantonese pinyin zhuyin preedit composing underline inline fcitx</string>
+    <string name="search_kw_languages_cjk_reading_on_switch">mandarin cantonese pinyin zhuyin preedit language switch commit discard raw fcitx</string>
     <string name="search_kw_languages_cjk_shortcuts">mandarin 日期 时间 星期 大写 数字</string>
     <string name="search_kw_languages_cjk_double_pinyin_custom">shuangpin 双拼 mandarin chinese key table sp dat</string>
     <string name="search_kw_languages_cjk_fuzzy">mandarin putonghua</string>

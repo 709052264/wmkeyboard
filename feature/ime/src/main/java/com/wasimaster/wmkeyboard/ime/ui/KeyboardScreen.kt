@@ -533,6 +533,7 @@ import com.wasimaster.wmkeyboard.ime.shiftCased
 import com.wasimaster.wmkeyboard.ime.FlickGlideArbiter
 import com.wasimaster.wmkeyboard.ime.FlickGlideVerdict
 import com.wasimaster.wmkeyboard.ime.flickReturned
+import com.wasimaster.wmkeyboard.ime.readingInKeyboard
 import com.wasimaster.wmkeyboard.ime.resolveFlickDirection
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
@@ -3721,7 +3722,10 @@ private fun TopBar(
         // would be the resting view exactly when the chips land, and they would
         // only ever be seen by someone who had turned the suggestion bar on
         // permanently.
-        state.autofillChips.isNotEmpty() || state.smartReplyChips.isNotEmpty()
+        state.autofillChips.isNotEmpty() || state.smartReplyChips.isNotEmpty() ||
+        // A Chinese reading kept out of the field (#973) is drawn here and
+        // nowhere else, so it holds the row even before a candidate is found.
+        (state.composingPreview.isNotEmpty() && state.readingInKeyboard())
     // The emoji panel is already all emojis — showing the row too would be
     // redundant, so opening the panel folds the row away.
     //
@@ -5201,6 +5205,10 @@ private fun RowScope.StripWords(
     val tailSlots = if (emojiInSlot || punctuationInSlot) 1 else 0
     val wordSlots = (state.settings.suggestionStrip.slotCount - leadSlots - tailSlots)
         .coerceAtLeast(1)
+    // The Chinese reading, when it is kept out of the field (#973). It decides
+    // the branch too: a reading with no candidates yet keeps the strip's
+    // previous list, and with it a stale [HeldCandidates.conversion].
+    val readingOnStrip = if (state.readingInKeyboard()) state.composingPreview else ""
     if (shownInlineEmoji) {
         // A ":tada" buffer: emoji, in the emoji font, as many as fit
         // the scroll rather than the three slots words get.
@@ -5210,7 +5218,7 @@ private fun RowScope.StripWords(
             alpha = stripContentFade,
             onEmoji = onSuggestion,
         )
-    } else if (held.conversion) {
+    } else if (held.conversion || readingOnStrip.isNotEmpty()) {
         CandidateStrip(
             candidates = shownSuggestions,
             enabled = suggestionsShowing,
@@ -5219,6 +5227,7 @@ private fun RowScope.StripWords(
             hints = if (suggestionsShowing) suggestionHintPlan(state) else null,
             highlighted = state.candidateCursor,
             adjustable = state.composer.adjustsChoices,
+            reading = readingOnStrip,
             onCandidate = onCandidate,
             onExpand = onCandidatesExpand,
             onAdjust = suggestionHold.onCandidateAdjust,
@@ -6297,6 +6306,11 @@ private fun RowScope.CandidateStrip(
     highlighted: Int = -1,
     /** Whether holding a candidate opens its menu: earlier, later, never (#580). */
     adjustable: Boolean = false,
+    /**
+     * The reading being converted, drawn ahead of the candidates when the
+     * field does not show it (#973); empty when it does.
+     */
+    reading: String = "",
     onCandidate: (String, Int) -> Unit,
     onExpand: () -> Unit,
     onAdjust: (String, Int, CandidateAdjustment) -> Unit = { _, _, _ -> },
@@ -6331,6 +6345,26 @@ private fun RowScope.CandidateStrip(
     // candidate Enter is about to type is one nobody can see.
     ScrollFocusIntoView(highlighted.takeIf { it >= 0 && it < candidates.size }) {
         listState.animateScrollToItem(it)
+    }
+    // Outside the scrolling row, so the reading stays put while the
+    // candidates scroll; a long one gives up its start, the end being where
+    // the next key lands.
+    if (reading.isNotEmpty()) {
+        Text(
+            text = reading,
+            modifier = Modifier
+                .widthIn(max = CandidateReadingMaxWidth)
+                .padding(start = 10.dp, end = 6.dp),
+            color = MaterialTheme.colorScheme.primary,
+            fontSize = CandidateReadingFontSize * textScale,
+            maxLines = 1,
+            softWrap = false,
+            overflow = TextOverflow.StartEllipsis,
+        )
+        VerticalDivider(
+            modifier = Modifier.height(20.dp),
+            color = MaterialTheme.colorScheme.outlineVariant,
+        )
     }
     LazyRow(
         state = listState,
@@ -6646,6 +6680,12 @@ private val CandidateChipMinWidth = 44.dp
 
 /** Han and kana need more size than Latin to stay legible at strip height. */
 private val CandidateFontSize = 20.sp
+
+/** The reading ahead of the candidates (#973): letters, smaller than the Han after them. */
+private val CandidateReadingFontSize = 15.sp
+
+/** Past this the reading shows its end only, so the candidates keep most of the strip. */
+private val CandidateReadingMaxWidth = 128.dp
 
 /** How long the last-copy chip keeps its narrow form after the words leave the strip (#612). */
 private const val ClipChipShareHoldMs = 1_500L

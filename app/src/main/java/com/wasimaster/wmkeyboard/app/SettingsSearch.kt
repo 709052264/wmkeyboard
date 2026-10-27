@@ -1281,6 +1281,8 @@ private fun SearchStrings.languageRows(): List<SettingsSearchEntry> {
         row(R.string.languages_emoji_keywords_title),
         row(R.string.languages_word_pairs_title),
         row(R.string.languages_cjk_traditional_title, R.string.languages_cjk_traditional_subtitle),
+        row(R.string.languages_cjk_reading_in_field_title, R.string.languages_cjk_reading_in_field_subtitle),
+        row(R.string.languages_cjk_reading_on_switch_title),
         row(R.string.languages_rime_engine_title, R.string.languages_rime_engine_subtitle),
         row(R.string.languages_rime_import_title, R.string.languages_rime_import_subtitle),
         row(R.string.languages_mozc_engine_title, R.string.languages_mozc_engine_subtitle),

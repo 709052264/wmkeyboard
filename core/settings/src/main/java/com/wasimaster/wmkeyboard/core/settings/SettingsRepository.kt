@@ -5688,6 +5688,21 @@ data class RateSourceSettings(
     val autoFetch: Boolean = !BuildConfig.ENABLE_FDROID,
 )
 
+/**
+ * What a switch to another language does with a Chinese or Cantonese reading
+ * that is still waiting to be converted ([CjkSettings.readingOnSwitch], #973).
+ */
+enum class ReadingOnSwitch {
+    /** Types the best candidates for the whole reading, as the space bar run to its end would. */
+    CONVERT,
+
+    /** Types the reading itself, the pinyin or zhuyin as keyed, the way fcitx5 does. */
+    TYPED,
+
+    /** Drops the reading: nothing is typed. */
+    DISCARD,
+}
+
 data class CjkSettings(
     /**
      * Chinese: Jianpin (简拼), a bare initial standing for any syllable that
@@ -5739,6 +5754,16 @@ data class CjkSettings(
      * same setting from its hold whatever this says.
      */
     val traditionalButton: Boolean = false,
+    /**
+     * Chinese and Cantonese: whether the reading being converted (the pinyin,
+     * zhuyin or jyutping typed so far) sits in the app's field as underlined
+     * text, or only in the keyboard, at the start of the candidate strip, the
+     * way fcitx5 has it (#973). On by default, as Gboard and Sogou do it and
+     * as every Chinese layout here always has.
+     */
+    val readingInField: Boolean = true,
+    /** Chinese and Cantonese: what a language switch does with a reading not yet converted (#973). */
+    val readingOnSwitch: ReadingOnSwitch = ReadingOnSwitch.CONVERT,
     /**
      * Cantonese: match lazy-pronunciation mergers (n↔l, ng↔∅, -ng↔-n, -k↔-t).
      * On by default, because the mergers are how most speakers actually say the
@@ -11058,6 +11083,8 @@ class SettingsRepository(private val context: Context) {
         private val PINYIN_DOUBLE_PINYIN_CUSTOM = stringPreferencesKey("pinyin_double_pinyin_custom")
         private val CJK_TRADITIONAL_OUTPUT = booleanPreferencesKey("cjk_traditional_output")
         private val CJK_TRADITIONAL_BUTTON = booleanPreferencesKey("cjk_traditional_button")
+        private val CJK_READING_IN_FIELD = booleanPreferencesKey("cjk_reading_in_field")
+        private val CJK_READING_ON_SWITCH = stringPreferencesKey("cjk_reading_on_switch")
         private val JYUTPING_LAZY = booleanPreferencesKey("jyutping_lazy")
         private val KANA_LOOSE_MARKS = booleanPreferencesKey("kana_loose_marks")
         private val FULL_WIDTH_SPACE_LANGUAGES = stringSetPreferencesKey("full_width_space_languages")
@@ -13027,6 +13054,10 @@ class SettingsRepository(private val context: Context) {
             pinyinDoublePinyinCustom = p[PINYIN_DOUBLE_PINYIN_CUSTOM] ?: defaults.cjk.pinyinDoublePinyinCustom,
             traditionalOutput = p[CJK_TRADITIONAL_OUTPUT] ?: defaults.cjk.traditionalOutput,
             traditionalButton = p[CJK_TRADITIONAL_BUTTON] ?: defaults.cjk.traditionalButton,
+            readingInField = p[CJK_READING_IN_FIELD] ?: defaults.cjk.readingInField,
+            readingOnSwitch = p[CJK_READING_ON_SWITCH]
+                ?.let { runCatching { ReadingOnSwitch.valueOf(it) }.getOrNull() }
+                ?: defaults.cjk.readingOnSwitch,
             jyutpingLazy = p[JYUTPING_LAZY] ?: defaults.cjk.jyutpingLazy,
             kanaLooseMarks = p[KANA_LOOSE_MARKS] ?: defaults.cjk.kanaLooseMarks,
             fullWidthSpaceLanguages = p[FULL_WIDTH_SPACE_LANGUAGES] ?: defaults.cjk.fullWidthSpaceLanguages,
@@ -20886,6 +20917,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setPinyinPrediction(value: Boolean) =
         editPrefs { it[PINYIN_PREDICTION] = value }
+
+    suspend fun setCjkReadingInField(value: Boolean) =
+        editPrefs { it[CJK_READING_IN_FIELD] = value }
+
+    suspend fun setCjkReadingOnSwitch(value: ReadingOnSwitch) =
+        editPrefs { it[CJK_READING_ON_SWITCH] = value.name }
 
     suspend fun setVietnameseStrictTones(value: Boolean) =
         editPrefs { it[VI_STRICT_TONES] = value }

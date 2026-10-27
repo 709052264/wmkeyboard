@@ -304,6 +304,16 @@ Out of the box the space bar types the first candidate straight away. Turn on **
 
 On a physical keyboard the candidates come up even though the on-screen keys stay hidden: just the strip appears while a reading is waiting to convert, and goes again once it's done. The arrow keys move the highlight whether or not the setting is on (<KeyCap>→</KeyCap> or <KeyCap>↓</KeyCap> for the next candidate, <KeyCap>←</KeyCap> or <KeyCap>↑</KeyCap> for the one before), and <KeyCap>Space</KeyCap> or <KeyCap>Enter</KeyCap> types it. Once a candidate is highlighted, <KeyCap>1</KeyCap> to <KeyCap>9</KeyCap> pick one by its place on the strip and <KeyCap>Esc</KeyCap> goes back to the reading. Before that the number keys are left alone, because Jyutping's tones and the T9 pad type digits into the reading. Enter only stops confirming the reading as typed once you've moved the highlight, so it still works for dropping in a word as you typed it.
 
+### Where the reading shows, and switching language mid-reading
+
+<SettingsPath path="Languages & layouts / Chinese / Chinese options / Show the reading in the text field" />
+
+The pinyin, zhuyin or Jyutping you type sits underlined in the text field until you pick a candidate, as it does on Gboard and Sogou. Turn **Show the reading in the text field** off and the field stays as it was: the reading shows at the start of the candidate strip instead, in front of the candidates, and only the candidate you pick goes into the field. That is how fcitx5 works. A long reading shows its end on the strip, where the next key lands. The setting is shared by Chinese and Cantonese, sits on both options pages, and is on by default. Japanese always shows its reading in the field.
+
+<SettingsPath path="Languages & layouts / Chinese / Chinese options / When you switch language mid-reading" />
+
+Switch to another language or layout with a reading still waiting, and by default its best candidates go in, as if you had pressed space until it was all converted. **When you switch language mid-reading** offers two other choices. **Type what you typed** puts the reading in as letters (`nihao`, or the zhuyin itself), the way fcitx5 does. **Discard it** throws the reading away, and nothing goes in. Like the row above, it covers Chinese and Cantonese together.
+
 ### The keyboard's own boxes
 
 The same thing happens in the keyboard's own text fields: the dictionary tool's search, the clipboard and emoji filters, the AI prompt, Find and replace, a plugin's box. They compose and convert exactly as the app's field does: romaji turns into kana as you type it, the 小゛゜ key cycles the last kana, the candidates appear in the strip above the keys, and a tap commits the part of the reading it covers and leaves the rest composing. Nothing reaches the app behind the panel, and a pick there is learned the same way a pick anywhere else is.
@@ -343,6 +353,8 @@ Opening a Chinese, Cantonese, or Japanese entry from the Languages screen shows 
 | Conversion dictionary download | Not downloaded | Chinese, Cantonese, Japanese (see below) |
 | Traditional characters | Off | Chinese and Cantonese, shared between them |
 | 繁 button | Off | Same, a switch for the row above beside the candidates |
+| Show the reading in the text field | On | Chinese and Cantonese, shared between them |
+| When you switch language mid-reading | Type the first candidate | Same |
 | Regional wording (Standard / Taiwan / Taiwan wording / Hong Kong) | Standard | Same, only shown once Traditional is on |
 | Lazy pronunciation (懶音) | On | Cantonese only |
 | Match kana without marks | On | Japanese only, and only kana typed on Flick or Kana JIS |
