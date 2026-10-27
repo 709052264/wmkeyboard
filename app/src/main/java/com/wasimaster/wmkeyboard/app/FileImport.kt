@@ -104,9 +104,7 @@ import com.wasimaster.wmkeyboard.core.snippets.ImportedSnippets
 import com.wasimaster.wmkeyboard.core.snippets.SnippetFile
 import com.wasimaster.wmkeyboard.core.snippets.SnippetPayload
 import com.wasimaster.wmkeyboard.core.snippets.SnippetStore
-import com.wasimaster.wmkeyboard.core.stickers.StickerImportResult
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackFile
-import com.wasimaster.wmkeyboard.core.stickers.StickerPackStore
 import com.wasimaster.wmkeyboard.core.stickers.whatsapp.WaStickersFile
 import com.wasimaster.wmkeyboard.core.theme.ConvertedTheme
 import com.wasimaster.wmkeyboard.core.theme.FlexResult
@@ -1155,6 +1153,13 @@ internal fun ImportFileDialog(
         return
     }
 
+    // A sticker pack, the app's own or a WhatsApp one, opens on a page of its
+    // stickers to tick before any of them is converted (#965).
+    if (state == WMFileTypes.Opened.Stickers || state is WMFileTypes.Opened.WhatsAppStickers) {
+        StickerFileImport(uri) { report -> if (report == null) onClose() else message = report }
+        return
+    }
+
     // Word lists and the rest install through the download screens' own
     // import, which brings its own choice of list, progress and report.
     if (state is WMFileTypes.Opened.OfflineFiles) {
@@ -2143,59 +2148,13 @@ private fun rememberProposal(
             },
         )
 
-        WMFileTypes.Opened.Stickers -> ImportProposal(
+        // Drawn by [StickerFileImport] before a proposal is asked for (see
+        // [ImportFileDialog]); a sticker pack is a page to pick from, not one
+        // question.
+        WMFileTypes.Opened.Stickers, is WMFileTypes.Opened.WhatsAppStickers -> ImportProposal(
             titleRes = R.string.import_stickers_title,
             body = context.getString(R.string.import_stickers_body),
-            apply = {
-                val store = StickerPackStore.get(context)
-                // Names a pack whose own file gives no name.
-                val fallbackName = context.getString(ContentR.string.core_content_sticker_pack_imported_label)
-                val result = withContext(Dispatchers.IO) {
-                    runCatching {
-                        context.contentResolver.requireInputStream(uri)
-                            .use { StickerPackFile.import(it, store, fallbackName) }
-                    }.getOrDefault(StickerImportResult.Failed)
-                }
-                when (result) {
-                    is StickerImportResult.Imported -> buildString {
-                        append(
-                            context.resources.getQuantityString(
-                                R.plurals.import_stickers_done,
-                                result.pack.stickers.size,
-                                result.pack.name,
-                                result.pack.stickers.size,
-                            ),
-                        )
-                        if (result.repairs.isNotEmpty()) {
-                            append("\n\n").append(context.getString(R.string.import_repairs_title))
-                            // The reader hands back a resource and its
-                            // arguments, so the note is worded here.
-                            for (line in result.repairs) {
-                                append("\n• ${line.resolve(context)}")
-                            }
-                        }
-                    }
-                    StickerImportResult.NotAStickerPack ->
-                        context.getString(R.string.import_not_a_sticker_pack)
-                    is StickerImportResult.NoStickers -> buildString {
-                        append(context.getString(R.string.import_stickers_none_read))
-                        for (line in result.repairs.take(5)) {
-                            append("\n• ${line.resolve(context)}")
-                        }
-                    }
-                    StickerImportResult.TooManyPacks ->
-                        context.resources.getQuantityString(
-                            R.plurals.import_stickers_too_many,
-                            StickerPackStore.MAX_PACKS,
-                            StickerPackStore.MAX_PACKS,
-                        )
-                    StickerImportResult.Failed ->
-                        context.getString(R.string.import_file_unreadable)
-                }
-            },
         )
-
-        is WMFileTypes.Opened.WhatsAppStickers -> whatsAppStickersProposal(state.header, context, uri)
 
         WMFileTypes.Opened.Icons -> ImportProposal(
             titleRes = R.string.import_icons_title,
@@ -2261,48 +2220,6 @@ private fun rememberProposal(
             apply = null,
         )
     }
-}
-
-/**
- * The confirmation for a WhatsApp `.wastickers` file.
- *
- * Worded as a foreign import, like the Keyman and FlorisBoard ones: the file
- * was made for another app, and the dialog says so and says what is in it —
- * the title, who made it, how many stickers — before anything is written. The
- * author is shown here and nowhere else, because a pack of this app's keeps
- * no author; the title becomes the pack's name.
- */
-private fun whatsAppStickersProposal(
-    header: WaStickersFile.Header,
-    context: android.content.Context,
-    uri: Uri,
-): ImportProposal {
-    val title = header.title.ifBlank { context.getString(ContentR.string.core_content_sticker_pack_imported_label) }
-    val count = context.resources.getQuantityString(
-        R.plurals.import_sticker_count,
-        header.stickerCount,
-        header.stickerCount,
-    )
-    return ImportProposal(
-        titleRes = R.string.import_name_title,
-        titleArg = title,
-        body = if (header.author.isBlank()) {
-            context.getString(R.string.import_whatsapp_file_body, count)
-        } else {
-            context.getString(R.string.import_whatsapp_file_body_author, count, header.author)
-        },
-        apply = {
-            val store = StickerPackStore.get(context)
-            val fallbackName = context.getString(ContentR.string.core_content_sticker_pack_imported_label)
-            val result = withContext(Dispatchers.IO) {
-                runCatching {
-                    context.contentResolver.requireInputStream(uri)
-                        .use { WaStickersFile.import(it, store, fallbackName) }
-                }.getOrDefault(StickerImportResult.Failed)
-            }
-            result.describe(context)
-        },
-    )
 }
 
 /**
