@@ -7944,6 +7944,9 @@ private fun KeyWidthRow(
             resetKey = resetKey,
             onChange = onChange,
         )
+        // The same width as a share of the row (#970): "a tenth of the row" is
+        // how a layout is planned, and the grid's units are only how it is kept.
+        if (gridWeight > 0f) KeyWidthPercentField(width, gridWeight, resetKey, onChange)
         // The one-tap fix for a row left short after an edit: hand this key
         // whatever row 1's width is not already spoken for. Exact, not rounded to
         // a quarter, or pressing it would leave the row it promises to fill still
@@ -7956,6 +7959,40 @@ private fun KeyWidthRow(
         }
     }
 }
+
+/**
+ * The key's width as a percentage of the grid's (#970), typed in and written
+ * back as grid units. Held while the user is typing in it, so a half-typed
+ * "1" does not get replaced by what 1% rounds to.
+ */
+@Composable
+private fun KeyWidthPercentField(width: Float, gridWeight: Float, resetKey: Any?, onChange: (Float) -> Unit) {
+    val shown = "%.1f".format(Locale.US, width / gridWeight * 100f).removeSuffix(".0")
+    var text by remember(resetKey) { mutableStateOf(shown) }
+    var typing by remember(resetKey) { mutableStateOf(false) }
+    LaunchedEffect(shown) { if (!typing) text = shown }
+    OutlinedTextField(
+        value = text,
+        onValueChange = { typed ->
+            if (!percentPattern.matches(typed)) return@OutlinedTextField
+            text = typed
+            typing = true
+            typed.replace(',', '.').toFloatOrNull()?.takeIf { it > 0f && it <= 100f }?.let { percent ->
+                onChange(roundGridUnit(percent / 100f * gridWeight).coerceIn(GridUnitStep, MaxKeyWidth))
+            }
+        },
+        singleLine = true,
+        label = { Text(stringResource(R.string.layout_editor_width_percent_label)) },
+        suffix = { Text("%") },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+        modifier = Modifier
+            .padding(top = 4.dp)
+            .onFocusChanged { if (!it.isFocused) typing = false },
+    )
+}
+
+/** Up to 100, with one decimal, either separator. */
+private val percentPattern = Regex("""^\d{0,3}([.,]\d?)?$""")
 
 /**
  * How far a size slider travels: its usual range, widened to reach a value that

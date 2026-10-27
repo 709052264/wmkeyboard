@@ -297,6 +297,8 @@
     </plurals>
     <string name="layout_editor_key_row_span_hint">More than one makes the key taller. The rows under it draw their keys around it.</string>
 
+    <!-- #970: the field that gives the key's width as a percentage of the row's full width. -->
+    <string name="layout_editor_width_percent_label">Share of the row</string>
     <!-- Name of the field you type an exact key width into. -->
     <string name="layout_editor_width_field_label">Width</string>
     <!-- Buttons that change the width of the key by a small step. -->
