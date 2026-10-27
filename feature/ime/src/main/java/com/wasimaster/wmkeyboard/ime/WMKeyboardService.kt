@@ -29321,6 +29321,14 @@ open class WMKeyboardService : InputMethodService() {
         // the space that was already there; the caret goes past it, ready for
         // the next word, the same as after a typed one (#662).
         if (stepOverFollowingSpace(ic, trustWeb = replacedSelection)) return
+        // In front of a mark that closes up onto the word ("question⌶?") the
+        // space waits for a letter, as a strip pick's does (#679): typed now,
+        // a word glided back in before a full stop read "word ." (#974).
+        if (markHugsCaretWord(ic.getTextAfterCursor(1, 0))) {
+            deferredWordSpace = true
+            armRevertGuard()
+            return
+        }
         ic.commitText(" ", 1)
         pendingWordSpace = true
     }
@@ -29343,6 +29351,9 @@ open class WMKeyboardService : InputMethodService() {
      * the field is the user's (#184).
      */
     private fun commitGestureLeadingSpace(ic: InputConnection, state: KeyboardUiState) {
+        // A space owed to the next letter after a closing mark (#974) is owed
+        // no longer: this word brings its own, or joins on as asked.
+        deferredWordSpace = false
         // No space asked for this word to join the one before it (#851), or
         // was armed for whatever comes next, which this word is (#863).
         if (glueNextWord || _uiState.value.noSpaceArmed) {
