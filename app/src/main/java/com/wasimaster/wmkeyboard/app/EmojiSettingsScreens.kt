@@ -425,6 +425,16 @@ internal fun EmojiSettings(
                 scope.launch { repository.setInstalledEmojiFont(fontId) }
                 fontRefresh++
             }
+            // A file of one's own, beside the download (#970): the library's
+            // own button only shows once Installed is picked, so from here the
+            // screen read as download-only.
+            if (emojiFont != EmojiFontChoice.INSTALLED) {
+                val importFont = rememberEmojiFontImport(repository)
+                OutlinedButton(
+                    onClick = importFont,
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                ) { Text(stringResource(R.string.langemoji_emoji_fonts_add_action)) }
+            }
             if (emojiFont == EmojiFontChoice.INSTALLED) {
                 InstalledEmojiFontList(repository, settings)
             }
@@ -756,49 +766,7 @@ private fun InstalledEmojiFontList(repository: SettingsRepository, settings: Liv
     val store = remember { FontStore.get(context) }
     val revision by store.revision.collectAsStateWithLifecycle()
     val fonts = remember(revision) { store.emojiFonts() }
-    // A refused import, already in words: it is resolved on the main thread
-    // as the result lands, against the language the screen is showing.
-    var importError by remember { mutableStateOf<String?>(null) }
-    val importFont = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocument(),
-    ) { uri ->
-        if (uri == null) return@rememberLauncherForActivityResult
-        scope.launch {
-            val result = withContext(Dispatchers.IO) {
-                runCatching {
-                    context.contentResolver.requireInputStream(uri).use {
-                        FontFile.import(it, store, name = fontFileLabel(context, uri), emoji = true)
-                    }
-                }.getOrElse {
-                    FontImportResult.Failed(ContentR.string.core_content_font_error_read)
-                }
-            }
-            when (result) {
-                // Selected straight away: importing a face and then having to
-                // find it in the list to use it is one step too many.
-                is FontImportResult.Imported -> repository.setInstalledEmojiFont(result.font.id)
-                is FontImportResult.NotAFont -> importError = context.getString(result.messageRes)
-                FontImportResult.TooManyFonts -> importError = context.resources.getQuantityString(
-                    R.plurals.fonts_import_limit_message,
-                    FontStore.MAX_FONTS,
-                    FontStore.MAX_FONTS,
-                )
-                is FontImportResult.Failed -> importError =
-                    context.getString(result.messageRes, *result.messageArgs.toTypedArray())
-            }
-        }
-    }
-    importError?.let { message ->
-        AlertDialog(
-            onDismissRequest = { importError = null },
-            text = { Text(message) },
-            confirmButton = {
-                TextButton(onClick = { importError = null }) {
-                    Text(stringResource(CommonR.string.common_ok))
-                }
-            },
-        )
-    }
+    val importFont = rememberEmojiFontImport(repository)
 
     if (fonts.isEmpty()) {
         CaptionText(stringResource(R.string.langemoji_emoji_fonts_empty))
@@ -848,10 +816,67 @@ private fun InstalledEmojiFontList(repository: SettingsRepository, settings: Liv
     }
     Spacer(Modifier.height(8.dp))
     OutlinedButton(
-        onClick = { importFont.launch(FONT_MIME_TYPES) },
+        onClick = importFont,
         modifier = Modifier.padding(horizontal = 16.dp),
     ) { Text(stringResource(R.string.langemoji_emoji_fonts_add_action)) }
     Spacer(Modifier.height(8.dp))
+}
+
+/**
+ * Picks a font file off the phone and adds it to the emoji font library,
+ * selected (#657, #970), with a dialog for a file that is refused. Returned
+ * as the call that opens the picker, so the font library and the card beside
+ * the Noto download can both offer it.
+ */
+@Composable
+private fun rememberEmojiFontImport(repository: SettingsRepository): () -> Unit {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val store = remember { FontStore.get(context) }
+    // A refused import, already in words: it is resolved on the main thread
+    // as the result lands, against the language the screen is showing.
+    var importError by remember { mutableStateOf<String?>(null) }
+    val importFont = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    context.contentResolver.requireInputStream(uri).use {
+                        FontFile.import(it, store, name = fontFileLabel(context, uri), emoji = true)
+                    }
+                }.getOrElse {
+                    FontImportResult.Failed(ContentR.string.core_content_font_error_read)
+                }
+            }
+            when (result) {
+                // Selected straight away: importing a face and then having to
+                // find it in the list to use it is one step too many.
+                is FontImportResult.Imported -> repository.setInstalledEmojiFont(result.font.id)
+                is FontImportResult.NotAFont -> importError = context.getString(result.messageRes)
+                FontImportResult.TooManyFonts -> importError = context.resources.getQuantityString(
+                    R.plurals.fonts_import_limit_message,
+                    FontStore.MAX_FONTS,
+                    FontStore.MAX_FONTS,
+                )
+                is FontImportResult.Failed -> importError =
+                    context.getString(result.messageRes, *result.messageArgs.toTypedArray())
+            }
+        }
+    }
+    importError?.let { message ->
+        AlertDialog(
+            onDismissRequest = { importError = null },
+            text = { Text(message) },
+            confirmButton = {
+                TextButton(onClick = { importError = null }) {
+                    Text(stringResource(CommonR.string.common_ok))
+                }
+            },
+        )
+    }
+    return { importFont.launch(FONT_MIME_TYPES) }
 }
 
 /** What each emoji suggestion answer does to the typed word, for the sheet. */
