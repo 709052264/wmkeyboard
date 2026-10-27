@@ -172,8 +172,16 @@ and the machine's `python3` for its code generators
 no prebuilt toolchain is downloaded there either. Bazel still fetches Mozc's
 module dependencies (Abseil, Protocol Buffers, the rules) from the Bazel
 Central Registry as source archives, each checked against the registry's
-hash, as it fetches Mozc itself. The bootstrap is the slow part: it is
-rebuilt in every entry, since the buildserver keeps nothing between builds.
+hash, as it fetches Mozc itself. The bootstrap is the slow part, about
+twenty minutes on a four-core machine, and the buildserver keeps nothing
+between builds, so every entry pays it. fdroiddata's own CI is different: its
+`fdroid build` job builds every new entry of a merge request one after the
+other on one machine, under GitLab.com's three-hour cap on hosted runners
+(a project timeout above that is ignored), and three entries at over an
+hour each did not fit. So the script keeps the bootstrapped binary under
+`~/.cache/wmkeyboard` and the second and third entries find it there. The
+0.6.3 merge request predates that and its pipeline shows the cap: entries
+381 and 382 built, 383 was cut off.
 The next entry's `scandelete` needs `core/input/src/mozc/jniLibs` added,
 beside `core/input/src/main/jniLibs` (librime). The dictionary Mozc converts
 with is not in the APK or the library: it is a CJK pack download, like the

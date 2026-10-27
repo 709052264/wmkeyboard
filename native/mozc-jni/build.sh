@@ -21,9 +21,12 @@
 #                               compile.sh, which needs a JDK 21 (MOZC_JDK,
 #                               JAVA_HOME or Debian's openjdk-21), zip,
 #                               unzip, a C++ compiler and Python 3, and
-#                               fetches nothing. Mozc is then built with
-#                               that JDK and the machine's python3, so no
-#                               prebuilt toolchain is downloaded at all.
+#                               fetches nothing; the result is kept under
+#                               ~/.cache/wmkeyboard (MOZC_BAZEL_CACHE) for
+#                               the next run on the same machine. Mozc is
+#                               then built with that JDK and the machine's
+#                               python3, so no prebuilt toolchain is
+#                               downloaded at all.
 #                               This is the path F-Droid's builder and the
 #                               release workflow's reference build take:
 #                               F-Droid takes no prebuilt Bazel (#964).
@@ -146,8 +149,22 @@ elif command -v bazel >/dev/null 2>&1; then
     BAZEL=$(command -v bazel)
 elif [ "$(uname -s)" = Linux ]; then
     JDK=$(find_jdk) || { echo "Bazel's bootstrap needs a JDK 21 or newer: set MOZC_JDK or JAVA_HOME, or install openjdk-21-jdk-headless" >&2; exit 1; }
-    bootstrap_bazel
-    BAZEL=$BAZEL_SRC/output/bazel
+    # The bootstrapped binary is kept under the cache directory, named by
+    # the version and the archive's checksum, so a machine that builds
+    # several entries in one go (fdroiddata's CI builds every new entry of
+    # a merge request in sequence, under a three-hour cap) bootstraps once.
+    # F-Droid's buildserver starts each build in a fresh VM and never finds
+    # it, which is fine: the binary is self-contained and the same build
+    # either way.
+    CACHE=${MOZC_BAZEL_CACHE:-${XDG_CACHE_HOME:-$HOME/.cache}/wmkeyboard/bazel-$BAZEL_VERSION-${BAZEL_DIST_SHA256:0:16}}
+    if [ -x "$CACHE/bazel" ]; then
+        echo "using the Bazel bootstrapped earlier at $CACHE"
+    else
+        bootstrap_bazel
+        mkdir -p "$CACHE"
+        cp "$BAZEL_SRC/output/bazel" "$CACHE/bazel.tmp" && mv "$CACHE/bazel.tmp" "$CACHE/bazel"
+    fi
+    BAZEL=$CACHE/bazel
     STARTUP+=(--server_javabase="$JDK")
     FLAGS+=(--tool_java_runtime_version=local_jdk --java_runtime_version=local_jdk
             --extra_toolchains=@rules_python//python/runtime_env_toolchains:all)
