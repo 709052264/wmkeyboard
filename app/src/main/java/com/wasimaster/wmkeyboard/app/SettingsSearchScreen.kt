@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Share
+import com.wasimaster.wmkeyboard.app.share.ShareSheetRoute
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.app.assistant.SettingsAssistantGate
 import com.wasimaster.wmkeyboard.core.providers.ProviderCatalog
@@ -696,6 +698,7 @@ internal object SettingsRouteIcons {
         // One bundle's page wears the bundle's own glyph; see ExtensionsScreen.kt.
         *Extension.entries.map { extensionRoute(it) to { extensionIcon(it) } }.toTypedArray(),
         FloatingButtonRoute to { Icons.Outlined.Adjust },
+        ShareSheetRoute to { Icons.Outlined.Share },
         "backup" to { Icons.Outlined.Save },
         "backup/auto" to { Icons.Outlined.Schedule },
         "backup/sync" to { Icons.Outlined.Sync },

@@ -29836,6 +29836,8 @@ open class WMKeyboardService : InputMethodService() {
         }
         // Leaving the Music ID panel: the microphone goes with it.
         if (_uiState.value.panel == PanelMode.MUSIC_ID) musicTool.onPanelClose()
+        // Leaving the share sheet, by any way out: the share it was open for goes with it (#970).
+        if (_uiState.value.panel == PanelMode.SHARE && shareToolDelegate.isInitialized()) shareTool.onPanelClose()
         // Leaving the To-do panel: the same (#920). Every change is saved as it is made.
         if (_uiState.value.panel == PanelMode.TODO) {
             todoTool.onPanelClose()
@@ -37941,7 +37943,11 @@ open class WMKeyboardService : InputMethodService() {
                 val conversation = AiChatController.store(this).get(_uiState.value.aiChat.conversationId) ?: return true
                 val answer = conversation.messages.getOrNull(action.index) ?: return true
                 val question = conversation.messages.take(action.index).lastOrNull { it.role == AiChatMessage.ROLE_USER }
-                if (!AiChatExport.share(this, AiChatExport.Kind.MARKDOWN, conversation.title, question?.content.orEmpty(), answer.content)) {
+                val shared = AiChatExport.share(
+                    this, AiChatExport.Kind.MARKDOWN, conversation.title, question?.content.orEmpty(), answer.content,
+                    open = { shareVia(it) },
+                )
+                if (!shared) {
                     Toast.makeText(this, getString(R.string.ime_ai_chat_share_failed), Toast.LENGTH_SHORT).show()
                 }
             }
@@ -42440,6 +42446,7 @@ open class WMKeyboardService : InputMethodService() {
             location = locationTool.callbacks,
             clock = clockTool.callbacks,
             music = musicTool.callbacks,
+            share = shareTool.callbacks,
             todo = todoTool.callbacks,
             calendar = calendarTool.callbacks,
             kaomoji = kaomojiTool.callbacks,
@@ -42572,6 +42579,51 @@ open class WMKeyboardService : InputMethodService() {
         )
     }
     private val musicTool by musicToolDelegate
+
+    /**
+     * The keyboard's own share sheet (#970). Every share the keyboard makes
+     * goes through [shareVia]; built on first use, like [musicTool].
+     */
+    private val shareToolDelegate = lazy {
+        com.wasimaster.wmkeyboard.ime.share.ShareController(
+            context = this,
+            scope = serviceScope,
+            repository = settingsRepository,
+            settings = { _uiState.value.settings.share },
+            host = object : com.wasimaster.wmkeyboard.ime.share.ShareController.Host {
+                override fun canOpenPanel() = isInputViewShown && userUnlocked
+                override fun openPanel(): Boolean {
+                    val panel = _uiState.value.panel
+                    if (panel != PanelMode.SHARE) {
+                        shareReturnPanel = panel
+                        onPanelChange(PanelMode.SHARE, haptic = false)
+                    }
+                    return _uiState.value.panel == PanelMode.SHARE
+                }
+                override fun closePanel(back: Boolean) {
+                    val returnTo = if (back) shareReturnPanel else PanelMode.NONE
+                    shareReturnPanel = PanelMode.NONE
+                    if (_uiState.value.panel != PanelMode.SHARE) return
+                    // Back onto the panel the share came from, or closed.
+                    onPanelChange(if (returnTo == PanelMode.NONE) PanelMode.SHARE else returnTo, haptic = false)
+                }
+                override fun insertText(text: String) = onToolTextInsert(text)
+                override fun haptic() = vibrate()
+                override fun toast(message: Int) = this@WMKeyboardService.toast(message)
+            },
+        )
+    }
+    private val shareTool by shareToolDelegate
+
+    /** The panel a share came from, for the sheet's back button; NONE when it came from the keys or the bar. */
+    private var shareReturnPanel = PanelMode.NONE
+
+    /**
+     * [send] on the keyboard's share sheet, or on Android's when the sheet is
+     * off or the keyboard is not on screen to draw it (#970). [insertable] when
+     * the share is text the field could take instead. True when one opened.
+     */
+    private fun shareVia(send: Intent, insertable: Boolean = false): Boolean = shareTool.share(send, insertable)
 
     /**
      * The To-do tool (#920). Built on first use, like [clockTool]; the
@@ -42722,7 +42774,7 @@ open class WMKeyboardService : InputMethodService() {
 
     fun onSpeedTestAction(action: com.wasimaster.wmkeyboard.ime.speedtest.SpeedTestAction) = speedTest.onAction(action)
 
-    /** The speed test's card to another app's share screen, as a PNG. */
+    /** The speed test's card on the share sheet, as a PNG. */
     private fun shareSpeedCard(file: File) {
         val uri = runCatching {
             FileProvider.getUriForFile(this, clipboardFileProviderAuthority, file)
@@ -42733,9 +42785,7 @@ open class WMKeyboardService : InputMethodService() {
             .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
             // The grant travels on the clip data; the extra alone carries none.
             .apply { clipData = ClipData.newRawUri(null, uri) }
-        val chooser = Intent.createChooser(intent, null)
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        runCatching { startActivity(chooser) }
+        shareVia(intent)
     }
 
     private fun emojiMixCallbacks() = com.wasimaster.wmkeyboard.ime.ui.EmojiMixCallbacks(
@@ -42902,6 +42952,7 @@ open class WMKeyboardService : InputMethodService() {
                 }
                 override fun fileUri(file: File): Uri? =
                     runCatching { FileProvider.getUriForFile(this@WMKeyboardService, clipboardFileProviderAuthority, file) }.getOrNull()
+                override fun share(send: Intent) = shareVia(send)
                 override fun photoSearchReady(): Boolean = userUnlocked && meaningSearch.picturesReady
                 override fun indexPhotos(photos: List<com.wasimaster.wmkeyboard.core.media.gallery.GalleryItem>) =
                     indexMeaningPhotos(photos)
@@ -42990,6 +43041,7 @@ open class WMKeyboardService : InputMethodService() {
                     }
                 }
                 override fun startActivity(intent: Intent) = this@WMKeyboardService.startActivity(intent)
+                override fun share(send: Intent) = shareVia(send)
                 override fun beginText(entry: com.wasimaster.wmkeyboard.ime.send.SendTextEntry) {
                     _uiState.update {
                         it.copy(
@@ -43716,12 +43768,12 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         vibrate()
-        startMacroActivity(
+        shareVia(
             Intent(Intent.ACTION_SEND)
                 .setType("text/plain")
                 .putExtra(Intent.EXTRA_SUBJECT, note.displayTitle())
                 .putExtra(Intent.EXTRA_TEXT, note.body.ifBlank { note.title }),
-            chooser = true,
+            insertable = true,
         )
     }
 
@@ -44805,10 +44857,7 @@ open class WMKeyboardService : InputMethodService() {
             // and the password purge ride along.
             SelectionMacro.PASTE -> onTextEdit(TextEditAction.PASTE, haptic = false)
             SelectionMacro.DELETE -> deleteSelection()
-            SelectionMacro.SHARE -> startMacroActivity(
-                Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text),
-                chooser = true,
-            )
+            SelectionMacro.SHARE -> shareVia(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text))
             SelectionMacro.SAVE_NOTE -> saveSelectionAsNote(text)
             SelectionMacro.REPEAT -> openTextRepeatTool(seed = text)
             SelectionMacro.FORMAT -> SelectionMacros.format(text, offer.kind, masks)?.let(::rewriteSelection)
@@ -49055,7 +49104,7 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
-    /** [files] (JPEGs) on [app]'s share screen, or the system's share sheet; a toast says how many went. */
+    /** [files] (JPEGs) on [app]'s share screen, or the share sheet; a toast says how many went. */
     private fun sharePages(files: List<File>, app: String?) {
         val uris = files.mapNotNull {
             runCatching { FileProvider.getUriForFile(this, clipboardFileProviderAuthority, it) }.getOrNull()
@@ -49070,10 +49119,8 @@ open class WMKeyboardService : InputMethodService() {
             .also { clip -> uris.drop(1).forEach { clip.addItem(ClipData.Item(it)) } }
         // The launch itself is the test: package visibility hides another
         // app's share screen from a query, never from a launch.
-        val chooser = Intent.createChooser(intent, null)
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
         val shared = (app != null && runCatching { startActivity(Intent(intent).setPackage(app)) }.isSuccess) ||
-            runCatching { startActivity(chooser) }.isSuccess
+            shareVia(intent)
         if (shared) {
             val text = resources.getQuantityString(R.plurals.ime_docscan_pages_shared, uris.size, uris.size)
             Toast.makeText(this, text, Toast.LENGTH_LONG).show()
@@ -49099,7 +49146,7 @@ open class WMKeyboardService : InputMethodService() {
      * A clipboard picture the field refused, sent on the way the gallery's
      * fallback setting sends one (#943): to the field's app through
      * its share screen, or to the clipboard. Ask has no panel to ask in here,
-     * so it opens the system's share sheet, which offers both.
+     * so it opens the share sheet, which offers both.
      */
     private fun shareOrCopyRefusedImage(file: File, mimeType: String) {
         val fallback = _uiState.value.settings.gallery.fallback
@@ -49117,12 +49164,10 @@ open class WMKeyboardService : InputMethodService() {
         // The grant travels on the clip data; the extra alone carries none.
         intent.clipData = ClipData(ClipDescription("image", arrayOf(mimeType)), ClipData.Item(uri))
         val app = currentInputEditorInfo?.packageName?.takeIf { fallback == GalleryFallback.SHARE_TO_APP }
-        val chooser = Intent.createChooser(intent, null)
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
         // The launch itself is the test: package visibility hides another
         // app's share screen from a query, never from a launch.
         val shared = (app != null && runCatching { startActivity(Intent(intent).setPackage(app)) }.isSuccess) ||
-            runCatching { startActivity(chooser) }.isSuccess
+            shareVia(intent)
         if (shared) {
             Toast.makeText(this, resources.getQuantityString(R.plurals.ime_gallery_notice_shared, 1, 1), Toast.LENGTH_SHORT)
                 .show()

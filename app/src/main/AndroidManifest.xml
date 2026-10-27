@@ -264,6 +264,18 @@
             <action android:name="android.intent.action.PROCESS_TEXT" />
             <data android:mimeType="text/plain" />
         </intent>
+        <!-- Apps that take a share, for the keyboard's own share sheet (#970).
+             Without these API 30+ hides every share target that has no
+             launcher entry, and the sheet would list fewer apps than
+             Android's chooser does. -->
+        <intent>
+            <action android:name="android.intent.action.SEND" />
+            <data android:mimeType="*/*" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SEND_MULTIPLE" />
+            <data android:mimeType="*/*" />
+        </intent>
         <!-- Mail apps, for the bug-report and "report this generation" rows. -->
         <intent>
             <action android:name="android.intent.action.SENDTO" />
@@ -1119,6 +1131,15 @@
              task of its own: the selection menu starts it for a result, and a
              new task would cancel that result before the sheet could send it.
         -->
+        <!-- The keyboard's own share sheet in the settings app (#970); every
+             share the app makes opens it. Not exported: only the app asks. -->
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.share.ShareSheetActivity"
+            android:enableOnBackInvokedCallback="true"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:label="@string/share_sheet_title"
+            android:theme="@style/Theme.WMKeyboard.Sheet" />
         <activity
             android:name="com.wasimaster.wmkeyboard.app.TextActionsActivity"
             android:enableOnBackInvokedCallback="true"

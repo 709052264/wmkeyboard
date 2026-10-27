@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.app.share.AppShareSheet
 import android.content.Intent
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -138,10 +139,7 @@ private fun shareLink(context: android.content.Context, url: String) {
         type = "text/plain"
         putExtra(Intent.EXTRA_TEXT, "$blurb $url")
     }
-    val chooserTitle = context.getString(R.string.about_share_chooser_title)
-    context.startActivity(Intent.createChooser(intent, chooserTitle).apply {
-        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    })
+    AppShareSheet.start(context, intent, context.getString(R.string.about_share_chooser_title))
 }
 
 /**

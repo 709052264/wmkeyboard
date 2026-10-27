@@ -43,9 +43,18 @@ object AiChatExport {
     /**
      * Shares [answer] (Markdown, as the model wrote it) under [title], with
      * [question] over it so the file says what it answers. False when the
-     * file could not be made.
+     * file could not be made. [open] puts the share in front of the user: the
+     * keyboard's share sheet or the settings app's (#970); Android's chooser
+     * when the caller has neither.
      */
-    fun share(context: Context, kind: Kind, title: String, question: String, answer: String): Boolean = runCatching {
+    fun share(
+        context: Context,
+        kind: Kind,
+        title: String,
+        question: String,
+        answer: String,
+        open: ((Intent) -> Boolean)? = null,
+    ): Boolean = runCatching {
         val name = fileName(title.ifBlank { question })
         val intent = when (kind) {
             Kind.TEXT -> Intent(Intent.ACTION_SEND)
@@ -54,9 +63,13 @@ object AiChatExport {
             Kind.MARKDOWN -> fileIntent(context, write(context, "$name.md") { it.writeText(markdown(title, question, answer)) }, "text/markdown")
             Kind.PDF -> fileIntent(context, write(context, "$name.pdf") { pdf(context, it, title, question, answer) }, "application/pdf")
         }.putExtra(Intent.EXTRA_SUBJECT, title.ifBlank { question.lineSequence().firstOrNull().orEmpty() })
-        context.startActivity(
-            Intent.createChooser(intent, context.getString(R.string.ime_ai_chat_share)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-        )
+        if (open != null) {
+            check(open(intent))
+        } else {
+            context.startActivity(
+                Intent.createChooser(intent, context.getString(R.string.ime_ai_chat_share)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            )
+        }
     }.isSuccess
 
     /** The Markdown file: a title, the question quoted, then the answer as it was written. */

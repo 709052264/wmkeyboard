@@ -826,6 +826,13 @@ enum class PanelMode {
      * picture. Its state is the controller's, see `ime.music.MusicUi`.
      */
     MUSIC_ID,
+
+    /**
+     * The keyboard's own share sheet (#970): every share the keyboard makes
+     * opens here, not as a tool of its own. Its state is the controller's,
+     * see `ime.share.ShareUi`; the search box types into [KeyboardUiState.mediaQuery].
+     */
+    SHARE,
 }
 
 /**
@@ -857,7 +864,7 @@ val PanelMode.hasMediaSearch: Boolean
     get() = this == PanelMode.GIF || this == PanelMode.STICKER ||
         this == PanelMode.WEB_SEARCH || this == PanelMode.IMAGE_SEARCH ||
         this == PanelMode.WIKIPEDIA || this == PanelMode.TRANSLATE ||
-        this == PanelMode.APP_LAUNCHER ||
+        this == PanelMode.APP_LAUNCHER || this == PanelMode.SHARE ||
         // The vocabulary panel's Browse tab searches the installed packs locally.
         this == PanelMode.VOCABULARY ||
         // QR generator reuses the buffer as its own editable content, so it
@@ -1035,6 +1042,8 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
     PanelMode.OCR -> listOf(FocusRegion.ACTIONS, FocusRegion.RESULTS)
     // The tab chips, then the result card's insert chips.
     PanelMode.MUSIC_ID -> listOf(FocusRegion.CHIPS, FocusRegion.ACTIONS)
+    // The search, Copy/Open/More, the pinned and recent row, then every app.
+    PanelMode.SHARE -> listOf(FocusRegion.SEARCH, FocusRegion.ACTIONS, FocusRegion.CHIPS, FocusRegion.RESULTS)
     // Panels with nothing to drive. The sensor trio has zero controls at all;
     // TEXT_EDIT/NUMPAD duplicate keys a physical keyboard already sends to
     // the field directly (ringing a d-pad that itself moves the caret would

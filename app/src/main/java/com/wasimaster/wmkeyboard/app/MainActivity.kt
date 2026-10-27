@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.app.share.ShareSheetSettingsScreen
+import com.wasimaster.wmkeyboard.app.share.ShareSheetRoute
 import android.app.AppOpsManager
 import android.content.Context
 import android.content.Intent
@@ -2627,6 +2629,15 @@ private fun SettingsNavGraph(
                 FloatingButtonSettingsScreen(repository, settings)
             }
         }
+        composable(ShareSheetRoute) {
+            SettingsScreen(
+                stringResource(R.string.share_sheet_title),
+                { navController.popBackStack() },
+                route = ShareSheetRoute,
+            ) {
+                ShareSheetSettingsScreen(repository, settings)
+            }
+        }
         composable("rows") {
             SettingsScreen(
                 stringResource(R.string.home_rows_title),
@@ -3384,6 +3395,13 @@ internal fun AdvancedSettings(onNavigate: (String) -> Unit) {
                 stringResource(R.string.floating_button_subtitle),
                 route = FloatingButtonRoute,
             ) { onNavigate(FloatingButtonRoute) }
+        }
+        item {
+            NavRow(
+                R.string.share_sheet_title,
+                stringResource(R.string.share_sheet_subtitle),
+                route = ShareSheetRoute,
+            ) { onNavigate(ShareSheetRoute) }
         }
     }
 }

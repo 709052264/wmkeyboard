@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.app.share.AppShareSheet
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -693,7 +694,11 @@ internal fun AiChatScreen(
                         onUndoMemory = { use -> AiChatController.undoMemory(context, activeId, index, use) },
                         onShare = { kind: AiChatExport.Kind ->
                             val question = messages.take(index).lastOrNull { it.role == AiChatMessage.ROLE_USER }?.content.orEmpty()
-                            if (!AiChatExport.share(context, kind, conversation?.title.orEmpty(), question, message.content)) {
+                            val shared = AiChatExport.share(
+                                context, kind, conversation?.title.orEmpty(), question, message.content,
+                                open = { AppShareSheet.start(context, it) },
+                            )
+                            if (!shared) {
                                 Toast.makeText(context, context.getString(ImeR.string.ime_ai_chat_share_failed), Toast.LENGTH_SHORT).show()
                             }
                         }.takeIf { message.role == AiChatMessage.ROLE_ASSISTANT && !message.failed && message.content.isNotBlank() },

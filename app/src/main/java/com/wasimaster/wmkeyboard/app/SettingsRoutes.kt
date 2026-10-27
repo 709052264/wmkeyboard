@@ -201,6 +201,7 @@ internal object SettingsRoutes {
         "extensions",
         "extension/{extension}",
         "floating_button",
+        "share_sheet",
         "rows",
         "rows/symbol",
         "ai_actions",

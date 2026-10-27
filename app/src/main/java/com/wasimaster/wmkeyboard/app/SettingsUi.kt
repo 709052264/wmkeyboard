@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.app.share.ShareSheetRoute
 import android.os.Build
 import android.view.HapticFeedbackConstants
 import android.view.View
@@ -449,6 +450,7 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     *Extension.entries.map { extensionRoute(it) to extensionAccent(it) }.toTypedArray(),
     // A child of Advanced, so it keeps the parent's brown.
     FloatingButtonRoute to Color(0xFF8D6E63),
+    ShareSheetRoute to Color(0xFF8D6E63),
     "backup" to Color(0xFF78909C),
     "backup/auto" to Color(0xFF78909C),
     "backup/sync" to Color(0xFF78909C),

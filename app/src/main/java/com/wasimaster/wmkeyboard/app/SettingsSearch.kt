@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.app.share.ShareSheetRoute
 import android.content.res.Resources
 import androidx.annotation.ArrayRes
 import androidx.annotation.StringRes
@@ -1175,6 +1176,20 @@ private fun SearchStrings.layoutOnehandedRows(): List<SettingsSearchEntry> {
         row(R.string.layout_floating_handle_title, R.string.layout_floating_handle_subtitle),
         row(R.string.layout_floating_width_title, R.string.layout_floating_width_subtitle),
         row(R.string.layout_persistent_title, R.string.layout_persistent_subtitle, weight = EntryWeight.PRIMARY),
+    )
+}
+
+/** Rows on Advanced › Share sheet (#970), in screen order. */
+private fun SearchStrings.shareSheetRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0) = entry(
+        title, subtitle, R.string.share_sheet_title, ShareSheetRoute,
+        screenParent = R.string.home_advanced_title,
+    )
+    return listOf(
+        row(R.string.share_sheet_enabled_title, R.string.share_sheet_enabled_subtitle),
+        row(R.string.share_sheet_recents_title, R.string.share_sheet_recents_subtitle),
+        row(R.string.share_sheet_pins_title),
+        row(R.string.share_sheet_recents_clear_title),
     )
 }
 
@@ -2916,6 +2931,10 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
             R.string.floating_button_title, R.string.floating_button_subtitle,
             R.string.home_advanced_title, FloatingButtonRoute, R.string.search_kw_floating_button,
         ),
+        under(
+            R.string.share_sheet_title, R.string.share_sheet_subtitle,
+            R.string.home_advanced_title, ShareSheetRoute, R.string.search_kw_share_sheet,
+        ),
         // The actions list is indexed as a screen and never row by row: a row
         // called "Delete" or "Translate" would outrank the tools of those
         // names, which the ranking test pins.
@@ -3270,7 +3289,7 @@ internal fun settingsSearchIndex(strings: SearchStrings): List<SettingsSearchEnt
         appearanceToolbarRows() +
         appearanceToolboxRows() + photoRows() + layoutRows() +
         layoutSizeRows() +
-        layoutOnehandedRows() + floatingButtonRows() + languageRows() + emojiRows() +
+        layoutOnehandedRows() + floatingButtonRows() + shareSheetRows() + languageRows() + emojiRows() +
         emojiPanelRows() + emojiMixRows() + kaomojiRows() +
         voiceRows() + clipboardRows() + clipboardHistoryRows() + clipboardChipsRows() + clipboardRulesRows() + expanderRows() + toolPageRowsA() + toolPageRowsB() + galleryRows() + sendRows() + vocabRows() + notesRows() + todoRows() + storageRows() + otherRows()
     // A provider's screen goes with the tool page its list is on.

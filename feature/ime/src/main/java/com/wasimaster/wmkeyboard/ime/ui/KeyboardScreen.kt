@@ -13234,7 +13234,7 @@ private val FullBleedPanels = setOf(
     PanelMode.APP_LAUNCHER, PanelMode.THEMES, PanelMode.SNIPPETS, PanelMode.WIKIPEDIA,
     PanelMode.AI_REPLY, PanelMode.LOCATION, PanelMode.CLOCK, PanelMode.TODO,
     PanelMode.GALLERY, PanelMode.HOME_ASSISTANT, PanelMode.MUSIC_ID,
-    PanelMode.GALLERY, PanelMode.SEND_FILES,
+    PanelMode.GALLERY, PanelMode.SEND_FILES, PanelMode.SHARE,
 )
 
 /**
@@ -14406,6 +14406,11 @@ private fun KeyboardBody(
                     state = state,
                     callbacks = toolHold.music,
                     onClose = { onPanelChange(PanelMode.MUSIC_ID) },
+                )
+                PanelMode.SHARE -> com.wasimaster.wmkeyboard.ime.ui.share.SharePanel(
+                    state = state,
+                    callbacks = toolHold.share,
+                    onQueryTap = onMediaQueryTap,
                 )
                 PanelMode.TODO -> com.wasimaster.wmkeyboard.ime.ui.todo.TodoPanel(
                     state = state,
@@ -30851,6 +30856,8 @@ data class ToolHoldCallbacks(
     val clock: com.wasimaster.wmkeyboard.ime.clock.ClockCallbacks = com.wasimaster.wmkeyboard.ime.clock.ClockCallbacks(),
     /** The Music ID panel's callbacks and state; its state is the controller's, like [clock]. */
     val music: com.wasimaster.wmkeyboard.ime.music.MusicCallbacks = com.wasimaster.wmkeyboard.ime.music.MusicCallbacks(),
+    /** The share sheet (#970); see `ime.share.ShareController`. */
+    val share: com.wasimaster.wmkeyboard.ime.share.ShareCallbacks = com.wasimaster.wmkeyboard.ime.share.ShareCallbacks(),
     /** The To-do panel's state and actions (#920); here for the same reason as [dictionaryBar]. */
     val todo: com.wasimaster.wmkeyboard.ime.todo.TodoCallbacks = com.wasimaster.wmkeyboard.ime.todo.TodoCallbacks(),
     /** The Calendar panel's callbacks and state; its state is the controller's, like [clock]. */
