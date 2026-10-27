@@ -16,6 +16,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,6 +40,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
@@ -348,6 +350,39 @@ internal class SettingsCrumbTrail {
 }
 
 /**
+ * The paths each screen has been reached by in this run of the app (#979).
+ *
+ * A screen with two ways in shows a different path down each, which is the
+ * strip telling the truth about the back stack, and it is also why a screen
+ * reached the second way looks like a new one: the Emoji panel under
+ * "Layout & size › Key layouts" reads as nowhere the user has been, though
+ * "Home › Emoji" opened it a minute ago. So the strip remembers each path it
+ * has drawn, and a screen reached by another one names the earlier ones
+ * under it.
+ *
+ * Remembered rather than read off a table of parents, for the reason the
+ * strip itself is: no table has to be kept in step with the graph, and every
+ * path named was really walked. Kept for the process, which is the length of
+ * one look through the settings; a later run starts with nothing to name.
+ */
+internal object SettingsDoors {
+    private val walked = mutableStateMapOf<String, List<List<String>>>()
+
+    /** Records [path], titles outermost first, as a way into the screen [key] names. */
+    fun record(key: String, path: List<String>) {
+        val known = walked[key].orEmpty()
+        if (path !in known) walked[key] = (known + listOf(path)).takeLast(MaxDoors)
+    }
+
+    /** The paths into [key] walked before, other than [path]. */
+    fun othersThan(key: String, path: List<String>): List<List<String>> =
+        walked[key].orEmpty().filter { it != path }
+
+    /** How many paths one screen keeps; past it, the oldest goes. */
+    private const val MaxDoors = 4
+}
+
+/**
  * The trail for the settings graph, published by it. Null wherever a house
  * screen is drawn outside the graph, and then no screen draws a path strip.
  */
@@ -456,6 +491,12 @@ internal fun SettingsBreadcrumbBar(
 ) {
     val crumbs = trail.ancestorsOf(entryId)
     if (crumbs.size < MinCrumbDepth) return
+    // Keyed by title as well as route: a route that takes an argument, a tool's
+    // page or a mode's editor, is one route for many screens.
+    val doorKey = "${currentRoute.orEmpty()}#$currentTitle"
+    val path = crumbs.map { it.title }
+    val otherDoors = SettingsDoors.othersThan(doorKey, path)
+    LaunchedEffect(doorKey, path) { SettingsDoors.record(doorKey, path) }
     // The step that wore the accent a moment ago. Only a screen that was just
     // opened has one on its own strip — the step it was opened from, which is
     // the last of its ancestors. A screen being returned to left its own
@@ -471,48 +512,76 @@ internal fun SettingsBreadcrumbBar(
     // A short path still sits at the start, because the row is only as wide
     // as its pills and the box lays it out from the start.
     val scroll = rememberScrollState()
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(CrumbBarHeight),
-        contentAlignment = Alignment.CenterStart,
-    ) {
-        // The band is its own node rather than a background on the box,
-        // because it is the one part of the strip that is the same object on
-        // every screen: given a key of its own it stays put while the screens
-        // slide past under it, and crosses from one section's tint to the
-        // next's instead of being wiped across by the incoming page.
-        Box(Modifier.fillMaxSize().crumbBand().background(tint))
-        Row(
+    Column(modifier = modifier.fillMaxWidth()) {
+        Box(
             modifier = Modifier
-                .horizontalScroll(scroll, reverseScrolling = true)
-                .padding(horizontal = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
+                .fillMaxWidth()
+                .height(CrumbBarHeight),
+            contentAlignment = Alignment.CenterStart,
         ) {
-            crumbs.forEach { crumb ->
-                Crumb(
-                    crumb = crumb,
-                    here = crumbAccent(from = if (crumb.entryId == wasHere) 1f else 0f, to = 0f),
+            // The band is its own node rather than a background on the box,
+            // because it is the one part of the strip that is the same object on
+            // every screen: given a key of its own it stays put while the screens
+            // slide past under it, and crosses from one section's tint to the
+            // next's instead of being wiped across by the incoming page.
+            Box(Modifier.fillMaxSize().crumbBand().background(tint))
+            Row(
+                modifier = Modifier
+                    .horizontalScroll(scroll, reverseScrolling = true)
+                    .padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                crumbs.forEach { crumb ->
+                    Crumb(
+                        crumb = crumb,
+                        here = crumbAccent(from = if (crumb.entryId == wasHere) 1f else 0f, to = 0f),
+                        accent = accent,
+                        onOpen = if (crumb.seeded && crumb.route == null) null
+                        else ({ trail.goTo(crumb) }),
+                    )
+                    CrumbSeparator(crumb.entryId)
+                }
+                CurrentCrumb(
+                    entryId = entryId,
+                    title = currentTitle,
+                    route = currentRoute,
+                    // Always arrives: a step that was just opened had no accent on
+                    // the screen before, and a step being returned to left its own
+                    // behind. Either way the accent comes onto it here.
+                    here = crumbAccent(from = 0f, to = 1f),
                     accent = accent,
-                    onOpen = if (crumb.seeded && crumb.route == null) null
-                    else ({ trail.goTo(crumb) }),
+                    onTop = onCurrent,
                 )
-                CrumbSeparator(crumb.entryId)
             }
-            CurrentCrumb(
-                entryId = entryId,
-                title = currentTitle,
-                route = currentRoute,
-                // Always arrives: a step that was just opened had no accent on
-                // the screen before, and a step being returned to left its own
-                // behind. Either way the accent comes onto it here.
-                here = crumbAccent(from = 0f, to = 1f),
-                accent = accent,
-                onTop = onCurrent,
-            )
         }
+        if (otherDoors.isNotEmpty()) AlsoUnder(otherDoors, tint)
     }
 }
+
+/**
+ * The other paths into this screen walked before ([SettingsDoors]), one line
+ * under the strip on the strip's own tint, so it reads as part of it.
+ */
+@Composable
+private fun AlsoUnder(doors: List<List<String>>, tint: Color) {
+    Text(
+        text = stringResource(
+            R.string.shell_breadcrumb_also_under,
+            doors.joinToString(", ") { it.joinToString(CrumbPathSeparator) },
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(tint)
+            .padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis,
+    )
+}
+
+/** Between two steps of a path written out as text, the way a search result writes one. */
+private const val CrumbPathSeparator = " › "
 
 // ---- flight ----
 

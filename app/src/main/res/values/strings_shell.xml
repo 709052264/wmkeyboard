@@ -34,6 +34,8 @@
     <string name="shell_breadcrumb_open_desc">Go to <xliff:g id="screen" example="Appearance">%1$s</xliff:g></string>
     <!-- Screen reader label for the last step of the path strip, the screen being shown. Pressing it scrolls the screen back to its top. -->
     <string name="shell_breadcrumb_top_desc">Back to the top</string>
+    <!-- Under the path strip, on a screen the user has reached before by another path in this session. %1$s = that other path, e.g. "Home › Emoji". -->
+    <string name="shell_breadcrumb_also_under">Also under <xliff:g id="path" example="Home › Emoji">%1$s</xliff:g></string>
 
     <!-- Full screen image viewer for add-on screenshots. -->
     <!-- Screen reader description of one screenshot. %1$d = its position, %2$d = how many there are.
