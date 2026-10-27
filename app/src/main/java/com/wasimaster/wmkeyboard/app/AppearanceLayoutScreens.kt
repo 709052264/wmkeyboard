@@ -55,6 +55,7 @@ import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.sizingValuesFor
 import com.wasimaster.wmkeyboard.core.settings.oneHandedAllowedOn
 import com.wasimaster.wmkeyboard.core.settings.splitAllowedOn
+import com.wasimaster.wmkeyboard.core.settings.ToolbarColumn
 import com.wasimaster.wmkeyboard.core.settings.ToolbarPlacement
 import com.wasimaster.wmkeyboard.core.settings.ToolboxLayout
 import com.wasimaster.wmkeyboard.core.settings.ToolboxSort
@@ -424,6 +425,27 @@ internal fun AppearanceToolbarSettings(
                     info = stringResource(R.string.appearance_toolbar_show_strip_info),
                     default = SettingsDefaults.toolbarBehavior.showStrip,
                 ) { scope.launch { repository.setToolbarShowStrip(it) } }
+            }
+            // Sideways only (#970): a column down one side of the keys in
+            // place of anything along the top, for a screen with width to
+            // spare and little height.
+            item(level = SettingLevel.STANDARD) {
+                ChoiceSetting(
+                    title = R.string.appearance_toolbar_landscape_column_title,
+                    subtitle = stringResource(R.string.appearance_toolbar_landscape_column_subtitle),
+                    info = stringResource(R.string.appearance_toolbar_landscape_column_info),
+                    options = listOf(
+                        ToolbarColumn.OFF to
+                            stringResource(R.string.appearance_toolbar_landscape_column_off_label),
+                        ToolbarColumn.LEFT to
+                            stringResource(R.string.appearance_toolbar_landscape_column_left_label),
+                        ToolbarColumn.RIGHT to
+                            stringResource(R.string.appearance_toolbar_landscape_column_right_label),
+                    ),
+                    selected = settings.watch { it.toolbarBehavior.landscapeColumn },
+                    onChange = { scope.launch { repository.setToolbarLandscapeColumn(it) } },
+                    default = SettingsDefaults.toolbarBehavior.landscapeColumn,
+                )
             }
             item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(

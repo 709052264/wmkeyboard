@@ -53,6 +53,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -229,6 +230,7 @@ import androidx.compose.runtime.withFrameMillis
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.AbsoluteAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.composed
@@ -470,6 +472,7 @@ import com.wasimaster.wmkeyboard.core.settings.SuggestionHotkeyMode
 import com.wasimaster.wmkeyboard.core.settings.FunctionKeyToolbarMode
 import com.wasimaster.wmkeyboard.core.settings.SuggestionOverflow
 import com.wasimaster.wmkeyboard.core.settings.ToolbarPlacement
+import com.wasimaster.wmkeyboard.core.settings.ToolbarColumn
 import com.wasimaster.wmkeyboard.core.settings.ToolHoldAction
 import com.wasimaster.wmkeyboard.core.settings.holdActionOf
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
@@ -3779,10 +3782,15 @@ private fun TopBar(
     // dissolve and the settle beat below all sit at their resting values and cost
     // nothing. The chevron stays, as the opener for that row.
     val placement = state.settings.toolbarBehavior.placement
-    val toolsOwnRow = placement.isOwnRow
+    // In a column beside the keys (#970) the tools are always on screen, the
+    // way an always-open row keeps them: the bar never flips and has no
+    // chevron to offer.
+    val toolsColumn = toolsColumnSide(state) != null
+    val toolsOwnRow = placement.isOwnRow || toolsColumn
     // With a row of their own the tools are on screen at the same time as this
     // strip, so anything the strip would duplicate from that row stays off.
-    val toolsRowVisible = toolsOwnRow && (placement == ToolbarPlacement.ALWAYS_ROW || toolsRowOpen)
+    val toolsRowVisible = toolsColumn ||
+        (toolsOwnRow && (placement == ToolbarPlacement.ALWAYS_ROW || toolsRowOpen))
     // Which way the chevron points for an own-row placement: towards the slot
     // the row takes in the bar order, since that is where it will appear.
     val barOrder = state.settings.barOrder
@@ -4175,7 +4183,7 @@ private fun TopBar(
         // past where it started. One decision, and the row moves once, when the
         // surface it belongs to arrives.
         AnimatedVisibility(
-            visible = when (placement) {
+            visible = !toolsColumn && when (placement) {
                 // The row is always there; there is nothing for a chevron to do.
                 ToolbarPlacement.ALWAYS_ROW -> false
                 // The chevron *is* the way to that row, so it is always offered.
@@ -8969,6 +8977,16 @@ private class ToolDragController {
      * and a slot measured from the left names its mirror image.
      */
     var barRtl: Boolean = false
+    /**
+     * Whether the tools are drawn down a column beside the keys (#970) rather
+     * than along a row: registered by whichever of the two is drawing them, as
+     * [barRtl] is. A column counts its slots by [columnCentres] instead of by
+     * a share of its length, since how far apart its tools sit depends on
+     * Tool layout and on how many there are.
+     */
+    var barVertical: Boolean = false
+    /** Each tool's centre down the screen in the column, in root coordinates, as last laid out. */
+    val columnCentres = HashMap<ToolbarTool, Float>()
     var onCommit: (List<ToolbarTool>) -> Unit = {}
     /** Haptic tick when the drop target changes: slot to slot, or on/off the bar. */
     var onSnap: () -> Unit = {}
@@ -9185,6 +9203,11 @@ private class ToolDragController {
         val tool = dragging ?: return null
         val without = visibleTools - tool
         if (without.isEmpty()) return 0
+        // Down a column: in front of the first tool whose centre is still
+        // below the finger. The centres are where the cells were laid out with
+        // the preview already in place, so the slot holds still while the
+        // finger stays between two of them.
+        if (barVertical) return without.count { (columnCentres[it] ?: Float.MAX_VALUE) < at.y }
         // Measured from the edge the row starts its tools at — the right one
         // when the bar draws RTL ([barRtl]), so the slot always counts in the
         // same direction the icons are laid out in.
@@ -10789,6 +10812,268 @@ private fun ToolsRow(
 }
 
 /**
+ * The pinned tools in a column down one side of the keys, for a phone on its
+ * side ([ToolbarBehavior.landscapeColumn], #970): the bar's buttons in the
+ * bar's order, top to bottom. The way back out of an open panel, the toolbox
+ * launcher, the pinned tools and folders, the toolbox's search while it is
+ * open, the show-keys button and the incognito and power-saving badges, each
+ * where [ToolbarRow] has it along the row.
+ *
+ * The tools are [PinnedToolCell]s, so they hold, drag and wear their colours
+ * exactly as on the bar. They fit the column the way Tool layout fits the
+ * bar: spread over its height, packed at its top, or scrolling, the
+ * first two shrinking together once there are more than the height holds
+ * ([fitToolsColumn]).
+ *
+ * Never mirrored: a column has no reading order, and its side is the screen's.
+ */
+@Composable
+private fun ToolsColumn(
+    state: KeyboardUiState,
+    onPanelChange: (PanelMode) -> Unit,
+    onToolTap: (ToolbarTool) -> Unit,
+    drag: ToolDragController,
+    modifier: Modifier = Modifier,
+) {
+    val customizing = state.panel == PanelMode.TOOLBOX
+    val scrollable = state.settings.toolbarBehavior.scrollable
+    val spread = state.settings.toolbarBehavior.greedy && !scrollable
+    val labels = state.settings.toolbarLabels
+    val labelSize = state.settings.toolbarLabelSize
+    // A name is cut to the column rather than widening it.
+    val labelMaxWidth = toolsColumnWidthDp(state) - 2 * ToolsColumnGutterDp
+    val motion = !state.settings.reduceMotion
+    val dpadRing = LocalDpadRing.current
+    val tools = visibleToolbarTools(state)
+    val pinnedFolders = state.settings.toolbox.folders.filter { it.pinned }
+    drag.visibleTools = tools
+    drag.barRtl = false
+    drag.barVertical = true
+    // The drop preview moves the dragged tool's own cell to the slot under
+    // the finger, as on the bar (see [ToolbarRow]).
+    val dragTool = drag.dragging
+    val ghostSlot = drag.barSlot
+    val displayTools: List<ToolbarTool> = if (dragTool != null && ghostSlot != null) {
+        (tools - dragTool).toMutableList().apply {
+            add(ghostSlot.coerceIn(0, size), dragTool)
+        }
+    } else {
+        tools
+    }
+    val hints = if (dragTool == null) armedHintPlan(state) else null
+    val toolboxSearchShown = customizing && state.settings.toolbox.searchButton &&
+        !state.toolboxView.searchActive
+    val searchAtEnd = state.settings.toolbox.searchAtEnd
+    val cell = Modifier.padding(vertical = 3.dp)
+    val toolboxSearch: @Composable () -> Unit = {
+        ToolCircle(
+            slot = IconSlots.CHROME_TOOLBOX_SEARCH,
+            description = stringResource(R.string.ime_toolbox_search_desc),
+            active = false,
+            modifier = cell,
+            longPressLabel = stringResource(R.string.ime_toolbox_search_desc),
+            wide = true,
+        ) { drag.toolbox.onSearchToggle() }
+    }
+    Column(
+        modifier = modifier
+            // The whole column is where a drop lands; the cells' centres say
+            // in front of which tool.
+            .onGloballyPositioned { drag.toolbarBounds = it.boundsInRoot() }
+            .then(
+                if (scrollable) Modifier.verticalScroll(rememberScrollState()) else Modifier.fitToolsColumn(spread),
+            ),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = if (spread) Arrangement.SpaceEvenly else Arrangement.Top,
+    ) {
+        // With any tool panel open, the top of the column is the way back to
+        // the keys. Out at once, for the bar's reason: a fading exit holds
+        // the slot, and the tools under it move twice.
+        AnimatedVisibility(
+            visible = state.panel != PanelMode.NONE,
+            enter = fadeIn(tween(if (motion) ToolbarMotionMs else 0)),
+            exit = ExitTransition.None,
+        ) {
+            ToolCircle(
+                slot = IconSlots.CHROME_PANEL_BACK,
+                description = stringResource(R.string.ime_panel_back_desc),
+                active = false,
+                longPressLabel = stringResource(R.string.ime_panel_back_desc),
+                modifier = cell.then(
+                    if (dpadRing) {
+                        Modifier.dpadTarget(BarBackRingId) { onPanelChange(state.panel) }
+                    } else {
+                        Modifier
+                    },
+                ),
+                wide = true,
+            ) { onPanelChange(state.panel) }
+        }
+        if (toolboxSearchShown && !searchAtEnd) toolboxSearch()
+        ToolCircle(
+            slot = IconSlots.CHROME_TOOLBOX,
+            description = stringResource(R.string.ime_toolbox_desc),
+            active = customizing,
+            label = stringResource(R.string.ime_toolbox_desc).takeIf { labels },
+            labelSizeSp = labelSize,
+            labelMaxWidthDp = labelMaxWidth,
+            modifier = cell
+                .then(
+                    if (dpadRing) {
+                        Modifier.dpadTarget(BarToolboxRingId) { onPanelChange(PanelMode.TOOLBOX) }
+                    } else {
+                        Modifier
+                    },
+                )
+                .animatePlacement(enabled = motion) { drag.bodyCoords },
+            longPressLabel = stringResource(R.string.ime_toolbox_desc).takeUnless { labels },
+            wide = true,
+            hint = hints?.label(HintSurface.TOOLBAR, 0),
+        ) { onPanelChange(PanelMode.TOOLBOX) }
+        for (tool in displayTools) {
+            key(tool) {
+                PinnedToolCell(
+                    tool, state, drag, onToolTap,
+                    cell = cell.onGloballyPositioned { drag.columnCentres[tool] = it.boundsInRoot().center.y },
+                    hint = hints?.label(HintSurface.TOOLBAR, tools.indexOf(tool) + 1),
+                    labelMaxWidthDp = labelMaxWidth,
+                    inRow = false,
+                )
+            }
+        }
+        // Folders after the tools, as on the bar (#709).
+        for (folder in pinnedFolders) {
+            key("folder:${folder.id}") {
+                PinnedFolderButton(
+                    folder = folder,
+                    state = state,
+                    open = customizing && state.toolboxView.folderOpen == folder.id,
+                    onOpen = { drag.toolbox.onFolderOpen(folder.id) },
+                    modifier = cell.animatePlacement(enabled = motion) { drag.bodyCoords },
+                )
+            }
+        }
+        if (toolboxSearchShown && searchAtEnd) toolboxSearch()
+        // The keys called up over the toolbar-only view go away from here too (#642).
+        if (hardwareKeysToggleable(state)) {
+            val shown = state.settings.toolbarBehavior.hardwareKeysShown
+            val desc = stringResource(
+                if (shown) R.string.ime_hardware_keys_hide_desc else R.string.ime_hardware_keys_show_desc,
+            )
+            ToolCircle(
+                slot = if (shown) IconSlots.CHROME_HIDE_KEYS else IconSlots.CHROME_SHOW_KEYS,
+                description = desc,
+                active = shown,
+                label = desc.takeIf { labels },
+                labelSizeSp = labelSize,
+                labelMaxWidthDp = labelMaxWidth,
+                modifier = cell,
+                longPressLabel = desc.takeUnless { labels },
+                wide = true,
+            ) { drag.onHardwareKeysToggle() }
+        }
+        if (state.incognitoOn) {
+            SlotIcon(
+                IconSlots.CHROME_INCOGNITO,
+                contentDescription = stringResource(R.string.ime_incognito_on_desc),
+                modifier = Modifier
+                    .clickable { drag.onIncognitoBadge() }
+                    .padding(4.dp)
+                    .size(16.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (state.powerSavingOn) {
+            SlotIcon(
+                IconSlots.CHROME_POWER_SAVING,
+                contentDescription = stringResource(R.string.ime_power_saving_on_desc),
+                modifier = Modifier
+                    .padding(4.dp)
+                    .size(16.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+/**
+ * [ToolsColumn]'s fit, as [shrinkToFit] is the packed bar's: the buttons at
+ * their own size while they fit, spread over the column's height or packed at
+ * its top, and scaled down together from the top once they don't, so every
+ * tool stays on screen and a tap still lands on the icon under the finger.
+ */
+private fun Modifier.fitToolsColumn(spread: Boolean): Modifier = layout { measurable, constraints ->
+    val bounded = constraints.hasBoundedHeight
+    val height = constraints.maxHeight
+    // Spread, the buttons are given at least the column's height to spread
+    // over; packed, they take what they take.
+    val placeable = measurable.measure(
+        constraints.copy(
+            minHeight = if (spread && bounded) height else 0,
+            maxHeight = Constraints.Infinity,
+        ),
+    )
+    if (!bounded || placeable.height <= height) {
+        layout(placeable.width, if (bounded) height else placeable.height) { placeable.place(0, 0) }
+    } else {
+        val scale = height / placeable.height.toFloat()
+        layout(placeable.width, height) {
+            placeable.placeWithLayer(0, 0) {
+                scaleX = scale
+                scaleY = scale
+                transformOrigin = TransformOrigin(0.5f, 0f)
+            }
+        }
+    }
+}
+
+/**
+ * The side the pinned tools stand on in a column beside the keys (#970), or
+ * null while they are along the top where [ToolbarBehavior.placement] puts
+ * them. Landscape only, and only with keys to stand beside: the toolbar-only
+ * view for a physical keyboard, and the strip up only for its candidates,
+ * keep the one row they have.
+ *
+ * What the strip asks to know whether the tools are on screen beside it;
+ * [toolsColumnShown] is whether the column is drawn right now.
+ */
+@Composable
+private fun toolsColumnSide(state: KeyboardUiState): ToolbarColumn? {
+    val behavior = state.settings.toolbarBehavior
+    val side = behavior.landscapeColumn
+    if (side == ToolbarColumn.OFF || !behavior.enabled) return null
+    if (hardwareKeysStepAside(state) || state.hardwareCandidateWindow) return null
+    val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    return side.takeIf { landscape }
+}
+
+/**
+ * [toolsColumnSide], less the moments the column steps out with the rest of
+ * the bar: a full-bleed panel takes the whole keyboard, its width included,
+ * and brings its own way back; lock-screen privacy hides every pinned tool.
+ */
+@Composable
+private fun toolsColumnShown(state: KeyboardUiState): ToolbarColumn? =
+    toolsColumnSide(state)?.takeUnless { barFullBleed(state) || barLockHidden(state) }
+
+/**
+ * The column's width in dp: a tool's width with a gutter either side, and
+ * room for a short name once the tools wear labels.
+ */
+@Composable
+private fun toolsColumnWidthDp(state: KeyboardUiState): Int {
+    val tool = LocalKbTheme.current.toolWidthDp
+    val content = if (state.settings.toolbarLabels) tool.coerceAtLeast(ToolsColumnLabelWidthDp) else tool
+    return content + 2 * ToolsColumnGutterDp
+}
+
+/** Space between [ToolsColumn]'s buttons and its edges, in dp. */
+private const val ToolsColumnGutterDp = 4
+
+/** The narrowest [ToolsColumn]'s buttons get with labels on, in dp: room for "Undo" or "Paste" at the default size. */
+private const val ToolsColumnLabelWidthDp = 48
+
+/**
  * The toolbar itself: fixed toolbox launcher, then the user's tools —
  * spread across the free space when the greedy setting is on, packed to
  * the left otherwise.
@@ -10819,8 +11104,6 @@ private fun RowScope.ToolbarRow(
     val labelSize = state.settings.toolbarLabelSize
     // A name cut to the tool width, when asked for (#970); null lets it set the width.
     val labelMaxWidth = LocalKbTheme.current.toolWidthDp.takeIf { state.settings.toolbarBehavior.labelsFixedWidth }
-    // The tools' own colours on the bar too, when asked for (#970).
-    val pinnedColors = state.settings.toolbarBehavior.pinnedToolColors
     val motion = !state.settings.reduceMotion
     // Enter and exit share one duration so the back chevron takes the same
     // time to leave as it took to arrive; a shorter exit made closing a panel
@@ -10842,6 +11125,7 @@ private fun RowScope.ToolbarRow(
     val toolsRtl = toolbarReadsRtl(state)
     val toolsDirection = if (toolsRtl) LayoutDirection.Rtl else LayoutDirection.Ltr
     drag.barRtl = toolsRtl
+    drag.barVertical = false
     // The tools hug the toolbox launcher, which sits at the enclosing bar's
     // start. When the sub-row runs the other way that end is its own end, so
     // the packing spacer has to lead instead of trail.
@@ -11018,115 +11302,15 @@ private fun RowScope.ToolbarRow(
                 // with it and there is nothing to clip.
                 val shared = tool in sharedTools
                 val fadeThis = !shared || fadeShared
-                // The Voice tool's hold menu (#173). Cell-local: it is about
-                // this one cell, opens on the hold's lift and closes on a
-                // pick or a tap outside, and nothing else needs to know.
-                var voiceMenuOpen by remember { mutableStateOf(false) }
-                Box(cell, contentAlignment = Alignment.Center) {
-                    // Drag is always live: hold-and-drag reorders the bar
-                    // (or unpins into an open toolbox); a hold that never
-                    // moves opens the tool's settings page instead — or,
-                    // on the caret tools, repeats the move for as long as
-                    // the finger is down. Only here: the toolbox keeps the
-                    // hold-for-settings gesture for every tool, which is
-                    // what makes those pages still reachable.
-                    DraggableTool(
-                        tool,
-                        fromToolbar = true,
-                        enabled = true,
-                        drag = drag,
-                        onTap = { onToolTap(tool) },
-                        holdRepeatMs = holdRepeatMs(tool, state),
-                        holdAction = holdActionFor(tool, fromToolbar = true, state = state),
-                        dragEnabled = state.settings.toolbarBehavior.dragToRearrange,
-                        holdArms = holdArmsSelection(tool, fromToolbar = true, state = state),
-                        // Not while the toolbox is open (#320): the trackpad
-                        // took the toolbox's place under the held finger, so a
-                        // drag back to the grid found no grid to land on and
-                        // the tool could never leave the bar. Customizing, a
-                        // hold is for arranging, the way it is in the grid.
-                        holdPanel = !customizing &&
-                            holdOpensTrackpad(tool, fromToolbar = true, state = state),
-                        holdMenu = holdPicksVoiceMode(tool, fromToolbar = true, state = state),
-                        onHoldMenu = { voiceMenuOpen = true },
-                        holdDelayMs = state.settings.toolbarBehavior.holdDelayMs,
-                    ) { dragModifier ->
-                        val paint = if (pinnedColors) toolAccentPaint(tool, state.settings) else null
-                        ToolCircle(
-                            slot = IconSlots.forTool(tool),
-                            description = toolLabel(tool),
-                            active = toolActive(tool, state),
-                            tint = paint?.color,
-                            tintBrush = paint?.brush,
-                            label = if (labels) toolLabel(tool) else null,
-                            labelSizeSp = labelSize,
-                            labelMaxWidthDp = labelMaxWidth,
-                            // This cell IS the drop preview while it is the one
-                            // being dragged: it has moved to the slot under the
-                            // finger and draws washed out there, so the row on
-                            // screen is exactly the row the drop commits. The
-                            // solid icon to look at is the floating one under
-                            // the finger.
-                            ghost = tool == dragTool,
-                            wide = true,
-                            hint = hints?.label(HintSurface.TOOLBAR, tools.indexOf(tool) + 1),
-                            // The icon itself animates, anchored at the
-                            // keyboard body: cells are weighted so their
-                            // widths snap, and only body-relative tracking
-                            // sees the true on-screen motion.
-                            // A tool the suggestion strip also keeps
-                            // hands its position across that swap
-                            // instead of tracking only its own node.
-                            modifier = dragModifier
-                                // The cell owns the press (interactive = false
-                                // below), so it is the cell that marks itself
-                                // as the opener a panel grows out of.
-                                .panelOrigin()
-                                .then(
-                                    if (dpadRing) {
-                                        Modifier.dpadTarget(tool) { onToolTap(tool) }
-                                    } else {
-                                        Modifier
-                                    },
-                                )
-                                .then(
-                                    if (shared) {
-                                        Modifier.animateSharedPlacement(
-                                            drag.placementOf(tool),
-                                            enabled = motion,
-                                        ) { drag.bodyCoords }
-                                    } else {
-                                        Modifier.animatePlacement(
-                                            enabled = motion,
-                                            inRow = true,
-                                        ) { drag.bodyCoords }
-                                    },
-                                )
-                                // Inside the slide, so the fade's buffer travels
-                                // with the icon rather than clipping it.
-                                .then(
-                                    if (fadeThis) {
-                                        Modifier.graphicsLayer { alpha = contentAlpha() }
-                                    } else {
-                                        Modifier
-                                    },
-                                ),
-                            interactive = false,
-                        ) {}
-                    }
-                    if (voiceMenuOpen) {
-                        StripMenuScrim(onDismiss = { voiceMenuOpen = false })
-                        VoiceModeMenu(
-                            current = state.settings.voiceBar.typingMode,
-                            modes = state.supportedVoiceModes(),
-                            onDismiss = { voiceMenuOpen = false },
-                            onPick = { mode ->
-                                voiceMenuOpen = false
-                                drag.onVoiceModePick(mode)
-                            },
-                        )
-                    }
-                }
+                PinnedToolCell(
+                    tool, state, drag, onToolTap, cell,
+                    hint = hints?.label(HintSurface.TOOLBAR, tools.indexOf(tool) + 1),
+                    labelMaxWidthDp = labelMaxWidth,
+                    inRow = true,
+                    shared = shared,
+                    fadeThis = fadeThis,
+                    contentAlpha = contentAlpha,
+                )
             }
         }
         // Folders the user pinned (#709), after the tools: a folder has no
@@ -11274,6 +11458,148 @@ private fun RowScope.ToolbarRow(
                 .size(16.dp),
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+    }
+}
+
+/**
+ * One pinned tool, on the bar ([ToolbarRow]) or in the column beside the keys
+ * ([ToolsColumn]): the hold and drag handling, the button in the tool's own
+ * colours when the bar wears them, and the Voice tool's hold menu. One cell
+ * for both, so a tool behaves the same wherever it is pinned.
+ *
+ * [inRow] is how the icon slides when the tools around it move: along a row,
+ * where a vertical move is the row itself moving and snaps, or down a column,
+ * where it is the tool's own. [shared], [fadeThis] and [contentAlpha] are the
+ * bar's strip-to-toolbar dissolve; see [ToolbarRow].
+ */
+@Composable
+private fun PinnedToolCell(
+    tool: ToolbarTool,
+    state: KeyboardUiState,
+    drag: ToolDragController,
+    onToolTap: (ToolbarTool) -> Unit,
+    cell: Modifier,
+    hint: String?,
+    labelMaxWidthDp: Int?,
+    inRow: Boolean,
+    shared: Boolean = false,
+    fadeThis: Boolean = true,
+    contentAlpha: () -> Float = { 1f },
+) {
+    val customizing = state.panel == PanelMode.TOOLBOX
+    val labels = state.settings.toolbarLabels
+    val labelSize = state.settings.toolbarLabelSize
+    val pinnedColors = state.settings.toolbarBehavior.pinnedToolColors
+    val motion = !state.settings.reduceMotion
+    val dpadRing = LocalDpadRing.current
+    // The Voice tool's hold menu (#173). Cell-local: it is about
+    // this one cell, opens on the hold's lift and closes on a
+    // pick or a tap outside, and nothing else needs to know.
+    var voiceMenuOpen by remember { mutableStateOf(false) }
+    Box(cell, contentAlignment = Alignment.Center) {
+        // Drag is always live: hold-and-drag reorders the bar
+        // (or unpins into an open toolbox); a hold that never
+        // moves opens the tool's settings page instead — or,
+        // on the caret tools, repeats the move for as long as
+        // the finger is down. Only here: the toolbox keeps the
+        // hold-for-settings gesture for every tool, which is
+        // what makes those pages still reachable.
+        DraggableTool(
+            tool,
+            fromToolbar = true,
+            enabled = true,
+            drag = drag,
+            onTap = { onToolTap(tool) },
+            holdRepeatMs = holdRepeatMs(tool, state),
+            holdAction = holdActionFor(tool, fromToolbar = true, state = state),
+            dragEnabled = state.settings.toolbarBehavior.dragToRearrange,
+            holdArms = holdArmsSelection(tool, fromToolbar = true, state = state),
+            // Not while the toolbox is open (#320): the trackpad
+            // took the toolbox's place under the held finger, so a
+            // drag back to the grid found no grid to land on and
+            // the tool could never leave the bar. Customizing, a
+            // hold is for arranging, the way it is in the grid.
+            holdPanel = !customizing &&
+                holdOpensTrackpad(tool, fromToolbar = true, state = state),
+            holdMenu = holdPicksVoiceMode(tool, fromToolbar = true, state = state),
+            onHoldMenu = { voiceMenuOpen = true },
+            holdDelayMs = state.settings.toolbarBehavior.holdDelayMs,
+        ) { dragModifier ->
+            val paint = if (pinnedColors) toolAccentPaint(tool, state.settings) else null
+            ToolCircle(
+                slot = IconSlots.forTool(tool),
+                description = toolLabel(tool),
+                active = toolActive(tool, state),
+                tint = paint?.color,
+                tintBrush = paint?.brush,
+                label = if (labels) toolLabel(tool) else null,
+                labelSizeSp = labelSize,
+                labelMaxWidthDp = labelMaxWidthDp,
+                // This cell IS the drop preview while it is the one
+                // being dragged: it has moved to the slot under the
+                // finger and draws washed out there, so the row on
+                // screen is exactly the row the drop commits. The
+                // solid icon to look at is the floating one under
+                // the finger.
+                ghost = tool == drag.dragging,
+                wide = true,
+                hint = hint,
+                // The icon itself animates, anchored at the
+                // keyboard body: cells are weighted so their
+                // widths snap, and only body-relative tracking
+                // sees the true on-screen motion.
+                // A tool the suggestion strip also keeps
+                // hands its position across that swap
+                // instead of tracking only its own node.
+                modifier = dragModifier
+                    // The cell owns the press (interactive = false
+                    // below), so it is the cell that marks itself
+                    // as the opener a panel grows out of.
+                    .panelOrigin()
+                    .then(
+                        if (dpadRing) {
+                            Modifier.dpadTarget(tool) { onToolTap(tool) }
+                        } else {
+                            Modifier
+                        },
+                    )
+                    .then(
+                        if (shared) {
+                            Modifier.animateSharedPlacement(
+                                drag.placementOf(tool),
+                                enabled = motion,
+                            ) { drag.bodyCoords }
+                        } else {
+                            Modifier.animatePlacement(
+                                enabled = motion,
+                                inRow = inRow,
+                            ) { drag.bodyCoords }
+                        },
+                    )
+                    // Inside the slide, so the fade's buffer travels
+                    // with the icon rather than clipping it.
+                    .then(
+                        if (fadeThis) {
+                            Modifier.graphicsLayer { alpha = contentAlpha() }
+                        } else {
+                            Modifier
+                        },
+                    ),
+                interactive = false,
+            ) {}
+        }
+        if (voiceMenuOpen) {
+            StripMenuScrim(onDismiss = { voiceMenuOpen = false })
+            VoiceModeMenu(
+                current = state.settings.voiceBar.typingMode,
+                modes = state.supportedVoiceModes(),
+                onDismiss = { voiceMenuOpen = false },
+                onPick = { mode ->
+                    voiceMenuOpen = false
+                    drag.onVoiceModePick(mode)
+                },
+            )
+        }
     }
 }
 
@@ -12930,7 +13256,11 @@ private fun isFullBleedPanel(panel: PanelMode, settings: KeyboardSettings): Bool
  * symbol row) — the panel absorbs it so opening one never resizes the
  * keyboard window. Shared with the scanner panels, which draw their own
  * chrome instead of using [FullBleedTool].
+ *
+ * Composable only for the orientation, which decides whether the tools are in
+ * a row or in a column beside the keys ([toolsColumnSide]).
  */
+@Composable
 internal fun fullBleedHiddenRows(
     state: KeyboardUiState,
     /**
@@ -12949,10 +13279,11 @@ internal fun fullBleedHiddenRows(
         // panel. An on-demand row is not counted: whether it was open is
         // composable-local state this function cannot see, and a row the user
         // opened by hand closing under a panel is a smaller surprise than the
-        // keyboard growing by a row it never had.
+        // keyboard growing by a row it never had. Nor is a column beside the
+        // keys (#970): it costs width, not height.
         (
             if (state.settings.toolbarBehavior.placement == ToolbarPlacement.ALWAYS_ROW &&
-                state.settings.toolbarBehavior.enabled
+                state.settings.toolbarBehavior.enabled && toolsColumnSide(state) == null
             ) {
                 topBarHeight(state.settings)
             } else {
@@ -13535,7 +13866,21 @@ private fun KeyboardBody(
                 },
             ),
     ) {
-        Column {
+        // Sideways, the pinned tools may stand in a column beside everything
+        // here rather than in a row over it (#970). The body leaves the
+        // column's width free on that side, and the column, drawn after it,
+        // runs the body's whole height: it costs the keys width, never height.
+        // A padding rather than a Row around the body, so the body's own
+        // composition stays where it is when the column comes and goes.
+        val columnSide = toolsColumnShown(state)
+        val columnWidth = toolsColumnWidthDp(state).dp
+        Column(
+            modifier = when (columnSide) {
+                ToolbarColumn.LEFT -> Modifier.absolutePadding(left = columnWidth)
+                ToolbarColumn.RIGHT -> Modifier.absolutePadding(right = columnWidth)
+                else -> Modifier
+            },
+        ) {
             // The dedicated always-on emoji row (Gboard style) sits between
             // the strip and the keys — or on top of everything, per setting;
             // the emoji panel already is emojis, so it yields there.
@@ -13580,19 +13925,23 @@ private fun KeyboardBody(
             // close it.
             val placement = state.settings.toolbarBehavior.placement
             var toolsRowOpen by remember(placement) { mutableStateOf(false) }
+            // Sideways, the tools may stand in a column beside the keys
+            // instead (#970), drawn around this column rather than in it.
+            val toolsColumn = toolsColumnSide(state) != null
             // A keyboard-owned field under an open panel brings its own
             // suggestion strip over the keys (#161). With the tools on a row of
             // their own, the strip up here never flips to the toolbar when a
             // panel opens, so it stayed as a second, empty strip for the app
             // behind the panel (#688). It gives its row up instead, and the
             // tools row stands open in its place: that row is now the way back
-            // out of the panel, and on demand it already holds its height.
-            val stripGivenToCapture = placement.isOwnRow && state.panel != PanelMode.NONE &&
+            // out of the panel, and on demand it already holds its height. The
+            // column is that way out just the same.
+            val stripGivenToCapture = (placement.isOwnRow || toolsColumn) && state.panel != PanelMode.NONE &&
                 keyRowsUnderPanel(state) && captureStripShown(state)
             // Whether the row has a place on screen at all, as distinct from
             // whether the chevron has it open. The first is a hard cut, like
             // every other row under a full-bleed panel; only the second animates.
-            val toolsRowHost = placement.isOwnRow &&
+            val toolsRowHost = placement.isOwnRow && !toolsColumn &&
                 state.settings.toolbarBehavior.enabled &&
                 !fullBleed && !emojiSearching && !clipboardSearching && !lockHidden
             // What the row measures to, from the settings alone: [ToolsRow] is
@@ -14733,6 +15082,28 @@ private fun KeyboardBody(
             // above, so a panel that absorbs the rows' height absorbs these
             // too and the keyboard never changes height.
             for (row in barRowsBelowKeys(barOrder)) BarRowSlot(row)
+        }
+        if (columnSide != null) {
+            // Sized to the body once it has been measured, so the column is
+            // exactly as tall as the strip and the keys beside it.
+            Box(Modifier.matchParentSize()) {
+                ToolsColumn(
+                    state, onPanelChange, onToolTap, drag,
+                    modifier = Modifier
+                        .align(
+                            if (columnSide == ToolbarColumn.LEFT) {
+                                AbsoluteAlignment.CenterLeft
+                            } else {
+                                AbsoluteAlignment.CenterRight
+                            },
+                        )
+                        .width(columnWidth)
+                        .fillMaxHeight()
+                        // The tools row's fill, which may differ from the strip's (#504).
+                        .barRowFill(LocalKbTheme.current.toolbar ?: LocalKbTheme.current.suggestionBar)
+                        .padding(horizontal = ToolsColumnGutterDp.dp),
+                )
+            }
         }
         drag.draggingFolder?.let { FolderDragGhost(it, drag.position - bodyOrigin, state) }
         drag.dragging?.let { tool ->

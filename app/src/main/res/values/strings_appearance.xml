@@ -65,6 +65,12 @@
     <string name="appearance_toolbar_show_strip_subtitle">Keep the suggestion row above the tools row</string>
     <string name="appearance_toolbar_show_strip_info">Turn this off to remove the suggestion row and keep only the row of tools. The keyboard gets one row shorter. Useful if you have turned suggestions off and the row sits empty. Everything else that appears in that row goes too: the paste chip for your last copy, one-time codes, snippet offers and other chips. Voice typing\'s compact bar still shows there while you dictate.</string>
     <string name="appearance_toolbar_placement_always_desc">The tools keep a row of their own, always open</string>
+    <string name="appearance_toolbar_landscape_column_title">Tools in landscape</string>
+    <string name="appearance_toolbar_landscape_column_subtitle">A column beside the keys while the phone is sideways</string>
+    <string name="appearance_toolbar_landscape_column_info">A phone on its side has width to spare and little height. Pick a side and, in landscape, the tools leave the top of the keyboard and stand in a column down that edge, next to the suggestions and the keys, always in reach. If the tools had a row of their own, its height goes back to the keys. The column follows the rest of the toolbar settings: your pinned tools in their order, their colors and labels, and how they fit. Portrait is unchanged.</string>
+    <string name="appearance_toolbar_landscape_column_off_label">Along the top</string>
+    <string name="appearance_toolbar_landscape_column_left_label">Left column</string>
+    <string name="appearance_toolbar_landscape_column_right_label">Right column</string>
 
     <string name="appearance_toolbar_swipe_down_title">Swipe down to hide</string>
     <string name="appearance_toolbar_swipe_down_subtitle">Swipe down on the toolbar to close the keyboard</string>

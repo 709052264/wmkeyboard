@@ -1928,6 +1928,14 @@ data class ToolbarBehavior(
      */
     val showStrip: Boolean = true,
     /**
+     * With the phone on its side, the pinned tools in a column down one side
+     * of the keys instead of along the top (#970). Off by default. Read only
+     * in landscape, where the screen has width to spare and too little
+     * height: the tools stay in reach without a row of their own, so an
+     * own-row [placement] gives that row's height back to the keys.
+     */
+    val landscapeColumn: ToolbarColumn = ToolbarColumn.OFF,
+    /**
      * What a press and hold on a pinned tool does, per tool, as tool name →
      * action token (see [ToolHoldActions]). Read through [holdActionOf].
      *
@@ -2038,6 +2046,14 @@ sealed interface ToolHoldAction {
  * strip's worth of keyboard height while the row is up, which is the trade.
  */
 enum class ToolbarPlacement { STRIP, ON_DEMAND_ROW, ALWAYS_ROW }
+
+/**
+ * Which side of the keys the pinned tools stand on in landscape
+ * ([ToolbarBehavior.landscapeColumn]), or [OFF] to keep them where
+ * [ToolbarPlacement] puts them. The screen's left and right, whatever way the
+ * script reads: like the bar, the column holds buttons and no text.
+ */
+enum class ToolbarColumn { OFF, LEFT, RIGHT }
 
 /**
  * The bottom padding the keyboard uses while [KeyboardSettings.bottomPaddingDp]
@@ -11262,6 +11278,7 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBAR_PADDING_BOTTOM = intPreferencesKey("toolbar_padding_bottom")
         private val TOOLBAR_PLACEMENT = stringPreferencesKey("toolbar_placement")
         private val TOOLBAR_SHOW_STRIP = booleanPreferencesKey("toolbar_show_strip")
+        private val TOOLBAR_LANDSCAPE_COLUMN = stringPreferencesKey("toolbar_landscape_column")
         private val TOOLBAR_HOLD_ACTIONS = stringPreferencesKey("toolbar_hold_actions")
         /** The single tool #462 stored, before the strip took a list. Read as a one-tool list. */
         private val TOOLBAR_STRIP_SHORTCUT = stringPreferencesKey("toolbar_strip_shortcut")
@@ -13606,6 +13623,9 @@ class SettingsRepository(private val context: Context) {
                 ?.let { runCatching { ToolbarPlacement.valueOf(it) }.getOrNull() }
                 ?: defaults.toolbarBehavior.placement,
             showStrip = p[TOOLBAR_SHOW_STRIP] ?: defaults.toolbarBehavior.showStrip,
+            landscapeColumn = p[TOOLBAR_LANDSCAPE_COLUMN]
+                ?.let { runCatching { ToolbarColumn.valueOf(it) }.getOrNull() }
+                ?: defaults.toolbarBehavior.landscapeColumn,
             holdActions = ToolHoldActions.decode(p[TOOLBAR_HOLD_ACTIONS]),
             stripShortcuts = p[TOOLBAR_STRIP_SHORTCUTS]
                 ?.let { csv ->
@@ -16003,6 +16023,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setToolbarShowStrip(value: Boolean) =
         editPrefs { it[TOOLBAR_SHOW_STRIP] = value }
+
+    suspend fun setToolbarLandscapeColumn(value: ToolbarColumn) =
+        editPrefs { it[TOOLBAR_LANDSCAPE_COLUMN] = value.name }
 
     suspend fun setStripShortcuts(value: List<ToolbarTool>) = editPrefs {
         it[TOOLBAR_STRIP_SHORTCUTS] = value.distinct().joinToString(",") { tool -> tool.name }
