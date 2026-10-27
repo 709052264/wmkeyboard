@@ -52,6 +52,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import com.wasimaster.wmkeyboard.core.selection.ColourCodes
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.OpenInNew
 import com.wasimaster.wmkeyboard.core.icons.symbols.filled.PushPin
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckCircle
@@ -2484,19 +2485,46 @@ private fun ClipBody(item: ClipItem, maxLines: Int, hold: ClipHold) {
         // preview is still the link's, since previews were asked for.
         item.kind == ClipKind.LINK && !(hold.plainLinks && item.linkPreview?.let { it.failed || it.isEmpty } != false) ->
             ClipLinkBody(item, maxLines, hold.lineHeight)
-        // Cut before layout: a paragraph is measured whole however few lines
-        // are drawn, and one clip can be a whole document.
-        else -> Text(
-            text = remember(item.text, maxLines) { clipPreviewText(item.text, maxLines) },
-            maxLines = maxLines,
-            overflow = TextOverflow.Ellipsis,
-            fontSize = 13.sp,
-            // Set, not inherited: Material's body line height is nearly twice
-            // this size, which is what spread a three-line clip over five (#612).
-            lineHeight = hold.lineHeight,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
+        else -> {
+            // A clip that is one colour code (#fff, rgb(…), hsl(…), 0xAARRGGBB)
+            // wears the colour as a square before the code. parse() turns down
+            // anything over 40 characters before reading it, so a long clip
+            // costs nothing here.
+            val colour = remember(item.text) { ColourCodes.parse(item.text) }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (colour != null) ClipColourSwatch(colour.argb, Modifier.padding(end = 6.dp))
+                // Cut before layout: a paragraph is measured whole however few lines
+                // are drawn, and one clip can be a whole document.
+                Text(
+                    text = remember(item.text, maxLines) { clipPreviewText(item.text, maxLines) },
+                    maxLines = maxLines,
+                    overflow = TextOverflow.Ellipsis,
+                    fontSize = 13.sp,
+                    // Set, not inherited: Material's body line height is nearly twice
+                    // this size, which is what spread a three-line clip over five (#612).
+                    lineHeight = hold.lineHeight,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+        }
     }
+}
+
+/**
+ * The colour a colour-code clip names, as a small rounded square. The hairline
+ * keeps a colour close to the card's own (white on a light theme, black on a
+ * dark one) from vanishing into it.
+ */
+@Composable
+private fun ClipColourSwatch(argb: Int, modifier: Modifier = Modifier) {
+    val shape = RoundedCornerShape(4.dp)
+    Box(
+        modifier = modifier
+            .size(16.dp)
+            .clip(shape)
+            .background(Color(argb))
+            .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), shape),
+    )
 }
 
 /**
