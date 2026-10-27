@@ -785,6 +785,11 @@ internal object SettingsRowIcons {
         put(R.string.extension_enabled_title) { Icons.Outlined.ToggleOn }
         for (extension in Extension.entries) put(extensionTitle(extension)) { extensionIcon(extension) }
         put(R.string.floating_button_enable_title) { Icons.Outlined.Adjust }
+        put(R.string.share_sheet_title) { Icons.Outlined.Share }
+        put(R.string.share_sheet_enabled_title) { Icons.Outlined.Share }
+        put(R.string.share_sheet_recents_title) { Icons.Outlined.History }
+        put(R.string.share_sheet_pins_title) { Icons.Outlined.PushPin }
+        put(R.string.share_sheet_recents_clear_title) { Icons.Outlined.History }
         put(R.string.floating_button_screen_title) { Icons.Outlined.Preview }
         put(R.string.floating_button_tap_title) { Icons.Outlined.TouchApp }
         put(R.string.floating_button_double_tap_title) { Icons.Outlined.AdsClick }

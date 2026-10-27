@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.app.share.AppShareSheet
 import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -746,7 +747,7 @@ private fun openDoor(context: Context, macro: SelectionMacro, text: String, offe
 
 private fun share(context: Context, text: String) {
     val send = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text)
-    startQuietly(context, Intent.createChooser(send, null))
+    if (!AppShareSheet.start(context, send)) startQuietly(context, Intent.createChooser(send, null))
 }
 
 private fun copyText(context: Context, text: String) {

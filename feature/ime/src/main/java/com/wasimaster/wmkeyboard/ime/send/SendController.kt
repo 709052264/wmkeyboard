@@ -104,6 +104,9 @@ internal class SendController(
         fun openScanner()
         fun openGallery()
         fun startActivity(intent: Intent)
+
+        /** [send] on the keyboard's share sheet, or Android's when that is off (#970). True when one opened. */
+        fun share(send: Intent): Boolean
         fun beginText(entry: SendTextEntry)
         fun endText()
         fun currentText(): SendTextEntry?
@@ -831,8 +834,7 @@ internal class SendController(
 
     private fun shareLink(upload: SendUpload) {
         val send = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, upload.url)
-        runCatching { host.startActivity(Intent.createChooser(send, upload.name).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
-            .onSuccess { notice(SendNotice.Kind.SHARED) }
+        if (host.share(send)) notice(SendNotice.Kind.SHARED)
     }
 
     // ---- History ----------------------------------------------------------
@@ -1058,8 +1060,7 @@ internal class SendController(
             .setType(item.type.ifBlank { "*/*" })
             .putExtra(Intent.EXTRA_STREAM, uri)
             .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        runCatching { host.startActivity(Intent.createChooser(send, item.name).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
-            .onSuccess { notice(SendNotice.Kind.SHARED) }
+        if (host.share(send)) notice(SendNotice.Kind.SHARED)
     }
 
     // ---- Nearby -----------------------------------------------------------

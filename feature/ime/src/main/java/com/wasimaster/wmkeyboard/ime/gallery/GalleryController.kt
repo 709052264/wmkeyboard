@@ -96,6 +96,9 @@ internal class GalleryController(
         /** A FileProvider URI for a copy in the media cache, for share and copy. */
         fun fileUri(file: File): Uri?
 
+        /** [send] on the keyboard's share sheet, or Android's when that is off (#970). True when one opened. */
+        fun share(send: Intent): Boolean
+
         /** Whether photos can be searched by what they show: search by meaning on, its pictures model here. */
         fun photoSearchReady(): Boolean
 
@@ -1137,7 +1140,7 @@ internal class GalleryController(
         return ok
     }
 
-    /** Android's share screen with [files], aimed at [toApp] when it can take them there. */
+    /** The share sheet with [files], aimed at [toApp] when it can take them there. */
     private fun share(files: List<MediaPrep.Prepared>, caption: String, toApp: String?): Boolean {
         val uris = files.mapNotNull { host.fileUri(it.file) }
         if (uris.isEmpty()) return false
@@ -1156,12 +1159,9 @@ internal class GalleryController(
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
         // Aimed at the app first, with no lookup beforehand: package visibility
         // hides other apps' share screens from a query but not from a launch,
-        // so the launch itself is the test, and the chooser is the way out.
-        val chooser = Intent.createChooser(intent, null).addFlags(
-            Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION,
-        )
+        // so the launch itself is the test, and the share sheet is the way out.
         val ok = (toApp != null && runCatching { context.startActivity(Intent(intent).setPackage(toApp)) }.isSuccess) ||
-            runCatching { context.startActivity(chooser) }.isSuccess
+            host.share(intent)
         if (ok) notice(GalleryNotice.Kind.SHARED, uris.size)
         return ok
     }

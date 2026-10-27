@@ -23,6 +23,7 @@ import com.wasimaster.wmkeyboard.core.endpoints.ServiceRepo
 import com.wasimaster.wmkeyboard.core.endpoints.repoLocationFromFields
 import com.wasimaster.wmkeyboard.core.endpoints.toFields
 import com.wasimaster.wmkeyboard.core.providers.ProviderChain
+import com.wasimaster.wmkeyboard.core.share.ShareTargets
 import com.wasimaster.wmkeyboard.core.providers.ProviderCodec
 import com.wasimaster.wmkeyboard.core.providers.ProviderCredential
 import com.wasimaster.wmkeyboard.core.providers.ProviderRunner
@@ -3767,6 +3768,8 @@ data class KeyboardSettings(
     val camera: CameraSettings = CameraSettings(),
     /** App-launcher tool settings, grouped (see [LauncherToolSettings]). */
     val launcher: LauncherToolSettings = LauncherToolSettings(),
+    /** The keyboard's own share sheet (#970), grouped (see [ShareSheetSettings]). */
+    val share: ShareSheetSettings = ShareSheetSettings(),
     /** Media-control tool settings, grouped (see [MediaControlSettings]). */
     val mediaControl: MediaControlSettings = MediaControlSettings(),
     /** The KDE Connect tool: the link to a paired computer (see [KdeConnectSettings]). */
@@ -11716,6 +11719,11 @@ class SettingsRepository(private val context: Context) {
         private val LAUNCHER_COMBOS = stringPreferencesKey("launcher_combos")
         private val LAUNCHER_FOLDERS = stringPreferencesKey("launcher_folders")
         private val LAUNCHER_WORK_APPS = booleanPreferencesKey("launcher_work_apps")
+        private val SHARE_SHEET_ENABLED = booleanPreferencesKey("share_sheet_enabled")
+        private val SHARE_SHEET_RECENTS_ENABLED = booleanPreferencesKey("share_sheet_recents_enabled")
+        // Tab-separated `package/activity` keys, like the launcher's lists.
+        private val SHARE_SHEET_PINNED = stringPreferencesKey("share_sheet_pinned")
+        private val SHARE_SHEET_RECENTS = stringPreferencesKey("share_sheet_recents")
         private val MEDIA_PIN_WHILE_PLAYING = booleanPreferencesKey("media_pin_while_playing")
         private val SELF_HOSTED_LIBRETRANSLATE_URL = stringPreferencesKey("self_hosted_libretranslate_url")
         private val SELF_HOSTED_LIBRETRANSLATE_KEY = stringPreferencesKey("self_hosted_libretranslate_key")
@@ -12459,6 +12467,7 @@ class SettingsRepository(private val context: Context) {
             statsVersion = p[STATS_VERSION] ?: defaults.statsVersion,
             ai = readAi(p, defaults),
             launcher = readLauncher(p, defaults),
+            share = readShareSheet(p, defaults),
             mediaControl = readMediaControl(p, defaults),
             kdeConnect = readKdeConnect(p, defaults),
             homeAssistant = readHomeAssistant(p, defaults),
@@ -14448,6 +14457,15 @@ class SettingsRepository(private val context: Context) {
             showWorkApps = p[LAUNCHER_WORK_APPS] ?: defaults.launcher.showWorkApps,
         )
 
+    private fun readShareSheet(p: Preferences, defaults: KeyboardSettings) =
+        ShareSheetSettings(
+            enabled = p[SHARE_SHEET_ENABLED] ?: defaults.share.enabled,
+            recentsEnabled = p[SHARE_SHEET_RECENTS_ENABLED] ?: defaults.share.recentsEnabled,
+            pinned = p[SHARE_SHEET_PINNED]?.split('\t')?.filter { it.isNotEmpty() }.orEmpty(),
+            recents = p[SHARE_SHEET_RECENTS]?.split('\t')?.filter { it.isNotEmpty() }.orEmpty()
+                .take(ShareTargets.MAX_RECENTS),
+        )
+
     private fun readMediaControl(p: Preferences, defaults: KeyboardSettings) =
         MediaControlSettings(
             pinWhilePlaying = p[MEDIA_PIN_WHILE_PLAYING]
@@ -14706,6 +14724,42 @@ class SettingsRepository(private val context: Context) {
             val next = (listOf(packageName) + (current - packageName)).take(cap)
             prefs[LAUNCHER_RECENTS] = next.joinToString("\t")
         }
+
+    suspend fun setShareSheetEnabled(value: Boolean) =
+        editPrefs { it[SHARE_SHEET_ENABLED] = value }
+
+    suspend fun setShareSheetRecentsEnabled(value: Boolean) =
+        editPrefs { prefs ->
+            prefs[SHARE_SHEET_RECENTS_ENABLED] = value
+            // Turning the row off also forgets what it held.
+            if (!value) prefs.remove(SHARE_SHEET_RECENTS)
+        }
+
+    /** A share to [key] (`package/activity`) at the head of the recent row, unless the row is off. */
+    suspend fun addShareRecent(key: String) =
+        editPrefs { prefs ->
+            if (prefs[SHARE_SHEET_RECENTS_ENABLED] == false) return@editPrefs
+            val current = prefs[SHARE_SHEET_RECENTS]?.split('\t')?.filter { it.isNotEmpty() }.orEmpty()
+            prefs[SHARE_SHEET_RECENTS] = ShareTargets.recordRecent(current, key).joinToString("\t")
+        }
+
+    suspend fun toggleSharePin(key: String) =
+        editPrefs { prefs ->
+            val current = prefs[SHARE_SHEET_PINNED]?.split('\t')?.filter { it.isNotEmpty() }.orEmpty()
+            val next = ShareTargets.togglePin(current, key)
+            if (next.isEmpty()) prefs.remove(SHARE_SHEET_PINNED) else prefs[SHARE_SHEET_PINNED] = next.joinToString("\t")
+        }
+
+    /** Drops one target from the recent row, from the sheet's hold menu. */
+    suspend fun removeShareRecent(key: String) =
+        editPrefs { prefs ->
+            val current = prefs[SHARE_SHEET_RECENTS]?.split('\t')?.filter { it.isNotEmpty() }.orEmpty()
+            prefs[SHARE_SHEET_RECENTS] = (current - key).joinToString("\t")
+        }
+
+    suspend fun clearShareRecents() = editPrefs { it.remove(SHARE_SHEET_RECENTS) }
+
+    suspend fun clearSharePins() = editPrefs { it.remove(SHARE_SHEET_PINNED) }
 
     suspend fun toggleLauncherPin(packageName: String) =
         editPrefs { prefs ->
