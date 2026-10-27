@@ -175,6 +175,7 @@ internal fun AppLockSettingsScreen(repository: SettingsRepository) {
                 item {
                     ToggleSetting(
                         title = stringResource(target.label),
+                        icon = SettingsRowIcons[target.label],
                         subtitle = stringResource(
                             if (target.kind == LockKind.SCREEN) {
                                 R.string.privacy_lock_kind_screen

@@ -3875,6 +3875,7 @@ fun ThemeEditorScreen(
             // so it undoes in one; each colour stays editable after.
             WmRow(
                 title = stringResource(R.string.theme_match_letter_keys_title),
+                icon = SettingsRowIcons[R.string.theme_match_letter_keys_title],
                 subtitle = stringResource(R.string.theme_match_letter_keys_subtitle),
                 onClick = {
                     update { t ->

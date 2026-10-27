@@ -652,7 +652,7 @@ internal fun StickerGeneratorScreen(
         }
         item {
             ToggleSetting(
-                title = stringResource(R.string.stickergen_seed_lock_title),
+                title = R.string.stickergen_seed_lock_title,
                 subtitle = stringResource(R.string.stickergen_seed_lock_subtitle),
                 checked = seedLocked,
             ) { seedLocked = it }
@@ -710,7 +710,7 @@ internal fun StickerGeneratorScreen(
         }
         item {
             ToggleSetting(
-                title = stringResource(R.string.stickergen_cutout_title),
+                title = R.string.stickergen_cutout_title,
                 subtitle = stringResource(
                     if (SubjectCutout.supported) R.string.stickergen_cutout_subtitle else R.string.stickergen_cutout_unsupported,
                 ),
@@ -723,7 +723,7 @@ internal fun StickerGeneratorScreen(
         }
         item {
             ToggleSetting(
-                title = stringResource(R.string.stickergen_safety_title),
+                title = R.string.stickergen_safety_title,
                 subtitle = stringResource(if (online) R.string.stickergen_safety_subtitle_online else R.string.stickergen_safety_subtitle),
                 checked = safety,
             ) {

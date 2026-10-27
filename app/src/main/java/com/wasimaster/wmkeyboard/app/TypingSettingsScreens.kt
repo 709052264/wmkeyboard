@@ -2470,7 +2470,7 @@ internal fun TypingGlideSettings(
             }
             item(visible = learnSwipeStyle, level = SettingLevel.ADVANCED) {
                 ToggleSetting(
-                    title = stringResource(R.string.typing_glide_shape_seeding_title),
+                    title = R.string.typing_glide_shape_seeding_title,
                     subtitle = stringResource(R.string.typing_glide_shape_seeding_subtitle),
                     checked = settings.watch { it.gesture.shapeSeeding },
                     info = stringResource(R.string.typing_glide_shape_seeding_info),

@@ -85,6 +85,7 @@ internal fun KeySwipeSettings(
             item(visible = on, key = "key-swipes-$token") {
                 NavRow(
                     title = stringResource(R.string.typing_key_swipe_row_title, token.uppercase()),
+                    icon = SettingsRowIcons[R.string.typing_key_swipe_row_title],
                     value = keySwipeSummary(arms, layouts, modes),
                 ) { editing = token }
             }

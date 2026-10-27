@@ -1635,6 +1635,7 @@ internal fun KeyPressShortcutsSettings(
             val symbols = settings.watch { it.layoutBehavior.holdSymbols }
             WmRow(
                 title = stringResource(R.string.keypress_hold_symbols_title),
+                icon = SettingsRowIcons[R.string.keypress_hold_symbols_title],
                 subtitle = if (symbols.isEmpty()) {
                     stringResource(R.string.keypress_hold_symbols_subtitle)
                 } else {

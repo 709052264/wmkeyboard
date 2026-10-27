@@ -3070,6 +3070,7 @@ internal fun KeyLayoutEditorScreen(
             item(level = SettingLevel.STANDARD) {
                 WmRow(
                     title = stringResource(R.string.layout_bottom_row_keys_title),
+                    icon = SettingsRowIcons[R.string.layout_bottom_row_keys_title],
                     subtitle = stringResource(R.string.layout_editor_bottom_row_settings_subtitle),
                     onClick = {
                         // The first setting changing this row, so the page
@@ -6386,7 +6387,7 @@ private fun KeyPopupPreview(
         }
     }
     ControlSetting(
-        stringResource(R.string.layout_editor_popup_preview_title),
+        R.string.layout_editor_popup_preview_title,
         subtitle = stringResource(
             if (added.any { it }) {
                 R.string.layout_editor_popup_preview_caption_added
