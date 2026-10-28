@@ -12,28 +12,50 @@ RNNoise, and brings the result back down through the same low-pass filter.
 The output trails the input by under 10 ms. Speech models never look above
 8 kHz, so nothing they use is lost.
 
-The built libraries (about 130 KB each) are committed under
+The built libraries (about 2.9 MB each, nearly all of it the model's
+weights) are committed under
 `core/voice/src/main/jniLibs/`, beside whisper.cpp's, and ride the same
 `speech` gate (`:feature:speech` on Play). Rebuild after you change anything
 here:
 
 ```sh
-ANDROID_NDK=~/Library/Android/sdk/ndk/27.3.13750724 native/rnnoise-jni/build.sh
+ANDROID_NDK=/opt/homebrew/share/android-ndk native/rnnoise-jni/build.sh
 ```
 
-It needs only the NDK and fetches RNNoise at the pinned commit unless
-`RNNOISE_SRC` points at a checkout.
+It needs the NDK (r29, the one F-Droid builds with), git and curl. It
+fetches RNNoise at the pinned commit unless `RNNOISE_SRC` points at a
+checkout, and the model tarball (22 MB, checked against its SHA-256) unless
+`RNNOISE_MODEL_TARBALL` points at a copy.
 
 ## Provenance
 
-RNNoise `v0.1.1`, commit `6cbfd53eb348a8d394e0757b4025c6ded34eb2b6`,
-unmodified, BSD-3-Clause, with its original compiled-in model
-(`rnn_data.c`). The 0.2 release's larger models are 5.7 MB (little) and
-14.7 MB compiled, against about 90 KB here.
+RNNoise commit `372f7b4b76cde4ca1ec4605353dd17898a99de38`, unmodified,
+BSD-3-Clause. That is the 0.2 release (`v0.2`, `904a876d`) plus its only
+child, upstream's "Fix compilation errors": the tag itself does not compile
+for ARM or x86 (`os_support.h` and `OPUS_CLEAR` are missing). The weights are
+not in the repository; `model_version` at the pin names `0b50c45`, fetched
+from `https://media.xiph.org/rnnoise/models/rnnoise_data-0b50c45.tar.gz`
+(SHA-256 `4ac81c5c0884ec4bd5907026aaae16209b7b76cd9d7f71af582094a2f98f4b43`).
+The tarball holds two models behind one header; the build compiles in the
+little one (`rnnoise_data_little.c`, 2.9 MB of library). The default one would
+make the library 5.6 MB. 0.1.1's model was about 90 KB, the library 126 KB.
 
-Checked on the host with a modulated 220 Hz + 660 Hz tone plus white noise
-at -31 dBFS: the noise-only stretch fell from 0.029 to 0.0002 RMS, the tone kept
-94% of its level.
+x86 run-time CPU detection is left out, as upstream's configure does by
+default, so x86_64 (emulators) runs the SSE2 path and the compiler warns
+about it.
+
+Checked on the host (2026-10-28) with a 220 Hz + 660 Hz tone, amplitude
+modulated at 4 Hz, plus white noise at -31 dBFS, through `denoise_jni.c`'s
+resampling:
+
+| | noise-only stretch, RMS (in 0.0279) | tone kept | CPU per 10 ms, M2 |
+|---|---|---|---|
+| 0.1.1 | 0.00063 | 96% | 0.12 ms |
+| 0.2, little model (shipped) | under 0.00001 | 95% | 0.13 ms |
+| 0.2, default model | under 0.00001 | 92% | |
+
+The word error rates in `native/sherpa-onnx-jni/README.md` were measured
+with 0.1.1 and have not been rerun with 0.2.
 
 ## Contract with Kotlin
 

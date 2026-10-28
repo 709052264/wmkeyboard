@@ -1,14 +1,19 @@
 #!/usr/bin/env bash
 # Builds libwmdenoise.so (denoise_jni.c over RNNoise) for every ABI and copies
 # it into core/voice/src/main/jniLibs/. Fetches RNNoise at the pinned commit
-# unless RNNOISE_SRC points at a checkout of it. Needs nothing but the NDK.
-# See README.md.
+# unless RNNOISE_SRC points at a checkout of it, and its model tarball from
+# xiph.org unless RNNOISE_MODEL_TARBALL points at a copy. Needs nothing but
+# the NDK, git and curl. See README.md.
 #
 #   ANDROID_NDK=/path/to/ndk native/rnnoise-jni/build.sh
 set -euo pipefail
 
-RNNOISE_TAG=v0.1.1
-RNNOISE_COMMIT=6cbfd53eb348a8d394e0757b4025c6ded34eb2b6
+# v0.2 (904a876d) does not compile for ARM or x86 without its only child,
+# 372f7b4b "Fix compilation errors", so the pin is that commit.
+RNNOISE_COMMIT=372f7b4b76cde4ca1ec4605353dd17898a99de38
+# The weights live outside the repository; model_version at the pin names them.
+RNNOISE_MODEL=0b50c45
+RNNOISE_MODEL_SHA256=4ac81c5c0884ec4bd5907026aaae16209b7b76cd9d7f71af582094a2f98f4b43
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$HERE/../.." && pwd)
@@ -32,18 +37,33 @@ retry() {
     done
     return 1
 }
-fresh_clone() {  # dir, then git clone arguments
-    local dir=$1; shift
-    rm -rf "$dir" && git clone "$@" "$dir"
+fetch_commit() {  # dir, url, commit: no tag points at the pin
+    rm -rf "$1" && git init -q "$1" &&
+        git -C "$1" fetch --quiet --depth 1 "$2" "$3" && git -C "$1" checkout --quiet FETCH_HEAD
 }
+sha256() { if command -v sha256sum >/dev/null; then sha256sum "$1"; else shasum -a 256 "$1"; fi | cut -d' ' -f1; }
 
 SRC=${RNNOISE_SRC:-}
 if [ -z "$SRC" ]; then
     SRC=$WORK/rnnoise
-    retry fresh_clone "$SRC" --quiet --depth 1 --branch "$RNNOISE_TAG" https://github.com/xiph/rnnoise
+    retry fetch_commit "$SRC" https://github.com/xiph/rnnoise "$RNNOISE_COMMIT"
 fi
 got=$(git -C "$SRC" rev-parse HEAD)
 [ "$got" = "$RNNOISE_COMMIT" ] || { echo "rnnoise is at $got, expected $RNNOISE_COMMIT" >&2; exit 1; }
+[ "$(cat "$SRC/model_version")" = "$RNNOISE_MODEL" ] ||
+    { echo "rnnoise wants model $(cat "$SRC/model_version"), pinned $RNNOISE_MODEL" >&2; exit 1; }
+
+TARBALL=${RNNOISE_MODEL_TARBALL:-}
+if [ -z "$TARBALL" ]; then
+    TARBALL=$WORK/rnnoise_data-$RNNOISE_MODEL.tar.gz
+    retry curl -fsSL -o "$TARBALL" "https://media.xiph.org/rnnoise/models/rnnoise_data-$RNNOISE_MODEL.tar.gz"
+fi
+[ "$(sha256 "$TARBALL")" = "$RNNOISE_MODEL_SHA256" ] || { echo "rnnoise model checksum mismatch" >&2; exit 1; }
+# The tarball holds two models with one header: the default (14.7 MB of
+# library) and the little one (2.9 MB), which is the one built in.
+MODEL=$WORK/model
+mkdir -p "$MODEL"
+tar -xzf "$TARBALL" -C "$MODEL" src/rnnoise_data.h src/rnnoise_data_little.c
 
 # Build paths mapped out, so two machines with the same NDK build the same bytes.
 MAP="-ffile-prefix-map=$SRC=rnnoise -ffile-prefix-map=$WORK=build -ffile-prefix-map=$HERE=. -ffile-prefix-map=$NDK=ndk"
@@ -61,13 +81,17 @@ build() {
     local dest=$OUT/$abi
     local tmp=$WORK/libwmdenoise-$abi.so
     mkdir -p "$dest"
-    # The model is the one compiled into rnn_data.c; no file to load.
+    # The little model is compiled in; no file to load. Upstream's Makefile
+    # sources, x86 run-time CPU detection left out as its configure does by
+    # default: x86_64 runs the SSE path every x86_64 phone has.
     "$BIN/$(triple "$abi")-clang" -shared -fPIC -O2 -std=c99 $MAP \
         -fvisibility=hidden -ffunction-sections -fdata-sections -Wno-null-dereference \
-        -I"$SRC/include" -I"$SRC/src" \
+        -I"$SRC/include" -I"$SRC/src" -I"$MODEL/src" \
         "$HERE/denoise_jni.c" \
-        "$SRC/src/denoise.c" "$SRC/src/rnn.c" "$SRC/src/rnn_data.c" "$SRC/src/pitch.c" \
+        "$SRC/src/denoise.c" "$SRC/src/rnn.c" "$SRC/src/pitch.c" \
         "$SRC/src/kiss_fft.c" "$SRC/src/celt_lpc.c" \
+        "$SRC/src/nnet.c" "$SRC/src/nnet_default.c" "$SRC/src/parse_lpcnet_weights.c" \
+        "$SRC/src/rnnoise_tables.c" "$MODEL/src/rnnoise_data_little.c" \
         -lm -Wl,--no-undefined -Wl,--gc-sections -Wl,--build-id=sha1 -Wl,-z,max-page-size=16384 \
         -Wl,--version-script="$HERE/jni.map" -Wl,-soname,libwmdenoise.so \
         -o "$tmp"

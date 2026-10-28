@@ -10,7 +10,7 @@ import java.io.File
  *
  * [LIGHT] is RNNoise: a small recurrent network that takes steady noise (a
  * fan, traffic, a café) out of the microphone's audio before any model hears
- * it. `native/rnnoise-jni`, about 130 KB, rides the speech libraries
+ * it. `native/rnnoise-jni`, about 2.9 MB, rides the speech libraries
  * (`:feature:speech` on Play, the `speech` gate elsewhere), so an engine that
  * already needs those costs nothing more, and the others fetch that one part.
  *
