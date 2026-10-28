@@ -3,7 +3,8 @@
 cmake_minimum_required(VERSION 3.18)
 project(wmhunspell CXX)
 
-set(CMAKE_CXX_STANDARD 11)
+# Upstream's configure.ac asks for C++14 (AX_CXX_COMPILE_STDCXX([14])).
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(HUNSPELL_SRC "" CACHE PATH "Hunspell source tree")
 if (NOT EXISTS "${HUNSPELL_SRC}/src/hunspell/hunspell.hxx")
@@ -21,6 +22,7 @@ add_library(hunspell STATIC
     ${HS}/filemgr.cxx
     ${HS}/hashmgr.cxx
     ${HS}/hunspell.cxx
+    ${HS}/hunspelltrace.cxx
     ${HS}/hunzip.cxx
     ${HS}/phonet.cxx
     ${HS}/replist.cxx

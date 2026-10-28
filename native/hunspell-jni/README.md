@@ -35,7 +35,7 @@ exposes only from API 31, and the app supports API 24.
 
 ## Provenance
 
-Hunspell `v1.7.2`, commit `2969be996acad84b91ab3875b1816636fe61a40e`,
+Hunspell `v1.7.6`, commit `15faca15532b34db3106d50f162e5edc2503d6d6`,
 unmodified: the ten sources of upstream's `libhunspell` built as a static
 library, `-Os`, linked into one shared library with `wm_hunspell_jni.cpp`
 and libc++ static. Hunspell is tri-licensed MPL 1.1 / GPL 2.0 / LGPL 2.1;

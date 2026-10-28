@@ -7,8 +7,8 @@
 #   ANDROID_NDK=/path/to/ndk native/hunspell-jni/build.sh
 set -euo pipefail
 
-HUNSPELL_TAG=v1.7.2
-HUNSPELL_COMMIT=2969be996acad84b91ab3875b1816636fe61a40e
+HUNSPELL_TAG=v1.7.6
+HUNSPELL_COMMIT=15faca15532b34db3106d50f162e5edc2503d6d6
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$HERE/../.." && pwd)
