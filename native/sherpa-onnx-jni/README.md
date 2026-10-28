@@ -212,7 +212,10 @@ and 34 minutes in all. Every denoiser was fed 100 ms chunks, as
 | DeepFilterNet3 (48 kHz, its own CLI) | 30.3% | |
 | DeepFilterNet3, 12 dB kept | 24.7% | |
 
-Blank cells are runs that did not finish. On clean clips Strong moved Whisper
+Blank cells are runs that did not finish. Light moved to RNNoise 0.2's
+little model on 2026-10-28; rerun on the same clips and DEMAND recordings
+with a new synthetic fan (raw 23.3% and 28.6% there), it scored 28.8% and
+34.7% against 0.1.1's 28.9% and 36.8%. Table in `native/rnnoise-jni/README.md`. On clean clips Strong moved Whisper
 from 8.2% to 9.0%. CPU per 10 ms of
 audio, one thread, on a heavily loaded M2: RNNoise 0.25 ms, GTCRN 1.07,
 DPDFNet baseline 1.20, DeepFilterNet3 1.23, DPDFNet2 2.62. DPDFNet2 is within

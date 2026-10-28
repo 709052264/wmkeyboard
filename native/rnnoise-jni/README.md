@@ -54,8 +54,23 @@ resampling:
 | 0.2, little model (shipped) | under 0.00001 | 95% | 0.13 ms |
 | 0.2, default model | under 0.00001 | 92% | |
 
-The word error rates in `native/sherpa-onnx-jni/README.md` were measured
-with 0.1.1 and have not been rerun with 0.2.
+Word error rate, rerun 2026-10-28 with the method in
+`native/sherpa-onnx-jni/README.md` § Choosing the Strong model (same 25
+LibriSpeech clips and DEMAND recordings, a new synthetic fan, so the raw row
+is lower than there), both RNNoise builds through `denoise_jni.c`'s
+resampling in 100 ms chunks:
+
+| Denoiser | Whisper Tiny (en) | Sherpa zipformer-en-20M |
+|---|---|---|
+| none | 23.3% | 28.6% |
+| RNNoise 0.1.1 | 28.9% | 36.8% |
+| RNNoise 0.2, little model (Light now) | 28.8% | 34.7% |
+
+On the 25 clean clips alone: Whisper 8.2%, 9.0%, 8.4%; zipformer 19.6%,
+20.2%, 22.0%.
+
+0.2 is no help to Whisper over 0.1.1 and a little to the zipformer on noisy
+audio; either still costs words against no denoiser at all.
 
 ## Contract with Kotlin
 
