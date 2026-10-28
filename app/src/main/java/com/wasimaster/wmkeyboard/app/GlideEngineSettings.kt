@@ -132,6 +132,15 @@ private fun GlideEngineRow(settings: LiveSettings, repository: SettingsRepositor
         }
         // Where the build fetches the runtime rather than carrying it.
         SpeechModuleBanner(settings, FeatureModules.executorch, "executorch")
+        // For a phone that cannot download (#1002): the two files, fetched
+        // elsewhere and imported here.
+        if (status != FutoSwipe.Status.Downloaded) {
+            OfflineImportRow(
+                subtitle = stringResource(R.string.offline_import_futo_subtitle),
+                links = remember { FutoSwipe.files.map { OfflineLink(it.path, it.url) } },
+                onImported = { FutoSwipe.refresh(filesDir) },
+            )
+        }
     }
     if (asking) {
         FutoSwipeLicenceDialog { accepted ->

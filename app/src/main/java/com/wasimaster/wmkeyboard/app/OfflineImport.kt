@@ -9,6 +9,8 @@ import android.provider.OpenableColumns
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.dictionaries.AvroDictionaryDownloads
+import com.wasimaster.wmkeyboard.core.dictionaries.ContextModelCatalog
+import com.wasimaster.wmkeyboard.core.dictionaries.ContextModelDownloadManager
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCatalog
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryEntry
 import com.wasimaster.wmkeyboard.core.dictionaries.KhiproGlideDownloads
@@ -44,8 +46,12 @@ import com.wasimaster.wmkeyboard.core.tools.offlinegif.OfflineGifPacks
 import com.wasimaster.wmkeyboard.core.tools.yomichan.YomichanDictionaries
 import com.wasimaster.wmkeyboard.core.tools.yomichan.YomichanImport
 import com.wasimaster.wmkeyboard.core.transliteration.KhiproSpecs
+import com.wasimaster.wmkeyboard.core.xlit.IndicXlitDownloads
+import com.wasimaster.wmkeyboard.core.xlit.IndicXlitLatinDownloads
+import com.wasimaster.wmkeyboard.core.xlit.IndicXlitModels
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtImport
+import com.wasimaster.wmkeyboard.core.voice.futoswipe.FutoSwipe
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelStore
@@ -148,6 +154,7 @@ object OfflineImport {
                 NgramPackCatalog.byFileName(leaf) != null ||
                 EmojiDictCatalog.byFileName(leaf) != null ||
                 CjkDictCatalog.byFileName(leaf) != null ||
+                ContextModelCatalog.byFileName(leaf) != null ||
                 leaf == AvroDictionaryDownloads.PUBLISHED_NAME ||
                 leaf == KhiproGlideDownloads.PUBLISHED_NAME ||
                 KhiproSpecs.isSetFile(leaf) ||
@@ -208,6 +215,7 @@ object OfflineImport {
         val model = (size > 0 && WhisperDownloadManager.recognises(leaf, size)) ||
             leaf == WhistleModelStore.MODEL_FILE_NAME || leaf == CutoutModel.FILE_NAME ||
             PaddleOcrModel.partOf(leaf) != null || OcrPacks.packOf(leaf) != null || InkOcrModels.partOf(leaf) != null ||
+            IndicXlitModels.partOf(leaf) != null || FutoSwipe.sizeMatches(size) ||
             ModelFormat.entries.any { it.extension == extension } ||
             (size > 0 && InkPackImports.isPackFile(context, leaf, size)) ||
             EtImport.sizeMatches(size)
@@ -505,6 +513,36 @@ object OfflineImport {
                     is WhisperDownloadManager.Installed.Vocab ->
                         Outcome(name, true, R.string.offline_import_whisper_vocab, listOf(count(result.models.size)))
                     null -> Outcome(name, false, R.string.offline_import_unknown)
+                }
+            }
+        }
+        // A language's context model (#1000), by the name it is published under.
+        ContextModelCatalog.byFileName(name)?.let { entry ->
+            return attempt(name) {
+                ContextModelDownloadManager.install(filesDir, entry, file)
+                Outcome(name, true, R.string.offline_import_context_model_done, listOf(languageName(entry.languageId)))
+            }
+        }
+        // The transliteration models (#998): romanized dictation's, and the
+        // phonetic layouts' neural readings. Checked as their download is.
+        IndicXlitModels.partOf(name)?.let { (pack, part) ->
+            return attempt(name) {
+                val downloads = if (pack === IndicXlitModels.LATIN) IndicXlitLatinDownloads else IndicXlitDownloads
+                when {
+                    !downloads.install(context, part, file) -> Outcome(name, false, R.string.offline_import_mismatch)
+                    pack.isDownloaded(context.noBackupFilesDir) -> Outcome(name, true, R.string.offline_import_xlit_ready)
+                    else -> Outcome(name, true, R.string.offline_import_xlit_waiting)
+                }
+            }
+        }
+        // FUTO Swipe's two files (#1002), both served as model_fp32.pte, so
+        // told by size and digest whatever they are called.
+        if (FutoSwipe.sizeMatches(file.length())) {
+            return attempt(name) {
+                when {
+                    !FutoSwipe.install(filesDir, file) -> Outcome(name, false, R.string.offline_import_mismatch)
+                    FutoSwipe.isDownloaded(filesDir) -> Outcome(name, true, R.string.offline_import_futo_ready)
+                    else -> Outcome(name, true, R.string.offline_import_futo_waiting)
                 }
             }
         }

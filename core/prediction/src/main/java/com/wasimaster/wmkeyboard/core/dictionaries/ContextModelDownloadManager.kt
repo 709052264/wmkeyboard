@@ -186,6 +186,16 @@ object ContextModelDownloadManager {
         _completions.tryEmit(langId)
     }
 
+    /**
+     * [install] for a catalogued file the user fetched elsewhere (#1000), the
+     * offline build's only way to a model: [entry]'s size is remembered with
+     * it, as its download would remember it.
+     */
+    fun install(filesDir: File, entry: ContextModelEntry, source: File) {
+        rememberVariant(filesDir, entry.languageId, entry.variant)
+        install(filesDir, entry.languageId, source)
+    }
+
     private fun download(filesDir: File, entry: ContextModelEntry) {
         val langId = entry.languageId
         if (isDownloaded(filesDir, langId)) {

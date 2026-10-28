@@ -131,6 +131,30 @@ sealed class XlitDownloads(private val pack: IndicXlitModels.Pack) {
         }
     }
 
+    /**
+     * Puts [source], fetched some other way (#998), where its download would
+     * put it, after the same size and digest check. False when it is not
+     * [part]'s bytes. Blocking.
+     */
+    fun install(context: Context, part: IndicXlitModels.Part, source: File): Boolean {
+        if (source.length() != part.bytes || !FileDownloader.sha256(source).equals(part.sha256, ignoreCase = true)) {
+            return false
+        }
+        val dir = context.noBackupFilesDir
+        val target = pack.file(dir, part)
+        target.parentFile?.mkdirs()
+        val staged = File(target.parentFile, target.name + ".import")
+        try {
+            source.inputStream().use { input -> staged.outputStream().use { input.copyTo(it) } }
+            target.delete()
+            if (!staged.renameTo(target)) throw IOException("could not move $target into place")
+        } finally {
+            staged.delete()
+        }
+        refresh(context)
+        return true
+    }
+
     /** Deletes the pack, for the storage screen; the keyboard drops what it read with it. */
     fun delete(context: Context) {
         synchronized(this) { job?.cancel() }

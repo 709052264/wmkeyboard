@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.app
 
 import android.content.Context
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.core.dictionaries.ContextModelCatalog
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCatalog
 import com.wasimaster.wmkeyboard.core.dictionaries.NgramPackCatalog
 import com.wasimaster.wmkeyboard.core.emoji.EmojiDictCatalog
@@ -55,8 +56,10 @@ internal object LanguagePacks {
         val packs = foldersFor(langId).mapNotNull { folder ->
             packUrl(folder)?.let { OfflineLink(context.getString(R.string.offline_import_language_pack_label, name), it) }
         }.distinctBy { it.url }
-        if (packs.isNotEmpty()) return packs
-        return buildList {
+        // The context model is its own file beside the pack (#1000), every size of it.
+        val models = ContextModelCatalog.variantsFor(langId).map { OfflineLink(it.fileName, it.url()) }
+        if (packs.isNotEmpty()) return packs + models
+        return models + buildList {
             DictionaryCatalog.forLanguage(langId).forEach { add(OfflineLink(it.fileName, it.url)) }
             NgramPackCatalog.forLanguage(langId)?.let {
                 add(OfflineLink(it.bigramFileName, it.bigramUrl()))

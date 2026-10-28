@@ -163,6 +163,16 @@ object IndicXlitModels {
 
     fun canLead(languageId: String): Boolean = languageId in LEADS
 
+    /**
+     * The pack and part a file named [name] is, for an import (#998): the
+     * part's own name, or the `<sha256>-<name>` it is published under. Null
+     * for any other file.
+     */
+    fun partOf(name: String): Pair<Pack, Part>? =
+        listOf(NATIVE, LATIN).firstNotNullOfOrNull { pack ->
+            pack.parts.firstOrNull { name == it.fileName || name == "${it.sha256}-${it.fileName}" }?.let { pack to it }
+        }
+
     /** The release asset for [part], or null when the data repository is not on GitHub. */
     fun url(part: Part): String? {
         val repo = ServiceEndpoints.repo(ServiceRepo.DATA)

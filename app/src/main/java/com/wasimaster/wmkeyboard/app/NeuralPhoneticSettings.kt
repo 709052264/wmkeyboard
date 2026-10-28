@@ -203,7 +203,15 @@ private fun XlitModelRow(
             here -> ({ confirmDelete = true })
             else -> null
         },
-    )
+    )    // For a phone that cannot download (#998): the pack's three files, fetched
+    // elsewhere and imported here, checked as the download checks them.
+    if (missing) {
+        OfflineImportRow(
+            subtitle = stringResource(R.string.offline_import_xlit_subtitle),
+            links = remember(pack) { pack.parts.mapNotNull { part -> IndicXlitModels.url(part)?.let { OfflineLink(part.fileName, it) } } },
+            onImported = { downloads.refresh(context) },
+        )
+    }
 }
 
 /**

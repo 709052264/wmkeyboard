@@ -65,4 +65,7 @@ object ContextModelCatalog {
 
     fun entry(languageId: String, variant: ContextModelVariant): ContextModelEntry? =
         byLanguage[languageId]?.firstOrNull { it.variant == variant }
+
+    /** The entry published as [fileName] (`en_context.wmlm`), for an import (#1000). */
+    fun byFileName(fileName: String): ContextModelEntry? = entries.firstOrNull { it.fileName == fileName }
 }
