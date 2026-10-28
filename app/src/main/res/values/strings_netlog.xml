@@ -169,6 +169,7 @@
     <string name="netlog_source_music_metadata">Music ID: cover art</string>
     <string name="netlog_source_speed_test">Speed test</string>
     <string name="netlog_source_wikipedia">Wikipedia</string>
+    <string name="netlog_source_notes">Notes: a shared page</string>
     <string name="netlog_source_dictionary">Dictionary</string>
     <string name="netlog_source_vocabulary">Vocabulary</string>
     <string name="netlog_source_synonyms">Synonyms</string>
@@ -238,6 +239,7 @@
     <string name="netlog_sent_music_metadata">The title and artist of a song already recognised, to fetch its cover and a store link. Never the clip.</string>
     <string name="netlog_sent_speed_test">Random test data, downloaded from and uploaded to the server you picked to measure the line. Nothing of yours.</string>
     <string name="netlog_sent_wikipedia">Your search words or the title of the article.</string>
+    <string name="netlog_sent_notes">The address of the page you shared to Save to notes. Nothing of yours goes with it.</string>
     <string name="netlog_sent_dictionary">One word: your selection, or the word at the cursor.</string>
     <string name="netlog_sent_vocabulary">The word on the card, or the name of a word pack.</string>
     <string name="netlog_sent_synonyms">One word: the word you held on the suggestion strip.</string>

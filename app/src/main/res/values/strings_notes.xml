@@ -7,6 +7,13 @@
     <string name="notes_edit_title">Edit note</string>
     <string name="notes_tags_title">Tags</string>
     <string name="notes_trash_title">Trash</string>
+    <!-- #997: the share-sheet entry, and the toast after it. -->
+    <string name="notes_share_label">Save to notes</string>
+    <string name="notes_share_saved">Saved to your notes</string>
+    <string name="notes_share_saved_page">Page saved to your notes, under Read later</string>
+    <string name="notes_share_saved_link">Link saved to your notes. The page itself could not be read</string>
+    <string name="notes_share_failed">Could not save to your notes</string>
+    <string name="notes_share_read_later_tag">Read later</string>
 
     <!-- The list. -->
     <string name="notes_search_hint">Search notes</string>

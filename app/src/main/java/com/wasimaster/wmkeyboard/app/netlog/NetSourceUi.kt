@@ -130,6 +130,7 @@ private fun texts(source: NetSource): Pair<Int, Int> = when (source) {
     NetSource.MUSIC_METADATA -> R.string.netlog_source_music_metadata to R.string.netlog_sent_music_metadata
     NetSource.SPEED_TEST -> R.string.netlog_source_speed_test to R.string.netlog_sent_speed_test
     NetSource.WIKIPEDIA -> R.string.netlog_source_wikipedia to R.string.netlog_sent_wikipedia
+    NetSource.NOTES -> R.string.netlog_source_notes to R.string.netlog_sent_notes
     NetSource.DICTIONARY -> R.string.netlog_source_dictionary to R.string.netlog_sent_dictionary
     NetSource.VOCABULARY -> R.string.netlog_source_vocabulary to R.string.netlog_sent_vocabulary
     NetSource.SYNONYMS -> R.string.netlog_source_synonyms to R.string.netlog_sent_synonyms
@@ -237,6 +238,8 @@ private val DataSaverSources = NetSource.entries.toSet() - setOf(
     // One small request per share the user pressed; its own switch is on the Location page.
     NetSource.LOCATION,
     NetSource.LINK_IMPORT, NetSource.SYNONYMS, NetSource.OCR_ONLINE, NetSource.OTHER,
+    // One page per link the user shared to the notes (#997).
+    NetSource.NOTES,
 )
 
 private val NeutralAccent = Color(0xFF90A4AE)

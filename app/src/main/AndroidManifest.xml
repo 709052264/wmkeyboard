@@ -841,6 +841,28 @@
              the addon links are, and is safe to be for the same reason: it
              fetches nothing until the dialog it opens is confirmed.
         -->
+        <!-- "Save to notes" in other apps' share sheets (#997): text as a
+             note, a link as a read-later note with the page's text. Never
+             rename the alias; the Notes tool's page switches it off and on,
+             and share targets are remembered by component name. -->
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.NoteShareActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.app.NoteShareAlias"
+            android:exported="true"
+            android:label="@string/notes_share_label"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.NoteShareActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity-alias>
+
         <activity
             android:name="com.wasimaster.wmkeyboard.app.ImportLinkActivity"
             android:enableOnBackInvokedCallback="true"

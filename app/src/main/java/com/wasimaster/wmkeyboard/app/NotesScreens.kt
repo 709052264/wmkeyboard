@@ -1020,6 +1020,20 @@ internal fun NotesToolSettings(
             ) { onNavigate(NOTES_ROUTE) }
         }
         item(level = SettingLevel.STANDARD) { HomeScreenShortcutRow(R.string.home_shortcut_notes_label, NOTES_ROUTE) }
+        // #997: other apps' text and links, straight into the notes.
+        item(level = SettingLevel.STANDARD) {
+            var shareOn by remember { mutableStateOf(NoteShareActivity.inShareSheet(context)) }
+            ToggleSetting(
+                R.string.tooldetail_notes_share_title,
+                stringResource(R.string.tooldetail_notes_share_subtitle),
+                shareOn,
+                info = stringResource(R.string.tooldetail_notes_share_info),
+                default = true,
+            ) { on ->
+                NoteShareActivity.setInShareSheet(context, on)
+                shareOn = on
+            }
+        }
         item(level = SettingLevel.STANDARD) {
             NavRow(R.string.notes_tags_title, stringResource(R.string.tooldetail_notes_tags_subtitle), route = NOTES_TAGS_ROUTE) {
                 onNavigate(NOTES_TAGS_ROUTE)

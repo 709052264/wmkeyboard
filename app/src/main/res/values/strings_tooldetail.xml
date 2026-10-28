@@ -1047,6 +1047,9 @@
     </plurals>
     <string name="tooldetail_notes_open_none_subtitle">Nothing saved yet</string>
     <string name="tooldetail_notes_tags_subtitle">Rename, recolour or remove the tags on your notes</string>
+    <string name="tooldetail_notes_share_title">Save to notes from other apps</string>
+    <string name="tooldetail_notes_share_subtitle">An entry in the share sheet</string>
+    <string name="tooldetail_notes_share_info">Share text from any app and choose Save to notes, and it becomes a note. Share a link, a page from the browser say, and the note gets the page\'s title and its text with the layout taken off, under the link and tagged Read later, so the Read back tool can read it to you. A page that cannot be read is saved as the link alone. Works with the keyboard closed.</string>
     <string name="tooldetail_notes_trash_subtitle">Notes you deleted, until they are gone for good</string>
     <string name="tooldetail_notes_sort_title">Sort notes by</string>
     <string name="tooldetail_notes_sort_updated_label">Last edited</string>

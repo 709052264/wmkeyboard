@@ -43,13 +43,13 @@ object WebFetchClient {
      * http and https, because a `file://` the model invented would have this
      * reading the app's own storage and handing it back to a cloud provider.
      */
-    fun fetch(url: String, maxChars: Int = MAX_CHARS): Page {
+    fun fetch(url: String, maxChars: Int = MAX_CHARS, source: NetSource = NetSource.AI_TOOLS): Page {
         val target = normalize(url) ?: throw ToolHttpException(R.string.ftools_web_fetch_bad_url)
         val body = ToolHttp.get(
             url = target,
             timeoutMs = TIMEOUT_MS,
             headers = mapOf("Accept" to "text/html,text/plain;q=0.9,*/*;q=0.1"),
-            source = NetSource.AI_TOOLS,
+            source = source,
             route = NetLog.pathOf(target),
         )
         return readable(body, maxChars)

@@ -1136,6 +1136,7 @@
   {"title":"Calculator layout","name":"tooldetail_numpad_calc_title","route":"tool/NUMPAD","screens":["Tools","Numpad"],"screen":false,"description":"7 8 9 on the top row, like a desk keypad. Off puts 1 2 3 on top, like a dialer"},
   {"title":"Remember searches","name":"tooldetail_find_history_title","route":"tool/FIND_REPLACE","screens":["Tools","Find & replace"],"screen":false,"description":"Offer your last ten searches when the Find field is empty. Never kept in incognito or from a password field"},
   {"title":"Your notes","name":"tooldetail_notes_open_title","route":"tool/NOTES","screens":["Tools","Notes"],"screen":false},
+  {"title":"Save to notes from other apps","name":"tooldetail_notes_share_title","route":"tool/NOTES","screens":["Tools","Notes"],"screen":false,"description":"An entry in the share sheet"},
   {"title":"Sort notes by","name":"tooldetail_notes_sort_title","route":"tool/NOTES","screens":["Tools","Notes"],"screen":false},
   {"title":"Format Markdown","name":"tooldetail_notes_markdown_title","route":"tool/NOTES","screens":["Tools","Notes"],"screen":false,"description":"Show headings, lists and checklists formatted in the keyboard and in previews. Off, every note is plain text."},
   {"title":"The keyboard panel opens on","name":"tooldetail_notes_panel_start_title","route":"tool/NOTES","screens":["Tools","Notes"],"screen":false,"description":"What you see when you tap the tool"},

@@ -165,6 +165,9 @@ enum class NetSource(
     /** The Rboard theme list and the packs picked from it, on the Themes screen. */
     RBOARD_THEMES("rboard_themes"),
     LINK_IMPORT("link_import"),
+
+    /** A page shared to "Save to notes", read once for its text (#997). */
+    NOTES("notes", ToolbarTool.NOTES),
     BACKUP("backup"),
     UPDATES("updates", background = true),
 

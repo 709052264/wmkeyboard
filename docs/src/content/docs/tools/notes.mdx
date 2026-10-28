@@ -80,6 +80,16 @@ With [selection actions](/smart/selection-actions/) on, selecting text in any ap
 
 Nothing is saved from a password field, and nothing can be saved before the phone's first unlock after a restart, since the notes file is behind the lock screen until then.
 
+## Save from another app's share sheet
+
+<SettingsPath path="Tools / Notes / Save to notes from other apps" />
+
+Share text from any app and pick **Save to notes**: it becomes a new note, with the share's subject, when there is one, as the title. This works with the keyboard closed, and with no selection actions needed.
+
+Share a link instead, a page from the browser's Share menu for instance, and it becomes a read-later note. The keyboard reads the page once, keeps its title and its text with the layout taken off, puts the link at the top, and tags the note **Read later**, so the tag's filter gathers everything you saved for later. The [Read back](/tools/read-back/) tool can then read it to you. There is no JavaScript, so a page that draws itself with scripts comes back short; a page that cannot be read at all, or the build with no internet, saves the link alone, and the toast says which. The page request shows in the [network activity log](/privacy/network-activity/) as **Notes: a shared page**. Data saver leaves it alone, since it is one page you asked for.
+
+The switch above takes **Save to notes** out of the share sheet. It is on by default.
+
 ## Export, share and import
 
 In the settings app, a note's menu shares it as a Markdown or a plain text file, named after its title. **Export all as a zip** under the list writes one Markdown file per note, archived notes included and locked notes left out, with the note's tags on a `Tags:` line at the end. **Import text files** reads `.txt` and `.md` files back as notes, one per file, skipping any that already exist word for word, and reads a `Tags:` last line back as tags.
@@ -90,4 +100,4 @@ Notes are a section of the [backup file](/privacy/backup/), on by default for th
 
 ## Privacy
 
-Notes stay on the phone. Nothing is sent anywhere unless you tap an image in a note to load it, share a note, export the zip, or back the file up to a location you chose. The keyboard never learns from a note: what you type into it does not reach your personal dictionary, your word pairs or your typing statistics. The tool is not available before the first unlock after a restart, when the keyboard has no access to its files.
+Notes stay on the phone. Nothing is sent anywhere unless you tap an image in a note to load it, share a link to **Save to notes** (which fetches that page), share a note, export the zip, or back the file up to a location you chose. The keyboard never learns from a note: what you type into it does not reach your personal dictionary, your word pairs or your typing statistics. The tool is not available before the first unlock after a restart, when the keyboard has no access to its files.
