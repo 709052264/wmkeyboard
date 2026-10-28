@@ -180,14 +180,23 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
             SliderSetting(
                 R.string.clock_auto_snooze_title,
                 stringResource(R.string.clock_auto_snooze_subtitle),
-                value = config.autoSnoozes.toFloat(),
-                range = 0f..5f,
+                // The last stop is "until answered" (#970): an alarm too
+                // important to count as missed while nobody is there.
+                value = config.autoSnoozes.coerceAtMost(AUTO_SNOOZE_STOPS).toFloat(),
+                range = 0f..AUTO_SNOOZE_STOPS.toFloat(),
                 display = { v ->
                     val n = v.roundToInt()
-                    if (n == 0) context.getString(R.string.clock_fade_off) else context.resources.getQuantityString(R.plurals.clock_times_value, n, n)
+                    when (n) {
+                        0 -> context.getString(R.string.clock_fade_off)
+                        AUTO_SNOOZE_STOPS -> context.getString(R.string.clock_auto_snooze_forever)
+                        else -> context.resources.getQuantityString(R.plurals.clock_times_value, n, n)
+                    }
                 },
                 default = defaults.autoSnoozes.toFloat(),
-            ) { v -> set { it.copy(autoSnoozes = v.roundToInt()) } }
+            ) { v ->
+                val n = v.roundToInt()
+                set { it.copy(autoSnoozes = if (n >= AUTO_SNOOZE_STOPS) ClockConfig.SNOOZE_UNTIL_ANSWERED else n) }
+            }
         }
         item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
@@ -419,3 +428,6 @@ internal fun insertFormatLabel(format: InsertFormat): Int = when (format) {
 private const val HALF_HOUR = 30
 private const val DAY_MINUTES = 24 * 60
 private val HISTORY_DAYS = listOf(7, 30, 90, 365, 0)
+
+/** The Snooze when nobody answers slider's last stop, which means until answered. */
+private const val AUTO_SNOOZE_STOPS = 6

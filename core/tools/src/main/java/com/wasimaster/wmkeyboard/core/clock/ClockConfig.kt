@@ -38,7 +38,8 @@ data class ClockConfig(
     /**
      * How many times an alarm nobody answers snoozes itself, at the end of
      * [autoSilenceMinutes], before it counts as missed (#970). 0, the default,
-     * stops it the first time.
+     * stops it the first time; [SNOOZE_UNTIL_ANSWERED] never counts it missed,
+     * so an important alarm is still ringing when someone comes back to it.
      */
     val autoSnoozes: Int = 0,
     /**
@@ -65,6 +66,10 @@ data class ClockConfig(
     /** The panel tab last open, by [ClockTab.id]. */
     val lastTab: String = "clocks",
 ) {
+    companion object {
+        /** [autoSnoozes] for an alarm that snoozes itself until someone answers it (#970). */
+        const val SNOOZE_UNTIL_ANSWERED = Int.MAX_VALUE
+    }
     val pomodoro: PomodoroPlan
         get() = PomodoroPlan(focusMinutes, shortBreakMinutes, longBreakMinutes, longBreakEvery)
 

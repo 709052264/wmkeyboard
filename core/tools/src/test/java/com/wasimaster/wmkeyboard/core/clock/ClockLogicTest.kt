@@ -137,6 +137,22 @@ class ClockLogicTest {
     }
 
     @Test
+    fun anAlarmSetToSnoozeUntilAnsweredIsNeverMissed() {
+        val fire = at(utc, 2026, 10, 14, 7, 0)
+        val (alarm, d0) = ClockActions.addAlarm(ClockData(), Alarm(id = 0, hour = 7, minute = 0))
+        var (d, rang) = ClockActions.fireAlarms(d0, fire, utc)
+        var ring = rang.single()
+        repeat(20) { i ->
+            val now = fire + (i + 1) * 1_200_000L
+            d = ClockActions.unanswered(d, ring, now, ClockConfig.SNOOZE_UNTIL_ANSWERED, snoozeMinutes = 10)
+            assertEquals(HistoryOutcome.SNOOZED, d.history.first().outcome)
+            ring = Ringing(RingKind.ALARM, alarm.id, now + 600_000, "")
+            d = d.copy(ringing = listOf(ring))
+        }
+        assertTrue(d.alarm(alarm.id)!!.enabled)
+    }
+
+    @Test
     fun endingASnoozeSettlesTheAlarmAndSkippingTheComingRingKeepsTheRest() {
         val fire = at(utc, 2026, 10, 14, 7, 0)
         val (alarm, d0) = ClockActions.addAlarm(ClockData(), Alarm(id = 0, hour = 7, minute = 0, days = Weekdays.ALL))
