@@ -22,20 +22,20 @@ build number and commit, so two builds with the same NDK come out the same.
 Rebuild after you change anything here:
 
 ```sh
-ANDROID_NDK=~/Library/Android/sdk/ndk/27.3.13750724 native/llamacpp-jni/build.sh
+ANDROID_NDK=/path/to/ndk-r29 native/llamacpp-jni/build.sh
 ```
 
 It needs CMake and Ninja on `PATH`, and fetches llama.cpp at the release
 `pin.sh` names unless `LLAMA_SRC` points at a checkout of it. The committed
-libraries were built with NDK r27 (`27.3.13750724`); F-Droid's recipe names
-r29, which builds different bytes. Five configurations, a few minutes each.
+libraries were built with NDK r29 (`29.0.14206865`), the one F-Droid's recipe
+names. Five configurations, a few minutes each.
 The OpenCL one also clones Khronos's OpenCL-Headers and OpenCL-ICD-Loader at
 the tags `pin.sh` names (or uses `OPENCL_HEADERS_SRC`/`OPENCL_LOADER_SRC`),
 and needs Python 3 for llama.cpp's kernel-embedding script.
 
 ## Provenance
 
-llama.cpp release `b11753`, commit `d8d92973c8c21bb4dd5d592f0fec26fe2cd1e654`,
+llama.cpp release `b11951`, commit `a71c00f0bb2d60a4a52837d80baa534b651ebd91`,
 unmodified: `libllama`, ggml's CPU backend, `common/` (for the chat templates
 and their Jinja interpreter) and `tools/mtmd` (libmtmd, the projectors of
 vision models) built as static libraries and linked into one shared library
@@ -53,7 +53,7 @@ HTTP, OpenSSL, OpenMP, KleidiAI, Vulkan or Metal backend is built for a phone.
 
 libwmllama carries its own ggml rather than sharing one `libggml.so` with
 libwmwhispercpp. The two upstreams sync ggml at different times (whisper.cpp
-v1.9.5 and llama.cpp b11753 do not hold the same revision), so a shared
+v1.9.5 and llama.cpp b11951 do not hold the same revision), so a shared
 library would pin both projects to whichever revision they last agreed on and
 make every upgrade of one wait for the other. They also come through
 different gates (`speech` and `llama`), so a shared library would need a
@@ -197,8 +197,9 @@ UTF-8 streaming; `<|im_start|>system` inside a user message stayed 17 text
 tokens; an abort from another thread ended the answer within one token; and
 scoring put "tomorow" 11 nats below "tomorrow" under Qwen.
 
-Library sizes (stripped), with libmtmd since 2026-10-21: arm64 7.15 MB
-each, the OpenCL build 10.1 MB, armeabi-v7a 4.9 MB, x86_64 7.7 MB. libmtmd
+Library sizes (stripped), b11951 with NDK r29: arm64 7.3 MB each, the
+OpenCL build 10.5 MB, armeabi-v7a 5.1 MB, x86_64 7.8 MB. With libmtmd on
+b11753 and NDK r27 (2026-10-21) they were 7.15, 10.1, 4.9 and 7.7 MB. libmtmd
 added about 0.8 MB to each; the OpenCL backend and its kernels (embedded as
 OpenCL C source, compiled by the phone's driver on first use) about 3 MB.
 Before that: arm64 6.4 MB each, armeabi-v7a 4.4 MB, x86_64 6.9 MB. About 2.6 MB of that is llama.cpp's code for the model architectures

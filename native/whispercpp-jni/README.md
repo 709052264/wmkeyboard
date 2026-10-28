@@ -20,7 +20,7 @@ machine's paths out of the libraries so the two builds match. Rebuild after
 you change anything here:
 
 ```sh
-ANDROID_NDK=~/Library/Android/sdk/ndk/27.3.13750724 native/whispercpp-jni/build.sh
+ANDROID_NDK=/path/to/ndk-r29 native/whispercpp-jni/build.sh
 ```
 
 It needs CMake, Ninja and Python 3 on `PATH`, and fetches whisper.cpp, and
@@ -36,7 +36,7 @@ unmodified, built with the CPU backend (no OpenMP), and for the OpenCL
 variant ggml's OpenCL backend beside it. whisper.cpp and ggml are MIT;
 `LICENSE` is upstream's. The OpenCL variant compiles against Khronos's
 OpenCL-Headers and links against its OpenCL-ICD-Loader (both Apache-2.0,
-`v2025.07.22`, the same pins as `native/llamacpp-jni/pin.sh`); neither ships,
+`v2026.05.29`, the same pins as `native/llamacpp-jni/pin.sh`); neither ships,
 the phone's own `libOpenCL.so` answers at run time.
 
 The models are not bundled. The keyboard downloads them on request from the

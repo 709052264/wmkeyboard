@@ -2739,7 +2739,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Sampler fixed at topK 40 / topP 0.95 / temperature 0.7
     - Streaming through the raw MessageCallback — litertlm's Flow bridge throws NoSuchMethodError on this project's coroutines, on a native thread where nothing can catch it
 - **On-device LLM (llama.cpp)** `RARE` — A second on-device runtime beside LiteRT-LM, for GGUF models; the model picked decides the runtime, LiteRT-LM stays the default
-  - llama.cpp b11753 (MIT) as libwmllama.so — CPU backend, its own ggml (not shared with whisper.cpp), arm64 ARMv8.0 plus an ARMv8.2 dotprod+fp16 build picked from /proc/cpuinfo, armeabi-v7a, x86_64; 16 KB pages, JNI symbols only, paths mapped out
+  - llama.cpp b11951 (MIT) as libwmllama.so — CPU backend, its own ggml (not shared with whisper.cpp), arm64 ARMv8.0 plus an ARMv8.2 dotprod+fp16 build picked from /proc/cpuinfo, armeabi-v7a, x86_64; 16 KB pages, JNI symbols only, paths mapped out
     - Library delivery — `llama` native gate: pinned download on GitHub, built from source by the F-Droid recipe, the :feature:llama split on Play, requested with the first GGUF download
   - 7-model GGUF catalog `RARE` — Qwen 3 1.7B, Llama 3.2 1B, Gemma 3 1B, Qwen 3 0.6B, Qwen 2.5 0.5B, SmolLM2 360M, Gemma 3 270M; each pinned to a Hugging Face commit and a SHA-256 checked after download, licence per row, none gated
   - The model's own chat template `RARE` — llama.cpp's Jinja interpreter renders the GGUF's template, falling back to its built-in formats, then ChatML; field text is tokenized without special tokens, so it cannot open a turn
