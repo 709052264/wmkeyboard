@@ -5424,13 +5424,15 @@ private fun RowScope.StripWords(
             ) {
                 // A kaomoji chip ("shrug" → ¯\_(ツ)_/¯) is text, not a glyph:
                 // the text face at a text size, or it would run off the strip.
+                // It takes the words' colour too: the content colour here is
+                // not the strip's, and read black on dark themes.
                 val face = KaomojiLibrary.isTextArt(emoji)
                 CachedTextLine(
                     text = AnnotatedString(if (face) emoji else LocalEmojiShaper.current.shape(emoji)),
                     style = LocalTextStyle.current.merge(
                         if (face) TextStyle(fontSize = 14.sp) else TextStyle(fontSize = 22.sp, fontFamily = emojiFamilyFor(emoji)),
                     ),
-                    color = LocalContentColor.current,
+                    color = if (face) LocalKbTheme.current.secondarySuggestionText else LocalContentColor.current,
                     overflow = TextOverflow.Clip,
                 )
             }
