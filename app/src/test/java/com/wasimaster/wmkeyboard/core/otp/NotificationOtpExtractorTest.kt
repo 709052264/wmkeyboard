@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.otp
 
+import com.wasimaster.wmkeyboard.core.clipboard.ClipEntities
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -88,5 +89,37 @@ class NotificationOtpExtractorTest {
 
     @Test fun blankIsNull() {
         assertNull(NotificationOtpExtractor.extract("   "))
+    }
+
+    // ---- Chinese, Japanese, Korean (#992) ----
+
+    @Test fun chineseCodesAreFound() {
+        assertEquals(
+            "467321",
+            NotificationOtpExtractor.extract("【千问】您正在通过短信登录，当前验证码为 467321 ，该验证码5分钟内有效，请勿泄露于他人。"),
+        )
+        assertEquals("246813", NotificationOtpExtractor.extract("您的验证码是 246813"))
+        assertEquals("8842", NotificationOtpExtractor.extract("校验码 8842，请勿泄露"))
+        assertEquals("467321", NotificationOtpExtractor.extract("验证码467321"))
+    }
+
+    @Test fun japaneseAndKoreanCodesAreFound() {
+        assertEquals("123456", NotificationOtpExtractor.extract("認証コードは123456です"))
+        assertEquals("482913", NotificationOtpExtractor.extract("[Web발신] 인증번호 [482913]를 입력해주세요"))
+    }
+
+    @Test fun chineseNumbersWithoutACodeWordAreNotCodes() {
+        assertNull(NotificationOtpExtractor.extract("快递单号 7734567890"))
+        assertNull(NotificationOtpExtractor.extract("订单编号 123456"))
+    }
+
+    @Test fun theUsersOwnWordsMarkACode() {
+        try {
+            assertNull(NotificationOtpExtractor.extract("取件暗号 5521"))
+            ClipEntities.setUserOtpKeywords(ClipEntities.parseOtpKeywords("暗号， 取件码"))
+            assertEquals("5521", NotificationOtpExtractor.extract("取件暗号 5521"))
+        } finally {
+            ClipEntities.setUserOtpKeywords(emptyList())
+        }
     }
 }

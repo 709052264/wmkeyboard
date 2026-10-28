@@ -4789,6 +4789,7 @@ open class WMKeyboardService : InputMethodService() {
             var selectionMacrosEnabled: Triple<Boolean, Boolean, SelectionMacroPlacement>? = null
             var userScreenshotsEnabled: Boolean? = null
             var otpCaptureEnabled: Boolean? = null
+            var otpKeywords: String? = null
             var keyboardControlsPinned: Boolean? = null
             var summonButtonSeen: SummonButtonSettings? = null
             var voiceBarPersisted: Pair<Boolean, Boolean>? = null
@@ -4961,6 +4962,12 @@ open class WMKeyboardService : InputMethodService() {
                         settings.otp.enabled,
                     )
                     if (!settings.otp.enabled) clearOtpSuggestion()
+                }
+                // The user's own code words (#992) go the same way, and also
+                // serve the clipboard's code chips in this process.
+                if (otpKeywords != settings.otp.extraKeywords) {
+                    otpKeywords = settings.otp.extraKeywords
+                    NotificationOtpCapture.setKeywords(this@WMKeyboardService, settings.otp.extraKeywords)
                 }
                 // Same reason, for the notification switches: the settings
                 // repository writes the mirror as each one is flipped, but a

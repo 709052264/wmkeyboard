@@ -463,6 +463,8 @@
     <string name="typing_otp_per_digit_title">Type codes one character at a time</string>
     <string name="typing_otp_per_digit_subtitle">For the forms that give each character of a code its own box</string>
     <string name="typing_otp_per_digit_info">Many apps and websites split a code across a row of small boxes, one character each, and move to the next box for you. A whole code sent at once goes into the first box, which keeps one character and drops the rest. With this on, the keyboard types the code character by character, so each box gets its own. This applies to codes from notifications and to codes pasted from the clipboard.</string>
+    <string name="typing_otp_keywords_title">Your own code words</string>
+    <string name="typing_otp_keywords_hint">Words that come before a code in your messages, commas between. Example: 验证码, 口令</string>
 
     <!-- ==== Typing settings: gestures ==== -->
     <string name="typing_glide_typing_title">Glide typing</string>

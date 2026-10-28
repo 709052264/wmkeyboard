@@ -120,12 +120,48 @@ object ClipEntities {
     /** Separators people write phone numbers with. */
     private const val PHONE_SEPARATORS = " -()."
 
+    /**
+     * The words Chinese, Japanese and Korean senders put beside a code (#992).
+     * A separate alternation because `\b` means nothing next to Han, kana or
+     * Hangul, so these sit outside the Latin group's word boundaries. Shared
+     * with the notification extractor's anchored pattern.
+     */
+    internal const val CJK_OTP_KEYWORDS =
+        "验证码|驗證碼|校验码|校驗碼|动态码|動態碼|动态密码|動態密碼|认证码|認證碼|" +
+            "确认码|確認碼|短信码|激活码|安全码|安全碼|登录码|登錄碼|口令|" +
+            "認証コード|確認コード|認証番号|確認番号|ワンタイムパスワード|セキュリティコード|" +
+            "인증번호|인증 번호|인증코드|확인코드|확인 코드|보안코드|승인번호"
+
     private val OTP_KEYWORD = Regex(
         "\\b(?:otp|one[- ]?time(?: password| passcode| code)?|passcode|pass code|" +
             "verification|verify|confirmation|security code|auth(?:entication)? code|" +
-            "access code|login code|code|pin|2fa)\\b",
+            "access code|login code|code|pin|2fa)\\b|$CJK_OTP_KEYWORDS",
         RegexOption.IGNORE_CASE,
     )
+
+    /**
+     * The user's own code words (#992), from Settings › Typing › One-time
+     * codes, for wordings no built-in list knows. Matched by plain
+     * containment, never `\b`, which does not exist next to Han, Thai or
+     * Khmer. Set by whoever owns the setting; null when there are none.
+     */
+    @Volatile
+    private var userOtpKeyword: Regex? = null
+
+    /** Replaces the user's code words; blank entries are dropped. */
+    fun setUserOtpKeywords(words: List<String>) {
+        val kept = words.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+        userOtpKeyword = if (kept.isEmpty()) {
+            null
+        } else {
+            // Longest first, so "动态密码" is not cut short by a "动态" also listed.
+            Regex(kept.sortedByDescending { it.length }.joinToString("|") { Regex.escape(it) }, RegexOption.IGNORE_CASE)
+        }
+    }
+
+    /** [setUserOtpKeywords] from the setting as typed: one list, commas or new lines between. */
+    fun parseOtpKeywords(raw: String): List<String> =
+        raw.split(',', '，', '、', ';', '\n').map { it.trim() }.filter { it.isNotEmpty() }
 
     /**
      * Words that turn a nearby "code" into something that is not a login code.
@@ -136,7 +172,10 @@ object ClipEntities {
         "hex", "sort", "swift", "ifsc", "iban", "bar", "qr", "source", "error",
     )
 
-    private val OTP_TOKEN = Regex("""(?<![\w-])(?:[A-Za-z]-)?[A-Z0-9]{4,8}(?![\w-])""")
+    // ASCII classes rather than `\w`: Android's regex counts Han as a word
+    // character, and a code glued to its keyword ("验证码467321") then had no
+    // start (#992).
+    private val OTP_TOKEN = Regex("""(?<![A-Za-z0-9_-])(?:[A-Za-z]-)?[A-Z0-9]{4,8}(?![A-Za-z0-9_-])""")
 
     /**
      * Every fragment in [text], with [sourceId] stamped on each. Ranges never
@@ -254,10 +293,12 @@ object ClipEntities {
     private fun otpTokens(text: String): List<Pair<Int, String>> {
         // Half-open (start, end) spans, so a token butting straight up against
         // a keyword measures a gap of zero rather than minus one.
-        val keywords = OTP_KEYWORD.findAll(text)
+        val builtIn = OTP_KEYWORD.findAll(text)
             .filter { !isDeniedKeyword(text, it.range.first) }
             .map { it.range.first to it.range.last + 1 }
-            .toList()
+        // The user's words skip the deny list: they named the word themselves.
+        val own = userOtpKeyword?.findAll(text).orEmpty().map { it.range.first to it.range.last + 1 }
+        val keywords = (builtIn + own).toList()
         if (keywords.isEmpty()) return emptyList()
         return OTP_TOKEN.findAll(text)
             .filter { isCodeShaped(it.value) }

@@ -4112,6 +4112,12 @@ data class OtpSettings(
      * clipboard code chip, and a code fragment lifted out of a clip.
      */
     val perDigitEntry: Boolean = true,
+    /**
+     * The user's own words that mark a number as a code (#992), on top of the
+     * built-in English, Chinese, Japanese and Korean ones, as typed: commas
+     * between. For senders whose wording no built-in list knows.
+     */
+    val extraKeywords: String = "",
 )
 
 /**
@@ -11267,6 +11273,7 @@ class SettingsRepository(private val context: Context) {
         private val OTP_EXPIRY_MINUTES = intPreferencesKey("otp_expiry_minutes")
         private val OTP_DISMISS_NOTIFICATION = booleanPreferencesKey("otp_dismiss_notification")
         private val OTP_PER_DIGIT_ENTRY = booleanPreferencesKey("otp_per_digit_entry")
+        private val OTP_EXTRA_KEYWORDS = stringPreferencesKey("otp_extra_keywords")
         private val AUTO_BACKUP_ENABLED = booleanPreferencesKey(SettingsBackup.AUTO_BACKUP_ENABLED)
         private val AUTO_BACKUP_FOLDER_URI =
             stringPreferencesKey(SettingsBackup.AUTO_BACKUP_FOLDER_URI)
@@ -13245,6 +13252,7 @@ class SettingsRepository(private val context: Context) {
             dismissNotification = p[OTP_DISMISS_NOTIFICATION]
                 ?: defaults.otp.dismissNotification,
             perDigitEntry = p[OTP_PER_DIGIT_ENTRY] ?: defaults.otp.perDigitEntry,
+            extraKeywords = p[OTP_EXTRA_KEYWORDS] ?: defaults.otp.extraKeywords,
         )
 
     private fun readAutoBackup(p: Preferences, defaults: KeyboardSettings) =
@@ -21378,6 +21386,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setOtpPerDigitEntry(value: Boolean) =
         editPrefs { it[OTP_PER_DIGIT_ENTRY] = value }
+
+    suspend fun setOtpExtraKeywords(value: String) =
+        editPrefs { it[OTP_EXTRA_KEYWORDS] = value.take(500) }
 
     suspend fun setAutoBackupEnabled(value: Boolean) =
         editPrefs { it[AUTO_BACKUP_ENABLED] = value }

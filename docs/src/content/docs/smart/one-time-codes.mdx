@@ -43,6 +43,14 @@ Four anchored shapes run in precision order, so a message with several numbers g
 - `OTP for account 2310990533 is 4279`, where the code follows the "is" rather than the account number
 - `use 482913 to sign in`, `enter 4829 to verify`
 
+Chinese, Japanese and Korean messages have their own code words: 验证码, 校验码, 动态码, 动态密码 and 口令 among others (traditional forms too), 認証コード and 確認コード, 인증번호 and 인증코드. A code right after one of them counts, with a few joining characters allowed in between, so `当前验证码为 467321`, `認証コードは123456です` and `인증번호 [482913]` all give up the code.
+
+### Your own code words
+
+<SettingsPath path="Typing / One-time codes / Your own code words" />
+
+When a sender's wording isn't on any list, type it here, commas between: `取件码, 暗号`. A number of 4 to 8 characters within about 40 characters of one of your words then counts as a code, through the same proximity pass and guards as the built-in words, except the deny list, since you chose the word yourself. Your words also apply to the codes the clipboard picks out of copied text. Empty by default.
+
 If none of those bites, the [clipboard detector](/tools/clipboard/)'s keyword-proximity pass runs as a recall net, which is also what catches alphanumeric codes like `WX8Q2P`.
 
 A few guards apply throughout. A code has to be 4 to 8 characters. A bare four-digit value between 1900 and 2099 is rejected, because that's a year to a person and a code to a regex. Google's `G-` prefix is stripped as branding rather than treated as part of the code. And a deny list on the keyword itself stops "zip code 90210" and friends from ever qualifying.
@@ -76,6 +84,7 @@ This setting sits outside the rest of the group on purpose. It governs every pat
 | Only in code boxes | Off | Codes from notifications on |
 | Offer a code for | 3 min (range 1–10 min) | Codes from notifications on |
 | Clear the notification | Off | Codes from notifications on |
+| Your own code words | Empty | Codes from notifications on |
 | Type codes one character at a time | On | always |
 
 **Only in code boxes** narrows the chip to the fields described above. It's off by default because some apps give their code box neither a number keypad nor a telling name, and there is no way to recognise those. A code that never appears where you need it is worse than one offered in a field you weren't going to use it in. Turn it on if you'd rather never see a code offered mid-sentence.

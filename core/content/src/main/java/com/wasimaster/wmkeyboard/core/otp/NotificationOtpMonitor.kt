@@ -47,6 +47,7 @@ object NotificationOtpMonitor {
         }
 
         val text = harvest(notification).take(MAX_SCANNED_CHARS)
+        NotificationOtpCapture.loadKeywords(context)
         val code = NotificationOtpExtractor.extract(text) ?: return
 
         NotificationOtpBus.publish(

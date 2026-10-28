@@ -124,6 +124,30 @@ object NotificationOtpCapture {
         if (!value) NotificationOtpBus.clear()
     }
 
+    private const val KEY_KEYWORDS = "keywords"
+
+    @Volatile
+    private var keywordsLoaded = false
+
+    /**
+     * Hands the user's own code words (#992) to [ClipEntities] the first time
+     * a notification is read, for a listener that starts before the keyboard
+     * has mirrored them this run.
+     */
+    fun loadKeywords(context: Context) {
+        if (keywordsLoaded) return
+        keywordsLoaded = true
+        val raw = prefs(context).getString(KEY_KEYWORDS, null).orEmpty()
+        ClipEntities.setUserOtpKeywords(ClipEntities.parseOtpKeywords(raw))
+    }
+
+    /** Mirrors the user's code words, [raw] as typed in settings. */
+    fun setKeywords(context: Context, raw: String) {
+        keywordsLoaded = true
+        ClipEntities.setUserOtpKeywords(ClipEntities.parseOtpKeywords(raw))
+        prefs(context).edit().putString(KEY_KEYWORDS, raw).apply()
+    }
+
     private fun prefs(context: Context) =
         DirectBoot.deviceContext(context).getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 }
@@ -185,6 +209,13 @@ object NotificationOtpExtractor {
         Regex(
             "\\b(?:use|enter|type)\\s+(?:code\\s+)?$BRAND_PREFIX$CODE\\b",
             RegexOption.IGNORE_CASE,
+        ),
+        // "当前验证码为 467321", "認証コードは123456です", "인증번호 [123456]"
+        // (#992): the keyword, a few joining characters that are not part of
+        // a code, then the code. ASCII guards, since `\b` means nothing next
+        // to Han and Android's `\w` matches it.
+        Regex(
+            "(?:${ClipEntities.CJK_OTP_KEYWORDS})[^0-9A-Za-z\\n]{0,6}?(?<![0-9A-Za-z])$CODE(?![0-9A-Za-z])",
         ),
     )
 

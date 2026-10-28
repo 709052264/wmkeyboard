@@ -1883,6 +1883,16 @@ internal fun TypingCodesSettings(
                     default = SettingsDefaults.otp.dismissNotification,
                 ) { scope.launch { repository.setOtpDismissNotification(it) } }
             }
+            // #992: for wordings the built-in English, Chinese, Japanese and
+            // Korean code words miss.
+            item(level = SettingLevel.STANDARD) {
+                TextFieldSetting(
+                    label = stringResource(R.string.typing_otp_keywords_title),
+                    value = settings.watch { it.otp.extraKeywords },
+                    hint = stringResource(R.string.typing_otp_keywords_hint),
+                    default = SettingsDefaults.otp.extraKeywords,
+                ) { repository.setOtpExtraKeywords(it) }
+            }
         }
         // Outside the enabled block on purpose: this governs how *every* code
         // is typed, including one pasted from the clipboard, which needs no
