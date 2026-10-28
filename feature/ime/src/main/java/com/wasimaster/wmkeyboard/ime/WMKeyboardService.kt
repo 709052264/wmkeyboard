@@ -2855,6 +2855,22 @@ open class WMKeyboardService : InputMethodService() {
         offensiveByLanguage = byLanguage
     }
 
+    /**
+     * The American spellings to hold back (#999) while English's downloaded
+     * list is a Canadian, British or Australian one; empty for the US list,
+     * the bundled one, and a locked phone, where no download is readable.
+     */
+    private fun englishRegionalAvoid(): Set<String> {
+        if (!userUnlocked) return emptySet()
+        val source = DictionaryStore.sourceEntryId(filesDir, "en") ?: return emptySet()
+        if (source !in REGIONAL_ENGLISH_LISTS) return emptySet()
+        return runCatching {
+            assets.open("dictionaries/en_us_spellings.txt").bufferedReader().useLines { lines ->
+                lines.map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith("#") }.toHashSet()
+            }
+        }.getOrDefault(emptySet())
+    }
+
     /** Languages reading the user's imported lists alone (issue #28). */
     private fun importedOnly(): Set<String> =
         _uiState.value.settings.suggestionStrip.importedOnlyLangs
@@ -5875,6 +5891,7 @@ open class WMKeyboardService : InputMethodService() {
                 }
                 glideOutcomes = this@WMKeyboardService.glideOutcomes
                 blacklist = _uiState.value.let { it.settings.suggestionSources.blacklistFor(it.language.id) }
+                regionalAvoid = englishRegionalAvoid()
                 rankOffsets = wordRanks.snapshot()
                 phoneticPicks = phoneticPickStore.snapshot()
                 applyOffensiveWords(offensiveSet)
@@ -52310,6 +52327,7 @@ open class WMKeyboardService : InputMethodService() {
         customDictionaries = loadCustomDictionaries()
         suggestionEngine?.let { engine ->
             engine.dictionary = english ?: PackedTrie.EMPTY
+            engine.regionalAvoid = englishRegionalAvoid()
             engine.dictionaryCapitals = loadDictionaryCapitals()
             engine.dictionarySpellings = loadDictionarySpellings()
             engine.bengaliIndex = buildBengaliIndex()
@@ -53451,6 +53469,9 @@ open class WMKeyboardService : InputMethodService() {
 
         /** See the delay in [refreshSmartSuggestion]; one frame, near enough. */
         private const val SMART_SUGGEST_DEBOUNCE_MS = 24L
+
+        /** English's downloaded lists that respell American words (#999); see [englishRegionalAvoid]. */
+        private val REGIONAL_ENGLISH_LISTS = setOf("en_ca_aosp", "en_gb_aosp", "en_au_aosp")
 
         /** How old a downloaded emoji-mix index gets before the monthly rebuild fetches it again. */
         private const val EMOJI_MIX_REFRESH_MS = 30L * 24 * 60 * 60 * 1000

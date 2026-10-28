@@ -710,6 +710,17 @@ class SuggestionEngine(
     var blacklist: Set<String> = emptySet()
 
     /**
+     * American spellings English's word list in use has respelled (#999): set
+     * while that list is a Canadian, British or Australian one, empty
+     * otherwise. The list itself never offers `color`, but the word pairs and
+     * the context model learned their English from American text and did, at
+     * the top of the strip. Such a word is held back like a blacklisted one,
+     * unless the list in use has it after all or the user added it by hand.
+     */
+    @Volatile
+    var regionalAvoid: Set<String> = emptySet()
+
+    /**
      * Per-word rank adjustments from the word card (#99): key -> steps in
      * [WordRanks.MIN_STEPS]..[WordRanks.MAX_STEPS], fed from
      * [WordRanks.snapshot]. Each step moves the word by [RANK_OFFSET_STEP]
@@ -965,7 +976,14 @@ class SuggestionEngine(
      * True when [word] must not be offered or used as an autocorrect target,
      * for either reason (user blacklist or the offensive-words filter).
      */
-    private fun suppressed(word: String): Boolean = blacklisted(word) || offensive(word)
+    private fun suppressed(word: String): Boolean = blacklisted(word) || offensive(word) || regionallyAvoided(word)
+
+    /** Whether [word] is an American spelling the English list in use replaced; see [regionalAvoid]. */
+    private fun regionallyAvoided(word: String): Boolean {
+        if (regionalAvoid.isEmpty()) return false
+        val lower = word.lowercase()
+        return lower in regionalAvoid && !dictionary.contains(lower) && !userLexicon.isAddedByHand(lower)
+    }
 
     /** Whether the strip would hold [word] back: on the blacklist, or a blocked offensive word. */
     fun suppresses(word: String): Boolean = suppressed(word)
