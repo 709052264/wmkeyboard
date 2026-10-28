@@ -72,7 +72,11 @@ coil = "3.6.3"
 # Already in the APK as Coil's network engine; declared here so the WebDAV
 # backup sink can use it directly. HttpURLConnection cannot: it validates the
 # request method against a fixed list and rejects PROPFIND and MOVE outright.
-okhttp = "4.12.0"
+# 5.x resolves to okhttp-android, which brings androidx.startup (already here
+# through emoji2 and profileinstaller); Coil's 4.x-built adapter links to it
+# unchanged, and ImapSink's OkHostnameVerifier.verify(String, SSLSession) is
+# still there. mockwebserver keeps the okhttp3.mockwebserver package.
+okhttp = "5.5.1"
 # SSH transport for the SFTP backup sink: key exchange, host keys, ciphers.
 # The SFTP file protocol on top is our own (sink/sftp), because JSch's
 # ChannelSftp builds a java.time formatter in a static initializer and dies
@@ -97,13 +101,15 @@ vectordrawableAnimated = "1.2.0"
 # dependency is appcompat, which the app already carries.
 lottie = "6.7.1"
 zxing = "3.5.4"
-litertlm = "0.14.0"
+litertlm = "0.18.1"
 # The NPU runtime behind Compute = NPU (#804), packaged as assets by the
-# wmkeyboard.npu-runtime convention, never as dependencies. Dispatch 2.3.0
-# accepts the LiteRT API that litertlm 0.14.0 reports (it asks for <= 0.1.0
+# wmkeyboard.npu-runtime convention, never as dependencies. Dispatch 2.3.2
+# accepts the LiteRT API that litertlm 0.18.1 reports (it asks for <= 0.1.0
 # and warns on an older one), and litertlm takes any 0.x dispatch API from
-# 0.1 on: checked in both binaries' version checks, 2026-10-20.
-litertNpu = "2.3.0"
+# 0.1 on: checked in both binaries' version checks, 2026-10-20, and again
+# 2026-10-28 against LITERT_API_VERSION at the LiteRT commit litertlm 0.18.1
+# builds from (ca21dc9, still 0.1.0) and at LiteRT v2.3.2 (0.1.0).
+litertNpu = "2.3.2"
 # Qualcomm's own licence, so full Play and sideload builds only.
 qnnRuntime = "2.51.0"
 # 2.x splits into litert + litert-api sharing one namespace, which AGP's
