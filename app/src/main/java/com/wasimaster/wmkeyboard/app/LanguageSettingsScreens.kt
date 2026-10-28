@@ -103,6 +103,7 @@ import com.wasimaster.wmkeyboard.core.script.ScriptRegistry
 import com.wasimaster.wmkeyboard.core.script.SuggestedLanguage
 import com.wasimaster.wmkeyboard.core.script.SuggestionReason
 import com.wasimaster.wmkeyboard.core.script.resolveNumeralDigits
+import com.wasimaster.wmkeyboard.core.settings.DefaultSpaceAfterSuggestionOffLangs
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.ReadingOnSwitch
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
@@ -1144,7 +1145,7 @@ internal fun LanguageDetailScreen(
                 stringResource(R.string.languages_space_after_suggestion_subtitle),
                 settings.watch { langId !in it.suggestionStrip.spaceAfterSuggestionOffLangs },
                 info = stringResource(R.string.languages_space_after_suggestion_info, lang.englishName),
-                default = true,
+                default = langId !in DefaultSpaceAfterSuggestionOffLangs,
             ) { scope.launch { repository.setAutoSpaceAfterSuggestionForLanguage(langId, it) } }
         }
     }

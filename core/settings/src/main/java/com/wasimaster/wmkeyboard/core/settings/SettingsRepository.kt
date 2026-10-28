@@ -9388,6 +9388,13 @@ enum class LearnFromTextSort { MOST_FREQUENT, TEXT_ORDER, ALPHABETICAL }
 enum class SuggestionOverflow { MIDDLE, END }
 
 /**
+ * The languages a picked suggestion commits bare in until the user says
+ * otherwise (#986): Bangla, whose words take case markers and suffixes straight
+ * after a pick, and whose kars are picked inside a word.
+ */
+val DefaultSpaceAfterSuggestionOffLangs: Set<String> = setOf("bn", "bn-IN")
+
+/**
  * Suggestion-strip content options, grouped into their own object (see
  * [CameraSettings] for why the top-level class can't take more flat fields).
  * DataStore keys stay flat.
@@ -9697,9 +9704,10 @@ data class SuggestionStripSettings(
      * on for the rest (#813): Bangla words take their case markers, postpositions
      * and suffixes straight after a suggestion, so the space is wrong more
      * often than right there. Only the switched-off languages are stored, so a
-     * language added later gets the space.
+     * language added later gets the space. Bangla starts off (#986): picking ি
+     * inside a word should not split it, and nobody asked for the space there.
      */
-    val spaceAfterSuggestionOffLangs: Set<String> = emptySet(),
+    val spaceAfterSuggestionOffLangs: Set<String> = DefaultSpaceAfterSuggestionOffLangs,
     /**
      * Leave the word you have already typed out of the strip, so every slot
      * offers something new.
@@ -19341,7 +19349,9 @@ class SettingsRepository(private val context: Context) {
      */
     suspend fun setAutoSpaceAfterSuggestionForLanguage(langId: String, enabled: Boolean) =
         editPrefs {
-            val off = it[SPACE_AFTER_SUGGESTION_OFF_LANGS].orEmpty()
+            // Unset is the default set, not an empty one, or switching one
+            // language would turn Bangla's space back on with it.
+            val off = it[SPACE_AFTER_SUGGESTION_OFF_LANGS] ?: DefaultSpaceAfterSuggestionOffLangs
             it[SPACE_AFTER_SUGGESTION_OFF_LANGS] = if (enabled) off - langId else off + langId
         }
 
