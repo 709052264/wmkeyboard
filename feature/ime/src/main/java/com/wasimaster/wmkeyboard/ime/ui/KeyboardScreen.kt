@@ -17968,7 +17968,25 @@ internal fun KeyPreviewOverlay(
     val bubbleHeightPx = with(density) { bubbleHeightDp.dp.roundToPx() }
     val onKeyLabelLanePx = with(density) { onKeyLabelLanePx(popup) }
     val headroomPx = if (virtualHeadroom) keyPreviewHeadroomPx(settings) else 0
-    val bubbles = state.shown.toList()
+    // How much the root draws this overlay scaled by: 1 under a keyboard
+    // window, less in the theme editor's miniature, which scales the whole
+    // board on a layer (#989). The keys report root rectangles, so they arrive
+    // already scaled, and placing them here as they are scaled them twice: a
+    // bubble drifted off its key toward the far corner, the further the more
+    // the miniature was shrunk. Divided back into the overlay's own pixels.
+    var rootScale by remember { mutableFloatStateOf(1f) }
+    val bubbles = state.shown.toList().let { shown ->
+        if (rootScale == 1f) {
+            shown
+        } else {
+            shown.map {
+                it.copy(
+                    position = origin + (it.position - origin) / rootScale,
+                    size = IntSize((it.size.width / rootScale).roundToInt(), (it.size.height / rootScale).roundToInt()),
+                )
+            }
+        }
+    }
     // The bubbles' label layouts, kept across presses; see [KeyPreviewBubble].
     val labelCache = rememberTextMeasurer(cacheSize = BubbleLabelCacheSize)
     // In the tree even while nothing is previewing, with no children. Taking
@@ -17985,7 +18003,16 @@ internal fun KeyPreviewOverlay(
     // that was the window's root: a full measure of the whole keyboard,
     // every key's text included, twice a keystroke (traced on a CPH2481 with
     // a requestLayout probe). Under a fixed-size box the walk stops here.
-    Box(modifier) {
+    Box(
+        modifier.onGloballyPositioned { coords ->
+            val width = coords.size.width
+            if (width > 0) {
+                val scale = (coords.localToRoot(Offset(width.toFloat(), 0f)).x - coords.localToRoot(Offset.Zero).x) / width
+                // Snapped, so a keyboard window's float noise keeps the fast path.
+                if (scale > 0f && scale.isFinite()) rootScale = if (abs(scale - 1f) < 0.001f) 1f else scale
+            }
+        },
+    ) {
         Layout(
             // Transient, and already spoken by the key: a screen reader has no
             // use for a bubble that is gone before the description finishes.
