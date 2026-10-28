@@ -1065,6 +1065,22 @@
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
         <!--
+             A keyboard tool on the home screen (#970): Add to home screen on a
+             tool's page pins a shortcut here. A text box of its own brings the
+             keyboard up with the tool's panel open, so a level or a compass
+             works like an app. Exported for the launchers that pin through the
+             old install-shortcut broadcast; the extra is checked against the
+             tools with a panel and nothing else is read.
+        -->
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.ToolShortcutActivity"
+            android:enableOnBackInvokedCallback="true"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.wasimaster.wmkeyboard.tool"
+            android:theme="@style/Theme.WMKeyboard"
+            android:windowSoftInputMode="stateAlwaysVisible|adjustResize" />
+        <!--
              The AI chat as a sheet over the app the user was in (#697). Opened
              by the floating AI button with the screen's text, and by "Ask AI"
              in the text selection menu with the selected text. Either way the

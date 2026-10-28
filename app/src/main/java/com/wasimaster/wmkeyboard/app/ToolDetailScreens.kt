@@ -99,6 +99,7 @@ import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModels
 import com.wasimaster.wmkeyboard.core.handwriting.InkPackImports
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
 import com.wasimaster.wmkeyboard.core.util.runCancellable
+import com.wasimaster.wmkeyboard.ime.KeyboardAutomation
 import com.wasimaster.wmkeyboard.ime.WMKeyboardService
 import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
 import com.wasimaster.wmkeyboard.core.settings.GifContentFilter
@@ -428,6 +429,9 @@ private fun WordStepsGroup(repository: SettingsRepository, settings: LiveSetting
     }
 }
 
+/** The tools whose Add to home screen opens their screen in this app, not the keyboard. */
+private val ScreenShortcutTools = setOf(ToolbarTool.CLOCK, ToolbarTool.NOTES, ToolbarTool.TODO)
+
 @Composable
 internal fun ToolDetailSettings(
     repository: SettingsRepository,
@@ -485,6 +489,12 @@ internal fun ToolDetailSettings(
                 default = usable && tool in SettingsDefaults.enabledTools,
             ) { scope.launch { repository.setToolEnabled(tool, it) } }
         }
+        // Any tool with a panel can go on the home screen (#970). The clock,
+        // notes and to-do list pin their own screens instead, further down.
+        item(
+            visible = KeyboardAutomation.panelTool(tool.name) != null && tool !in ScreenShortcutTools,
+            level = SettingLevel.STANDARD,
+        ) { ToolHomeScreenShortcutRow(tool) }
     }
     when (tool) {
         ToolbarTool.KDE_CONNECT ->

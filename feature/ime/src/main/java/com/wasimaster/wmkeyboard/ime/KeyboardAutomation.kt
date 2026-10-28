@@ -407,6 +407,24 @@ object KeyboardAutomation {
     }
 
     /**
+     * In a field's privateImeOptions, the app's own tool shortcut screen asking
+     * for a tool's panel (#970): `com.wasimaster.wmkeyboard.openTool=LEVEL`.
+     * The keyboard reads it only from fields of this package.
+     */
+    private const val PRIVATE_OPTION_OPEN_TOOL = "com.wasimaster.wmkeyboard.openTool="
+
+    /** The privateImeOptions a field sets to open [tool]'s panel; see [toolFromPrivateOptions]. */
+    fun privateOptionsFor(tool: ToolbarTool): String = PRIVATE_OPTION_OPEN_TOOL + tool.name
+
+    /** The panel tool a field's privateImeOptions ask for, or null. */
+    fun toolFromPrivateOptions(options: String?): ToolbarTool? = options
+        ?.split(',')
+        ?.map { it.trim() }
+        ?.firstOrNull { it.startsWith(PRIVATE_OPTION_OPEN_TOOL) }
+        ?.removePrefix(PRIVATE_OPTION_OPEN_TOOL)
+        ?.let(::panelTool)
+
+    /**
      * An on/off extra, read leniently: a real boolean from `am broadcast --ez`,
      * or the string an automation app sends (`true`, `on`, `1`, and their
      * opposites). Null when absent or unreadable, which the toggles read as

@@ -7627,6 +7627,13 @@ open class WMKeyboardService : InputMethodService() {
         // A real text field has the keyboard now, and the ordinary rules for
         // fields apply to it again: a summon was for windows without one.
         if (summonedAt != 0L && !info.isNullClass()) clearSummon()
+        // The app's tool shortcut screen (#970) names a tool in its field's
+        // private options: the panel opens once this start has settled.
+        if (!restarting && info?.packageName == packageName) {
+            KeyboardAutomation.toolFromPrivateOptions(info.privateImeOptions)?.let { tool ->
+                Handler(Looper.getMainLooper()).post { automationHost.openTool(tool) }
+            }
+        }
         // Set before the lifecycle is resumed: a panel that reacts to ON_RESUME
         // (the media one re-checks notification access there) would otherwise
         // ask about a keyboard this flag still calls hidden.

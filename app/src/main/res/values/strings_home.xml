@@ -187,4 +187,8 @@
     <string name="home_shortcut_clock_label">Clock</string>
     <string name="home_shortcut_notes_label">Notes</string>
     <string name="home_shortcut_todo_label">To-do list</string>
+    <string name="home_shortcut_tool_subtitle">Put %1$s on your home screen. It opens the keyboard with the tool on it, over a text box of its own</string>
+    <string name="tool_shortcut_field_hint">Text the tool types lands here</string>
+    <string name="tool_shortcut_not_current">The tool opens in WM Keyboard, which is not the keyboard in use</string>
+    <string name="tool_shortcut_switch_action">Switch keyboard</string>
 </resources>
