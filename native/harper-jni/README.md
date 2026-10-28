@@ -24,7 +24,7 @@ Host-side tests (`cargo test`) exercise the lint→JSON path without Android.
 
 ## Vendored harper-core and harper-brill
 
-`vendor/` holds harper-core and harper-brill 2.5.0, wired in through
+`vendor/` holds harper-core and harper-brill 3.0.0, wired in through
 `[patch.crates-io]`, with two changes and nothing else (tests and benches left
 out):
 
@@ -34,13 +34,15 @@ out):
   is byte-for-byte the same as the published crates on harper-core's own test
   sources in all four dialects (`cargo test -- --ignored corpus_snapshot` with
   `HARPER_CORPUS` and `HARPER_CORPUS_OUT` set, against a build of the
-  published crates).
+  published crates). On 3.0.0 the final build, Brill chunker included, gives
+  the same bytes too.
 - `Document::parse` uses the Brill chunker instead of the neural one, which
-  lets LTO drop the Burn framework and its model. harper-core's own lint tests:
-  5,249 of 5,250 pass, against 5,250 with the neural chunker; the one change
-  is a false "missing to" on "a standard and expected feature for any
-  e-commerce site selling visually-driven products". The suite runs 2.3 times
-  as fast.
+  lets LTO drop the Burn framework and its model. harper-core 3.0.0's own
+  unit tests: 6,787 of 6,788 pass, against 6,788 with the neural chunker; the
+  one change is still a false "missing to" on "a standard and expected feature
+  for any e-commerce site selling visually-driven products". The suite runs
+  about ten times as fast (2 s against 21 s). Its `pos_tags` snapshot test
+  fails by design: the snapshots record the neural chunker's noun phrases.
 
 Together: arm64 5.5 MB to 2.4 MB, armv7 4.9 to 1.9, x86_64 6.0 to 2.7.
 
@@ -48,7 +50,8 @@ To bump harper-core: copy the new versions of both crates into `vendor/`
 (without `tests` and `benches`), deflate the same five files with raw deflate
 (`zlib.compressobj(9, zlib.DEFLATED, -15)`), and re-apply the two marked
 "WM Keyboard" edits in `harper-brill/src/lib.rs`,
-`harper-core/src/spell/mutable_dictionary.rs` and `harper-core/src/document.rs`,
+`harper-core/src/spell/dictionary.rs` (since 3.0 the word list is read there,
+by both `MutableDictionary` and `WordMap`) and `harper-core/src/document.rs`,
 plus the `miniz_oxide` dependency in both `Cargo.toml`s. Then check both
 claims above again before rebuilding.
 

@@ -18,13 +18,13 @@ impl Default for ToTooDegreeWords {
         let expr = SequenceExpr::default()
             .t_aco("to")
             .t_ws()
-            .then_word_set(&["many", "much", "few"])
-            .then_any_of(vec![
+            .then_word_set(["many", "much", "few"])
+            .then_any_of([
                 Box::new(SequenceExpr::default().then_kind_is_but_is_not_except(
                     TokenKind::is_punctuation,
                     |_| false,
                     &["`", "\"", "'", "“", "”", "‘", "’", "-", "–", "—"],
-                )),
+                )) as Box<dyn Expr>,
                 Box::new(AnchorEnd),
             ]);
 

@@ -14,7 +14,7 @@ impl Default for ComplainAsNoun {
             expr: SequenceExpr::default()
                 .then_determiner()
                 .t_ws()
-                .t_set(&["complain", "complains"])
+                .t_set(["complain", "complains"])
                 .but_not(SequenceExpr::anything().t_any().t_any().t_ws().then_noun()),
         }
     }
@@ -47,7 +47,7 @@ impl ExprLinter for ComplainAsNoun {
                 noun.to_vec(),
                 matched_tokens[idx].get_ch(source),
             )],
-            message: "The noun form is `complaint`.".to_string(),
+            message: "The noun form is `complaint`.".to_owned(),
             ..Default::default()
         })
     }

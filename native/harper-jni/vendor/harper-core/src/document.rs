@@ -176,7 +176,7 @@ impl Document {
         self.apply_fixups();
 
         // WM Keyboard: the Brill chunker rather than the neural one. Same
-        // noun-phrase flags on harper-core's own 5,250 lint tests but one, at
+        // noun-phrase flags on harper-core's own lint tests but one, at
         // a fraction of the cost, and without the Burn framework and its
         // 1.5 MB model in the .so (5.5 MB -> 2.4 MB on arm64).
         let chunker = brill_chunker();
@@ -425,6 +425,7 @@ impl Document {
                             | Some(Punctuation::EmDash)
                             | Some(Punctuation::EnDash)
                             | Some(Punctuation::Apostrophe)
+                            | Some(Punctuation::OpenSingle)
                     );
 
                 if is_open {
@@ -534,7 +535,7 @@ impl Document {
 
     fn uncached_dotted_truncation_expr() -> Lrc<FirstMatchOf> {
         Lrc::new(FirstMatchOf::new(vec![
-            Box::new(SequenceExpr::word_set(&["esp", "etc", "vs"]).then_period()),
+            Box::new(SequenceExpr::word_set(["esp", "etc", "vs"]).then_period()),
             Box::new(
                 SequenceExpr::aco("et")
                     .then_whitespace()

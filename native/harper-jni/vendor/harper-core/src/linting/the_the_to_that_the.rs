@@ -11,7 +11,7 @@ pub struct TheTheToThatThe {
 impl Default for TheTheToThatThe {
     fn default() -> Self {
         Self {
-            expr: SequenceExpr::word_set(&[
+            expr: SequenceExpr::word_set([
                 "so", "fact", "found", "show", "say", "believe", "think", "said",
             ])
             .t_ws()
@@ -39,8 +39,9 @@ impl ExprLinter for TheTheToThatThe {
                 .iter()
                 .map(|s| Suggestion::replace_with_match_case_str(s, ch))
                 .collect(),
-            message: "Did you mean `that the` or just `the`?".to_string(),
-            priority: 126, // Higher priority than `RepeatedWords`
+            message: "Did you mean `that the` or just `the`?".to_owned(),
+            // Higher priority (lower number) than `RepeatedWords`
+            priority: 126,
         })
     }
 

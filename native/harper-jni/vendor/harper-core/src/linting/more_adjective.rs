@@ -13,24 +13,21 @@ pub struct MoreAdjective<D> {
     dict: D,
 }
 
-impl<D> MoreAdjective<D>
-where
-    D: Dictionary,
-{
+impl<D: Dictionary> MoreAdjective<D> {
     pub fn new(dict: D) -> Self {
         Self {
-            expr: SequenceExpr::word_set(&["more", "most"])
+            expr: SequenceExpr::word_set(["more", "most"])
                 .t_ws()
                 .then_positive_adjective()
                 // Include a following "than adjective" which we'll use to identify a false positive #2925
                 // Or a following hyphen which we'll use to identify a false positive #3568
-                .then_optional(FirstMatchOf::new(vec![
+                .then_optional(FirstMatchOf::new([
                     Box::new(
                         SequenceExpr::whitespace()
                             .t_aco("than")
                             .t_ws()
                             .then_positive_adjective(),
-                    ),
+                    ) as Box<dyn Expr>,
                     Box::new(|tok: &Token, _source: &[char]| tok.kind.is_hyphen()),
                 ])),
             dict,
@@ -49,10 +46,7 @@ where
     }
 }
 
-impl<D> ExprLinter for MoreAdjective<D>
-where
-    D: Dictionary,
-{
+impl<D: Dictionary> ExprLinter for MoreAdjective<D> {
     type Unit = Chunk;
 
     fn expr(&self) -> &dyn Expr {
@@ -141,7 +135,7 @@ where
                 &mut candidates,
                 format!(
                     "{}i{}",
-                    &adj_chars[0..adj_chars.len() - 1].iter().collect::<String>(),
+                    adj_chars[0..adj_chars.len() - 1].iter().collect::<String>(),
                     ending
                 ),
             );
@@ -151,7 +145,7 @@ where
                 &mut candidates,
                 format!(
                     "{}{}",
-                    &adj_chars[0..adj_chars.len() - 1].iter().collect::<String>(),
+                    adj_chars[0..adj_chars.len() - 1].iter().collect::<String>(),
                     ending
                 ),
             );
@@ -176,13 +170,13 @@ where
             lint_kind: LintKind::Style,
             suggestions,
             message: "This is not an error, but an inflected form of this adjective also exists"
-                .to_string(),
+                .to_owned(),
             ..Default::default()
         })
     }
 
     fn description(&self) -> &str {
-        "Looks for comparative adjective constructions with `more` than could use inflected forms."
+        "Looks for comparative adjective constructions with `more` that could use inflected forms."
     }
 }
 

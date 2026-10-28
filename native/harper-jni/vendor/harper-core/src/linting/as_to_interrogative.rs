@@ -11,11 +11,11 @@ pub struct AsToInterrogative {
 impl Default for AsToInterrogative {
     fn default() -> Self {
         Self {
-            expr: SequenceExpr::word_set(&["curious", "unsure"])
+            expr: SequenceExpr::word_set(["curious", "unsure"])
                 .t_ws()
                 .t_aco("to")
                 .t_ws()
-                .t_set(&[
+                .t_set([
                     "how", "what", "what's", "which", "when", "when's", "where", "whether", "who",
                     "who's", "whose", "whom", "why",
                 ])
@@ -27,7 +27,7 @@ impl Default for AsToInterrogative {
                         .t_any()
                         .t_ws()
                         // "Extend" would be a mistake here, but a common and unrelated mistake.
-                        .t_set(&["degree", "extent", "extend"]),
+                        .t_set(["degree", "extent", "extend"]),
                 ),
         }
     }
@@ -48,7 +48,7 @@ impl ExprLinter for AsToInterrogative {
                 "as to",
                 matched_tokens[2].get_ch(source),
             )],
-            message: "This construction requires `as to` instead of just `to`.".to_string(),
+            message: "This construction requires `as to` instead of just `to`.".to_owned(),
             ..Default::default()
         })
     }

@@ -12,7 +12,7 @@ pub struct Catch22 {
 impl Default for Catch22 {
     fn default() -> Self {
         Self {
-            expr: SequenceExpr::word_set(&["cache", "cash"]).then_any_of(vec![
+            expr: SequenceExpr::word_set(["cache", "cash"]).then_any_of(vec![
                 Box::new(
                     SequenceExpr::default()
                         .t_ws_h()
@@ -43,7 +43,7 @@ impl ExprLinter for Catch22 {
                 "catch",
                 toks[0].span.get_content(src),
             )],
-            message: "This idiom uses 'catch' instead of 'cache' or 'cash'.".to_string(),
+            message: "This idiom uses 'catch' instead of 'cache' or 'cash'.".to_owned(),
             ..Default::default()
         })
     }

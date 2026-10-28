@@ -12,7 +12,7 @@
 [package]
 edition = "2024"
 name = "harper-brill"
-version = "2.5.0"
+version = "3.0.0"
 build = false
 autolib = false
 autobins = false
@@ -33,7 +33,7 @@ path = "src/lib.rs"
 version = "0.8"
 
 [dependencies.harper-pos-utils]
-version = "2.0.0"
+version = "3.0.0"
 
 [dependencies.serde_json]
 version = "1.0.150"

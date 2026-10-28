@@ -12,7 +12,7 @@ crate-type = ["cdylib"]
 # default-features = false drops the `thesaurus` feature (harper-thesaurus is
 # ~8 MB of embedded synonym data). lib.rs only lints — LintGroup/FstDictionary —
 # and never touches the synonym API, so the data was dead weight in the .so.
-harper-core = { version = "2.5", default-features = false }
+harper-core = { version = "3.0", default-features = false }
 jni = "0.21"
 serde_json = "1"
 
@@ -28,7 +28,7 @@ opt-level = "z"
 # harper-core and harper-brill embed their dictionary and trained models as
 # plain text and bytes, 2.9 MB of the .so. These vendored copies store them
 # deflated and inflate them once, on first use; nothing else differs from the
-# published 2.5.0 crates. See README.md before bumping harper-core.
+# published 3.0.0 crates. See README.md before bumping harper-core.
 [patch.crates-io]
 harper-core = { path = "vendor/harper-core" }
 harper-brill = { path = "vendor/harper-brill" }
