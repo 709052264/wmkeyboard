@@ -163,7 +163,7 @@ The picker lists **None** first, then the twelve shapes in this order. The five 
 | Ticket | Corners bitten inwards by a circle, like a cinema ticket | No |
 | Circle | A round cap centred in the key, like a typewriter's; wide keys (space, enter) keep a stadium | No |
 
-The shapes that ignore the slider aren't being lazy about it. Their whole look is a proportion of the key rather than a corner size, so they measure themselves off the key's own width and height. The arch is always half the key's height. The hexagon's points are always a sixth of its width. The scallops count out at roughly the same size whether it's a letter key or a spacebar. Wire them to a 0–28dp slider instead and one end of it flattens them into plain rectangles.
+The shapes that ignore the slider aren't being lazy about it. Their whole look is a proportion of the key rather than a corner size, so they measure themselves off the key's own width and height. The arch is always half the key's height. The hexagon's points are always a sixth of its width. The scallops count out at roughly the same size whether it's a letter key or a spacebar, up to 64 along a side; a box only a few pixels tall, such as a panel sliding open, is drawn as a plain rectangle until it is big enough for bumps. Wire them to a 0–28dp slider instead and one end of it flattens them into plain rectangles.
 
 Only the drawing changes. Touch targets stay rectangular for every shape, so the gap between two hexagons still belongs to one key or the other, and nothing gets harder to hit.
 

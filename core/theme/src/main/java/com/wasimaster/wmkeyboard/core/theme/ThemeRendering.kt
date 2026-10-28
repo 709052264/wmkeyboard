@@ -317,14 +317,27 @@ private val ScallopKeyShape: Shape = GenericShape { size, _ ->
  * NaN, which throws mid-draw, and a width over zero rounds to Int.MAX_VALUE
  * bumps, which would hang the keyboard instead. Such a box takes a plain
  * rectangle.
+ *
+ * So does a box only a few pixels tall (#1001: the same long press still froze
+ * the keyboard after #963). A box growing in from nothing passes through
+ * heights of a fraction of a pixel, and a wide one then asked for thousands
+ * of arcs on every frame of the animation; bumps a pixel deep cannot be seen
+ * anyway. [MAX_SCALLOP_BUMPS] caps what is left, so no box, however long, can
+ * make the outline expensive.
  */
 internal fun scallopBumps(width: Float, height: Float): Pair<Int, Int>? {
     val depth = min(width, height) / 7f
-    if (!(depth > 0f) || !width.isFinite() || !height.isFinite()) return null
-    val across = max(2, ((width - 2f * depth) / (2f * depth)).roundToInt())
-    val down = max(1, ((height - 2f * depth) / (2f * depth)).roundToInt())
+    if (!(depth >= MIN_SCALLOP_DEPTH_PX) || !width.isFinite() || !height.isFinite()) return null
+    val across = ((width - 2f * depth) / (2f * depth)).roundToInt().coerceIn(2, MAX_SCALLOP_BUMPS)
+    val down = ((height - 2f * depth) / (2f * depth)).roundToInt().coerceIn(1, MAX_SCALLOP_BUMPS)
     return across to down
 }
+
+/** The shallowest bump worth drawing, in pixels; see [scallopBumps]. */
+private const val MIN_SCALLOP_DEPTH_PX = 1f
+
+/** The most bumps along any one side; a spacebar needs about 34. */
+private const val MAX_SCALLOP_BUMPS = 64
 
 /**
  * Concave corners, like a cinema ticket: the rectangle minus a circle at each
