@@ -28084,6 +28084,29 @@ private fun repeatFeedback(
 }
 
 /**
+ * The hold of a No space flick arm (#863): out on the arm past the long press
+ * delay, it arms No space for the next key, the way a hold of the No space
+ * key does, so one arm carries both. [onRan] marks the gesture spent, and the
+ * lift adds nothing. Null for any other arm.
+ */
+private fun CoroutineScope.noSpaceArmHold(
+    arm: Key,
+    longPressDelayMs: Int,
+    hapticOnLongPress: Boolean,
+    onKeyPress: () -> Unit,
+    onKey: (Key) -> Unit,
+    onRan: () -> Unit,
+): Job? {
+    if ((arm.action as? KeyAction.Edit)?.op != TextEditAction.NO_SPACE) return null
+    return launch {
+        delay(longPressDelayMs.toLong())
+        onRan()
+        if (hapticOnLongPress) onKeyPress()
+        onKey(Key(label = arm.label, action = KeyAction.Edit(TextEditAction.NO_SPACE_NEXT)))
+    }
+}
+
+/**
  * Whether a plain hold on the spacebar may open the language chooser.
  *
  * Three things can want that hold and only one of them can have it. Keys the
@@ -28599,6 +28622,10 @@ private fun Modifier.pointerInputKey(
                                                 onKeyRepeat(armKey)
                                                 delay(textEditing.repeatMs.toLong())
                                             }
+                                        }
+                                    } ?: key.flickKey(live)?.let { armKey ->
+                                        scope.noSpaceArmHold(armKey, longPressDelayMs, hapticOnLongPress, onKeyPress, onKey) {
+                                            armRepeated = true
                                         }
                                     }
                                 }
@@ -29357,7 +29384,7 @@ private fun Modifier.pointerInputKey(
                         while (true) {
                             repeatFeedback(vibrateOnRepeat, soundOnRepeat, onKeyPress, onKeySound, onKeyHaptic)
                             onKeyRepeat(key)
-                            delay(textEditing.repeatMs.toLong())
+                            delay(intervalMs.toLong())
                         }
                     }
                 } else {
@@ -29485,6 +29512,10 @@ private fun Modifier.pointerInputKey(
                                         onKeyRepeat(arm)
                                         delay(intervalMs)
                                     }
+                                }
+                            } ?: dir?.let { key.flickKey(it) }?.let { arm ->
+                                scope.noSpaceArmHold(arm, longPressDelayMs, hapticOnLongPress, onKeyPress, onKey) {
+                                    armRepeated = true
                                 }
                             }
                         }
