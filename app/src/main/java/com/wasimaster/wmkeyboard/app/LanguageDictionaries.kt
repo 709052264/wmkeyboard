@@ -62,6 +62,7 @@ import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.keywordsEnabledFor
+import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -698,6 +699,10 @@ private fun ContextModelRow(
     val standard = entries.first()
     val several = entries.size > 1
     var menu by remember { mutableStateOf(false) }
+    // The build with no internet can't download one; the Language pack row's
+    // Get the files lists it and Import takes it, so the row says that rather
+    // than offering a download that can only fail.
+    val offline = !InternetPermission.granted
     val supporting = when (status) {
         is ContextModelDownloadManager.DownloadStatus.Downloaded ->
             if (several) {
@@ -709,16 +714,21 @@ private fun ContextModelRow(
                 stringResource(R.string.languages_context_model_downloaded, formatBytes(status.sizeBytes))
             }
         is ContextModelDownloadManager.DownloadStatus.Downloading -> stringResource(CommonR.string.common_downloading)
-        ContextModelDownloadManager.DownloadStatus.Failed -> stringResource(R.string.languages_context_model_failed)
-        ContextModelDownloadManager.DownloadStatus.NotDownloaded ->
-            stringResource(R.string.languages_context_model_download_size, formatBytes(standard.approxBytes))
+        ContextModelDownloadManager.DownloadStatus.Failed,
+        ContextModelDownloadManager.DownloadStatus.NotDownloaded,
+        -> when {
+            offline -> stringResource(R.string.languages_context_model_offline)
+            status == ContextModelDownloadManager.DownloadStatus.Failed ->
+                stringResource(R.string.languages_context_model_failed)
+            else -> stringResource(R.string.languages_context_model_download_size, formatBytes(standard.approxBytes))
+        }
     }
     DictionaryItemRow(
         title = stringResource(R.string.languages_context_model_title),
         supporting = supporting,
         checked = null,
         onChecked = {},
-        error = status == ContextModelDownloadManager.DownloadStatus.Failed,
+        error = status == ContextModelDownloadManager.DownloadStatus.Failed && !offline,
         swipeActions = if (status is ContextModelDownloadManager.DownloadStatus.Downloaded) {
             listOf(
                 deleteSwipeAction(stringResource(R.string.languages_context_model_delete_desc)) {
@@ -776,7 +786,7 @@ private fun ContextModelRow(
                 }
             ContextModelDownloadManager.DownloadStatus.NotDownloaded,
             ContextModelDownloadManager.DownloadStatus.Failed,
-            -> Box {
+            -> if (offline) Unit else Box {
                 TextButton(onClick = {
                     if (several) menu = true else ContextModelDownloadManager.start(filesDir, langId)
                 }) {
