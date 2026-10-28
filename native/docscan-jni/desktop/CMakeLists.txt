@@ -5,7 +5,7 @@ project(docscan_cli CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-find_package(OpenCV REQUIRED COMPONENTS core imgproc)
+find_package(OpenCV REQUIRED COMPONENTS core imgproc geometry)
 
 add_executable(docscan_cli docscan_cli.cpp ../docscan.cpp)
 target_include_directories(docscan_cli PRIVATE ${OpenCV_INCLUDE_DIRS})

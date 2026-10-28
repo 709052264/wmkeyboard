@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Builds libwmdocscan.so (wm_docscan_jni.cpp and docscan.cpp over a static
-# OpenCV, core and imgproc only) for every ABI and copies it into
+# OpenCV, core, imgproc and geometry only) for every ABI and copies it into
 # core/intelligence/src/docscan/jniLibs/. Fetches OpenCV at the pinned commit
 # unless OPENCV_SRC points at a checkout of it. Needs CMake and Ninja on PATH.
 # See README.md.
@@ -8,8 +8,8 @@
 #   ANDROID_NDK=/path/to/ndk native/docscan-jni/build.sh
 set -euo pipefail
 
-OPENCV_TAG=4.14.0
-OPENCV_COMMIT=0654a42e19215ef25b1d367d822f3c630447e7c7
+OPENCV_TAG=5.0.0
+OPENCV_COMMIT=40738fb16ceddb5fb3fea747585f7ce6abb0605b
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$HERE/../.." && pwd)
@@ -74,7 +74,7 @@ build() {
     # included, into the library as cv::getBuildInformation(), which its
     # startup keeps alive (OPENCV_DUMP_CONFIG prints it). A fixed line
     # instead, or no two machines would build the same bytes.
-    printf '"OpenCV %s, core and imgproc, built by native/docscan-jni\\n"\n' "$OPENCV_TAG" \
+    printf '"OpenCV %s, core, imgproc and geometry, built by native/docscan-jni\\n"\n' "$OPENCV_TAG" \
         > "$ocv/modules/core/version_string.inc"
     cmake --build "$ocv" --target install >> "$ocv.log" 2>&1 || { tail -40 "$ocv.log"; exit 1; }
     cmake -S "$HERE" -B "$out" -G Ninja "${android[@]}" \

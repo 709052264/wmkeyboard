@@ -13,7 +13,7 @@
 # DOCSCAN_HOST_BUILD keeps the host OpenCV build there between runs.
 set -euo pipefail
 
-OPENCV_TAG=4.14.0
+OPENCV_TAG=5.0.0
 HERE=$(cd "$(dirname "$0")" && pwd)
 PHOTOS=$(cd "$1" && pwd)
 OUT=$2

@@ -10,6 +10,7 @@
 
 #include "docscan.hpp"
 
+#include <opencv2/geometry.hpp>
 #include <opencv2/imgproc.hpp>
 
 #include <algorithm>

@@ -28,16 +28,17 @@ ANDROID_NDK=/opt/homebrew/share/android-ndk native/docscan-jni/build.sh
 It needs CMake and Ninja on `PATH`, and fetches OpenCV at the pinned commit
 unless `OPENCV_SRC` points at a checkout of it. The committed libraries were
 built with NDK r29 (`29.0.14206865`), the one F-Droid's recipe names. Each ABI
-builds OpenCV's two modules first (about 190 compile steps) and deletes its
+builds those four OpenCV modules first and deletes its
 build tree before the next ABI starts, so the script never holds more than one
 tree of a few hundred MB.
 
 ## Provenance
 
-OpenCV `4.14.0`, commit `0654a42e19215ef25b1d367d822f3c630447e7c7`,
+OpenCV `5.0.0`, commit `40738fb16ceddb5fb3fea747585f7ce6abb0605b`,
 unmodified, under the Apache License 2.0
-(`app/src/main/assets/licenses/apache-2.0.txt`). Only the `core` and `imgproc`
-modules are built, static, `-Os`, with the options in `opencv.cmake`: no IPP,
+(`app/src/main/assets/licenses/apache-2.0.txt`). Only the `core`, `imgproc`,
+`flann` and `geometry` modules are built (OpenCV 5 moved the contour and
+perspective calls the scanner makes into `geometry`, which needs `flann`), static, `-Os`, with the options in `opencv.cmake`: no IPP,
 KleidiCV, FastCV, ITT, OpenCL, Eigen, LAPACK or TBB, and no Carotene, so
 nothing is downloaded at configure time and nothing prebuilt goes in. The one
 third-party file compiled in is Android's `cpufeatures` (Apache-2.0, in
@@ -129,6 +130,6 @@ arm64-v8a, armeabi-v7a and x86_64, API 24, 16 KB page aligned. Only the three
 
 | ABI | libwmdocscan.so |
 |---|---|
-| arm64-v8a | 2,427,808 bytes |
-| armeabi-v7a | 1,713,228 bytes |
-| x86_64 | 2,633,776 bytes |
+| arm64-v8a | 2,879,208 bytes |
+| armeabi-v7a | 2,106,660 bytes |
+| x86_64 | 3,170,320 bytes |

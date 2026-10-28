@@ -230,7 +230,7 @@ from 2023. The spellers themselves are never in the APK or the library: the
 phone downloads them from GiellaLT's own releases, or the user imports them.
 
 From the release after 0.6.2 the script also builds `native/docscan-jni`
-(OpenCV 4.14.0 at a pinned commit, only its core and imgproc modules, static)
+(OpenCV 5.0.0 at a pinned commit, only its core, imgproc, flann and geometry modules, static)
 into `core/intelligence/src/docscan/jniLibs`: the built-in document scanner,
 which F-Droid's build uses in place of Google's. The next entry's
 `scandelete` needs that path added. OpenCV's configure step downloads nothing
