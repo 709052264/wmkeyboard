@@ -368,4 +368,10 @@
     <string name="core_content_note_tag_personal">Personal</string>
     <string name="core_content_note_tag_ideas">Ideas</string>
 
+
+    <!-- To-do reminders (#995): a task's notification when it falls due. -->
+    <string name="core_content_todo_reminder_title">To-do</string>
+    <string name="core_content_todo_reminder_done">Done</string>
+    <string name="core_content_todo_reminders_channel_title">To-do reminders</string>
+    <string name="core_content_todo_reminders_channel_body">A task from the keyboard\'s to-do list, when it falls due</string>
 </resources>

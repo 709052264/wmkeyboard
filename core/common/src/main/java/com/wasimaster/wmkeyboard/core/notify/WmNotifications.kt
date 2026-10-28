@@ -308,4 +308,12 @@ object NotificationIds {
         REMINDER_BASE + ("$pluginId/$reminderId".hashCode() and DOWNLOAD_MASK)
 
     private const val REMINDER_BASE = 70_000
+
+    /**
+     * One per to-do task's reminder (#995), from the task's id, so a date set
+     * again replaces its notification. Above the plugin reminders' range.
+     */
+    fun forTodoReminder(taskId: Long): Int = TODO_REMINDER_BASE + (taskId.hashCode() and DOWNLOAD_MASK)
+
+    private const val TODO_REMINDER_BASE = 140_000
 }

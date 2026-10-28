@@ -90,7 +90,7 @@ private val TodoWorker = Dispatchers.IO.limitedParallelism(1, "wmkb-todo-app")
 
 /** The list as a screen sees it: the store, and a snapshot that recomposes on change. */
 @Stable
-internal class TodoScreenState(val store: TodoStore) {
+internal class TodoScreenState(val store: TodoStore, private val context: android.content.Context) {
     var tops by mutableStateOf<List<TodoTask>>(emptyList())
     var steps by mutableStateOf<Map<Long, List<TodoTask>>>(emptyMap())
 
@@ -105,6 +105,8 @@ internal class TodoScreenState(val store: TodoStore) {
         val out = withContext(TodoWorker) {
             val result = block(store)
             store.save()
+            // A date set or a task ticked here moves the next reminder (#995).
+            com.wasimaster.wmkeyboard.core.todo.TodoReminders.rearm(context)
             result
         }
         refresh()
@@ -119,7 +121,7 @@ private fun rememberTodoState(): TodoScreenState? {
     var state by remember { mutableStateOf<TodoScreenState?>(null) }
     LaunchedEffect(Unit) {
         val store = withContext(TodoWorker) { TodoStore(File(context.filesDir, TodoStore.FILE_PATH)) }
-        state = TodoScreenState(store).also { it.refresh() }
+        state = TodoScreenState(store, context.applicationContext).also { it.refresh() }
     }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         val s = state ?: return@LifecycleEventEffect

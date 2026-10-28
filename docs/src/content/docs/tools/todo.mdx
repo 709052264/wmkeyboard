@@ -8,7 +8,7 @@ sidebar:
 import SettingsPath from '@components/SettingsPath.astro';
 import KeyCap from '@components/KeyCap.astro';
 
-The **To-do list** tool keeps your tasks in the keyboard, a tap away from whatever app you are writing in. Each task has a box to tick and can hold steps under it: "Plan the trip" with "Book the train" and "Pack" below, each ticked on its own. The same list is in the settings app, where there is room to set a due date. Both write one file, so a task added on the keyboard is in the app when you get there, and the other way round.
+The **To-do list** tool keeps your tasks in the keyboard, a tap away from whatever app you are writing in. Each task has a box to tick and can hold steps under it: "Plan the trip" with "Book the train" and "Pack" below, each ticked on its own. The same list is in the settings app, where there is room to pick any date. Both write one file, so a task added on the keyboard is in the app when you get there, and the other way round.
 
 If you already keep your tasks on a CalDAV server, such as Nextcloud, the list can sync with one of its task lists through DAVx5. That is off until you set it up; see [Sync with a task app](#sync-with-a-task-app).
 
@@ -28,7 +28,7 @@ In the settings app the list is one tap from the tool's own page:
 
 Tap a task's box to tick it. A ticked task is struck through and sinks below the open ones. Ticking a task ticks the steps still open under it, and clearing a step's tick clears its task's tick too, since the task isn't finished after all.
 
-Press and hold a task to edit it. Its words go into the box, and **Delete**, **Type it** (which types the task into the field behind the keyboard), **Add a step** and **Cancel** sit under it. A delete shows an Undo bar for a few seconds. **Clear done** in the header deletes every ticked task and step at once, with the same Undo.
+Press and hold a task to edit it. Its words go into the box, and under it sit the quick dates, then **Delete**, **Type it** (which types the task into the field behind the keyboard), **Add a step** and **Cancel**. The quick dates are **Later today** (at least three hours on, at the next full hour, while that is still today), **This evening** (18:00, until then), **Tomorrow** and **Next week** (09:00 tomorrow, and 09:00 next Monday), and **No date** on a task that has one. A tap keeps any change to the words too. A delete shows an Undo bar for a few seconds. **Clear done** in the header deletes every ticked task and step at once, with the same Undo.
 
 The header counts what is left. **Hide done** leaves the ticked tasks out for this visit; <SettingsPath path="Tools / To-do list / Hide finished tasks in the keyboard" /> makes the panel always open that way.
 
@@ -44,7 +44,13 @@ Open tasks come first, the soonest due at the top and the ones with no date afte
 
 The list in the app works the same way with a phone-sized touch. The field at the top adds a task. Tap a task to open its steps and the **Add a step** row; tap its box to tick it. Hold a task, or a step, to edit its words, give it a due date or take the date off, or delete it. Swipe a row to the left to delete it; a long swipe deletes it at once, with an Undo. **Clear finished tasks** under the list does what the panel's Clear done does.
 
-A due date is a day. The keyboard shows it under the task, and an overdue one in the accent colour. A task synced from a task app can also have a due time, which the list shows as well. The to-do list has no reminders of its own.
+A date picked in the app is a day; one from the keyboard's quick dates, or from a task app, has a time as well. The keyboard shows it under the task, and an overdue one in the accent colour.
+
+## Reminders
+
+An open task with a date reminds you when it falls due: a notification with the task's words and a **Done** button that ticks it. A task with a time reminds at that time; a day-only one at 09:00 that day. Tapping the notification opens the tool's page in the settings app. A date moved later reminds again, a ticked task never does, and a date already past when it was set (an old one from a task app) stays quiet.
+
+Reminders need the keyboard's notifications allowed. To turn them off, or change how they sound, use the **To-do reminders** channel in the system's notification settings for WM Keyboard. Android 12 and later may deliver one a few minutes late unless the app is allowed to set exact alarms, the same grant the [clock's alarms](/tools/clock/) ask for. After a restart they come back once the phone is unlocked, and one that fell due while it was off shows then.
 
 ## Sync with a task app
 

@@ -3,8 +3,11 @@ package com.wasimaster.wmkeyboard.ime.todo
 import android.content.Context
 import com.wasimaster.wmkeyboard.core.settings.TodoSettings
 import com.wasimaster.wmkeyboard.core.todo.TaskApp
+import com.wasimaster.wmkeyboard.core.todo.TodoDue
+import com.wasimaster.wmkeyboard.core.todo.TodoDuePreset
 import com.wasimaster.wmkeyboard.core.todo.TodoProgress
 import com.wasimaster.wmkeyboard.core.todo.TodoProviderSync
+import com.wasimaster.wmkeyboard.core.todo.TodoReminders
 import com.wasimaster.wmkeyboard.core.todo.TodoStore
 import com.wasimaster.wmkeyboard.core.todo.TodoSyncResult
 import com.wasimaster.wmkeyboard.core.todo.TodoTask
@@ -85,6 +88,9 @@ sealed interface TodoAction {
 
     /** Types the task's text into the field. */
     data class Insert(val id: Long) : TodoAction
+
+    /** A quick due date for the task being edited (#995); its words are kept too. */
+    data class SetDue(val id: Long, val preset: TodoDuePreset) : TodoAction
     data object ClearDone : TodoAction
     data object ToggleHideDone : TodoAction
     data object Undo : TodoAction
@@ -222,6 +228,16 @@ internal class TodoController(
                 if (currentText() != null) endText()
                 insertText(task.text)
             }
+            is TodoAction.SetDue -> {
+                haptic()
+                val entry = currentText()
+                if (entry?.field == TodoTextField.EDIT && entry.ref == action.id) {
+                    keepEdit(entry)
+                    endText()
+                }
+                val at = TodoDue.at(action.preset, System.currentTimeMillis(), java.time.ZoneId.systemDefault())
+                change { it.setDue(action.id, at) }
+            }
             TodoAction.ClearDone -> change { s -> offerUndo(TodoUndo(cleared = true, tasks = s.clearDone())) }
             TodoAction.ToggleHideDone -> {
                 _state.update { it.copy(hideDone = !it.hideDone) }
@@ -256,6 +272,8 @@ internal class TodoController(
             block(s)
             s.save()
             publish()
+            // A tick, a date or a delete moves the next reminder (#995).
+            TodoReminders.rearm(app)
         }
         scheduleSync(delayMs = SYNC_AFTER_EDIT_MS)
     }
@@ -333,6 +351,8 @@ internal class TodoController(
                 val s = store ?: attach() ?: return@withContext
                 result = TodoProviderSync.sync(app, s, taskApp, config.syncListId)
                 publish()
+                // A task app's dates remind too.
+                TodoReminders.rearm(app)
             }
             _state.update { it.copy(sync = TodoSyncUi(enabled = true, running = false, failed = result !is TodoSyncResult.Done)) }
         }

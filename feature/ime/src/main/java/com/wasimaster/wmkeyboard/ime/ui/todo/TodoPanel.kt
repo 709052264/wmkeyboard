@@ -56,6 +56,8 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ExpandMore
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Sync
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
+import com.wasimaster.wmkeyboard.core.todo.TodoDue
+import com.wasimaster.wmkeyboard.core.todo.TodoDuePreset
 import com.wasimaster.wmkeyboard.core.todo.TodoTask
 import com.wasimaster.wmkeyboard.ime.FocusRegion
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
@@ -279,6 +281,13 @@ private fun TypingBody(ui: TodoUi, entry: TodoTextEntry, act: (TodoAction) -> Un
                     modifier = Modifier.horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
+                    // Quick due dates (#995): the task reminds at the time.
+                    val task = ui.rows.firstNotNullOfOrNull { row ->
+                        if (row.task.id == entry.ref) row.task else row.steps.firstOrNull { it.id == entry.ref }
+                    }
+                    for (preset in TodoDue.offered(System.currentTimeMillis(), java.time.ZoneId.systemDefault(), task?.due != null)) {
+                        ToolPanelChip(stringResource(duePresetLabel(preset))) { act(TodoAction.SetDue(entry.ref, preset)) }
+                    }
                     ToolPanelChip(stringResource(R.string.ime_todo_delete_action)) { act(TodoAction.Delete(entry.ref)) }
                     ToolPanelChip(stringResource(R.string.ime_todo_insert_action)) { act(TodoAction.Insert(entry.ref)) }
                     if (isTop) {
@@ -408,6 +417,15 @@ private fun TaskLine(
         }
         trailing()
     }
+}
+
+/** The chip's words for a quick due date (#995). */
+private fun duePresetLabel(preset: TodoDuePreset): Int = when (preset) {
+    TodoDuePreset.LATER_TODAY -> R.string.ime_todo_due_later
+    TodoDuePreset.THIS_EVENING -> R.string.ime_todo_due_evening
+    TodoDuePreset.TOMORROW -> R.string.ime_todo_due_tomorrow
+    TodoDuePreset.NEXT_WEEK -> R.string.ime_todo_due_next_week
+    TodoDuePreset.NO_DATE -> R.string.ime_todo_due_none
 }
 
 @Composable

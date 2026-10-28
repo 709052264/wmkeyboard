@@ -1518,6 +1518,13 @@
             android:name="com.wasimaster.wmkeyboard.core.plugins.PluginReminderReceiver"
             android:exported="false" />
 
+        <!-- The to-do list's reminders and their Done button (#995). Not
+             exported, and not direct-boot aware: the list stays locked until
+             the first unlock, which re-arms (TodoReminders.rearmOnStart). -->
+        <receiver
+            android:name="com.wasimaster.wmkeyboard.core.todo.TodoReminderReceiver"
+            android:exported="false" />
+
         <!-- Plays an alarm or a timer while it rings, and only then. -->
         <service
             android:name="com.wasimaster.wmkeyboard.core.clock.ClockRingService"

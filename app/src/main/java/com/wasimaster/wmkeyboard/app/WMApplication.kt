@@ -166,6 +166,8 @@ open class WMApplication : Application() {
         // The same for the reminders plugins set, for the same reason. Free
         // for anyone with no plugin that declares reminders.
         com.wasimaster.wmkeyboard.core.plugins.PluginReminderAlarms.rearmOnStart(this)
+        // And the to-do list's (#995). Free for anyone with no list.
+        com.wasimaster.wmkeyboard.core.todo.TodoReminders.rearmOnStart(this)
     }
 }
 

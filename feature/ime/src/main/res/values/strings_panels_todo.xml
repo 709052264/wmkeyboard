@@ -23,6 +23,12 @@
     <!-- %1$s is the task the step goes under. -->
     <string name="ime_todo_step_info">A step of <xliff:g id="task" example="Plan the trip">%1$s</xliff:g>. Enter adds it and leaves the box open for the next one.</string>
     <string name="ime_todo_delete_action">Delete</string>
+    <!-- Quick due dates on a task being edited (#995). The task reminds at that time. -->
+    <string name="ime_todo_due_later">Later today</string>
+    <string name="ime_todo_due_evening">This evening</string>
+    <string name="ime_todo_due_tomorrow">Tomorrow</string>
+    <string name="ime_todo_due_next_week">Next week</string>
+    <string name="ime_todo_due_none">No date</string>
     <!-- Types the task's words into the text field the keyboard is typing into. -->
     <string name="ime_todo_insert_action">Type it</string>
     <string name="ime_todo_add_step_action">Add a step</string>
@@ -37,7 +43,7 @@
     <string name="ime_todo_overdue_label">Overdue since <xliff:g id="when" example="24 Oct, 09:00">%1$s</xliff:g></string>
     <string name="ime_todo_empty">Nothing to do</string>
     <string name="ime_todo_empty_hidden">Nothing left to do</string>
-    <string name="ime_todo_empty_hint">Tap a task to see its steps. Press and hold one to edit or delete it.</string>
+    <string name="ime_todo_empty_hint">Tap a task to see its steps. Press and hold one to edit it, give it a date or delete it.</string>
     <string name="ime_todo_undo_deleted">Task deleted</string>
     <plurals name="ime_todo_undo_cleared">
         <item quantity="one">%1$d finished task cleared</item>

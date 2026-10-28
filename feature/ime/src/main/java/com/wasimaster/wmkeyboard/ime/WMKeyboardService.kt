@@ -5683,6 +5683,8 @@ open class WMKeyboardService : InputMethodService() {
         // read, so the wake-up for the next reminder is registered only now.
         PluginStore.attach(this)
         PluginReminderAlarms.rearmOnStart(this)
+        // The to-do list's reminders (#995), unreadable until now for the same reason.
+        com.wasimaster.wmkeyboard.core.todo.TodoReminders.rearmOnStart(this)
         stickerPackStore = com.wasimaster.wmkeyboard.core.stickers.StickerPackStore.get(this)
         gifCollections = com.wasimaster.wmkeyboard.core.tools.GifCollections.get(this)
         com.wasimaster.wmkeyboard.core.tools.offlinegif.OfflineGifPacks.attach(filesDir)
