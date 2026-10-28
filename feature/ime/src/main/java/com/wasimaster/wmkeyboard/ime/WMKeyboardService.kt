@@ -23010,7 +23010,7 @@ open class WMKeyboardService : InputMethodService() {
         clearAiSuggest()
         val state = _uiState.value
         if (!AiContinuation.allowed(aiSuggestField(state)) ||
-            state.panel != PanelMode.NONE || state.composer.isConversion
+            state.panel != PanelMode.NONE || readingInBuffer(state)
         ) {
             return
         }
@@ -23022,7 +23022,7 @@ open class WMKeyboardService : InputMethodService() {
             // can have arrived without a keystroke to cancel this.
             val still = _uiState.value
             if (seq != aiSuggestSeq || !AiContinuation.allowed(aiSuggestField(still)) ||
-                still.panel != PanelMode.NONE || still.composer.isConversion
+                still.panel != PanelMode.NONE || readingInBuffer(still)
             ) {
                 return@launch
             }
@@ -23045,13 +23045,29 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * Whether a conversion layout has a reading waiting in its buffer, when
+     * the strip is the candidate list and a continuation would fight it for
+     * the row. Not the layout alone (#990): once the reading is committed the
+     * strip is back to plain suggestions, and Chinese and Japanese want a
+     * continuation there as much as English does.
+     */
+    private fun readingInBuffer(state: KeyboardUiState): Boolean =
+        state.composer.isConversion && composing.isNotEmpty()
+
+    /**
      * One continuation of [context], or null when none arrived in
      * [AiContinuation.TIMEOUT_MS], the text moved on, or
      * [AiContinuation.accept] turned the answer down. Blocking; call off the
      * main thread.
      */
     private fun requestAiContinuation(context: String, settings: KeyboardSettings, seq: Int): String? {
-        val deadline = SystemClock.uptimeMillis() + AiContinuation.TIMEOUT_MS
+        // Thinking is asked off below, but not every provider can turn it off
+        // (#991: DeepSeek's default model reasons regardless, OpenAI's go no
+        // lower than "low"), and the think block comes out of the same budget
+        // as the answer.
+        val reasons = settings.ai.provider != AiProvider.ON_DEVICE && AiClient.expectsReasoning(settings.ai)
+        val deadline = SystemClock.uptimeMillis() +
+            if (reasons) AiContinuation.REASONING_TIMEOUT_MS else AiContinuation.TIMEOUT_MS
         val alive = { seq == aiSuggestSeq && SystemClock.uptimeMillis() < deadline }
         val answer = if (settings.ai.provider == AiProvider.ON_DEVICE) {
             // The phone's model cannot be stopped part way, so one request at
@@ -23073,10 +23089,11 @@ open class WMKeyboardService : InputMethodService() {
             }
         } else {
             AiClient.completeStreaming(
-                config = AiClient.config(settings.ai),
+                // A few words do not need a model to think first.
+                config = AiClient.config(settings.ai).copy(reasoning = false),
                 system = AiContinuation.prompt(),
                 user = context,
-                maxTokens = AiContinuation.MAX_TOKENS,
+                maxTokens = if (reasons) AiContinuation.REASONING_MAX_TOKENS else AiContinuation.MAX_TOKENS,
                 onPhase = {},
                 onPartial = {},
                 isActive = alive,

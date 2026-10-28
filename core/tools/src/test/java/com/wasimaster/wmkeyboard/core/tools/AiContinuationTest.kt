@@ -45,6 +45,29 @@ class AiContinuationTest {
     }
 
     @Test
+    fun hanAndKanaEndAWord() {
+        // #990: Chinese and Japanese type no space, so a committed conversion
+        // is the end of a word; Korean spaces its words, so Hangul is not.
+        assertTrue(AiContinuation.atWordBoundary("你好"))
+        assertTrue(AiContinuation.atWordBoundary("ありがとう"))
+        assertTrue(AiContinuation.atWordBoundary("コーヒー"))
+        assertFalse(AiContinuation.atWordBoundary("안녕"))
+    }
+
+    @Test
+    fun twoHanCharactersAreEnoughContext() {
+        assertEquals("你好", AiContinuation.context("你好", 120, wordOnly = false))
+        assertNull(AiContinuation.context("你", 120, wordOnly = false))
+    }
+
+    @Test
+    fun hanTakesNoSpaceInFrontOfTheContinuation() {
+        assertEquals("吗", AiContinuation.insertion("你好", "吗"))
+        assertEquals("世界", AiContinuation.insertion("hello", "世界"))
+        assertEquals(" world", AiContinuation.insertion("hello", "world"))
+    }
+
+    @Test
     fun contextIsTheTailCutToAWholeWord() {
         val before = "The quick brown fox jumps over the "
         assertEquals("The quick brown fox jumps over the", AiContinuation.context(before, 120, wordOnly = false))

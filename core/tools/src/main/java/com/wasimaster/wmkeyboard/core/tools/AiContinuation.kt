@@ -29,6 +29,17 @@ object AiContinuation {
     const val MAX_TOKENS = 32
 
     /**
+     * The ceiling for a model that reasons before it answers and cannot be
+     * told not to (#991). The think block comes out of the same budget, and at
+     * [MAX_TOKENS] it used the lot before the answer began, so the chip never
+     * showed.
+     */
+    const val REASONING_MAX_TOKENS = 512
+
+    /** [TIMEOUT_MS] for such a model: its reasoning streams before the answer. */
+    const val REASONING_TIMEOUT_MS = 5_000L
+
+    /**
      * Read past the context the user allowed, so [context] can tell a tail it
      * cut from a field that is simply short, and start on a whole word.
      */
@@ -65,10 +76,46 @@ object AiContinuation {
      * Whether [before] ends on a word boundary: the last character typed is a
      * space or punctuation, not the middle of a word. A request in the middle
      * of a word would race the dictionary for the same few letters.
+     *
+     * Han and kana end a word too (#990): Chinese and Japanese put no space
+     * between words, and those characters only reach the field once the
+     * keyboard has committed a whole conversion, so there is no half-typed
+     * word left to race. Hangul is not among them: Korean spaces its words,
+     * and a syllable is as often the middle of one as its end.
      */
     fun atWordBoundary(before: String): Boolean {
         val last = before.lastOrNull() ?: return false
+        if (isSpacelessScript(before.codePointBefore(before.length))) return true
         return last.isWhitespace() || (!last.isLetterOrDigit() && last != '\'' && last != '’' && last != '-')
+    }
+
+    /** Han, Hiragana or Katakana: scripts written with no spaces between words. */
+    private fun isSpacelessScript(codePoint: Int): Boolean =
+        when (Character.UnicodeScript.of(codePoint)) {
+            Character.UnicodeScript.HAN,
+            Character.UnicodeScript.HIRAGANA,
+            Character.UnicodeScript.KATAKANA,
+            -> true
+            else -> false
+        }
+
+    /**
+     * How much [text] says, for [MIN_CONTEXT_CHARS]: a letter or digit counts
+     * one, a Han or kana character two, since 你好 is already two words.
+     */
+    private fun weight(text: String): Int {
+        var total = 0
+        var i = 0
+        while (i < text.length) {
+            val cp = text.codePointAt(i)
+            total += when {
+                isSpacelessScript(cp) -> 2
+                Character.isLetterOrDigit(cp) -> 1
+                else -> 0
+            }
+            i += Character.charCount(cp)
+        }
+        return total
     }
 
     /**
@@ -91,7 +138,7 @@ object AiContinuation {
                 tail
             }
         }
-        return text.takeIf { t -> t.count { it.isLetterOrDigit() } >= MIN_CONTEXT_CHARS }
+        return text.takeIf { weight(it) >= MIN_CONTEXT_CHARS }
     }
 
     /**
@@ -141,13 +188,16 @@ object AiContinuation {
 
     /**
      * [continuation] as it goes into the field after [before]: with a space in
-     * front of it unless the text already ends on one, or the continuation
-     * starts on punctuation that hangs off the word before it.
+     * front of it unless the text already ends on one, the continuation
+     * starts on punctuation that hangs off the word before it, or either side
+     * is Han or kana, which take no space (#990).
      */
     fun insertion(before: String, continuation: String): String {
         val last = before.lastOrNull()
         val first = continuation.firstOrNull() ?: return continuation
-        val needsSpace = last != null && !last.isWhitespace() &&
+        val spaceless = last != null && isSpacelessScript(before.codePointBefore(before.length)) ||
+            isSpacelessScript(continuation.codePointAt(0))
+        val needsSpace = last != null && !last.isWhitespace() && !spaceless &&
             (first.isLetterOrDigit() || first == '(' || first == '"' || first == '“')
         return if (needsSpace) " $continuation" else continuation
     }
