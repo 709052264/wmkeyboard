@@ -8110,6 +8110,7 @@ open class WMKeyboardService : InputMethodService() {
                     ?.let { editorInfo -> EditorInfoCompat.getContentMimeTypes(editorInfo).toList() }
                     .orEmpty(),
                 secureField = secure,
+                passwordManagerApp = if (secure) passwordManagerApp() else null,
                 deviceLocked = deviceLocked,
                 // Against the layout this field opens on: the state still holds
                 // the last field's script until this update lands.
@@ -19263,6 +19264,40 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * The app behind the phone's autofill service (#1003), by its label, when
+     * there is one with a screen to open and the chip is on. Read at the start
+     * of a password field, off the settings and the package manager alone.
+     */
+    private fun passwordManagerApp(): String? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) return null
+        if (!_uiState.value.settings.suggestionSources.passwordManagerChip) return null
+        val pkg = passwordManagerPackage() ?: return null
+        return runCatching {
+            packageManager.getApplicationLabel(packageManager.getApplicationInfo(pkg, 0)).toString()
+        }.getOrNull()
+    }
+
+    private fun passwordManagerPackage(): String? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) return null
+        val service = runCatching {
+            getSystemService(android.view.autofill.AutofillManager::class.java)?.autofillServiceComponentName
+        }.getOrNull() ?: return null
+        return service.packageName.takeIf { packageManager.getLaunchIntentForPackage(it) != null }
+    }
+
+    /**
+     * The chip was tapped (#1003): the manager's app opens over this one, to
+     * unlock and copy a password. What it copies comes back on the strip's
+     * paste chip, and a copy made in a password field stays masked there.
+     */
+    private fun openPasswordManager() {
+        val pkg = passwordManagerPackage() ?: return
+        val launch = packageManager.getLaunchIntentForPackage(pkg) ?: return
+        vibrate()
+        runCatching { startActivity(launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+    }
+
+    /**
      * An ask-first chip on the strip was answered.
      *
      * One entry point for all of them — the snippet offer, the add-word offer,
@@ -19283,6 +19318,14 @@ open class WMKeyboardService : InputMethodService() {
         }
         if (action == StripOfferAction.ToggleTraditional) {
             onTraditionalOutputToggle()
+            return
+        }
+        if (action == StripOfferAction.OpenPasswordManager) {
+            openPasswordManager()
+            return
+        }
+        if (action == StripOfferAction.DismissPasswordManager) {
+            _uiState.update { it.copy(passwordManagerApp = null) }
             return
         }
         if (_uiState.value.learnOffer != null) {
@@ -19354,7 +19397,9 @@ open class WMKeyboardService : InputMethodService() {
             StripOfferAction.Back -> onSnippetOfferBack()
             StripOfferAction.Decline -> clearSnippetOffer()
             StripOfferAction.Explain -> Unit
-            StripOfferAction.ToggleAnsi, StripOfferAction.ToggleZawgyi, StripOfferAction.ToggleTraditional -> Unit
+            StripOfferAction.ToggleAnsi, StripOfferAction.ToggleZawgyi, StripOfferAction.ToggleTraditional,
+            StripOfferAction.OpenPasswordManager, StripOfferAction.DismissPasswordManager,
+            -> Unit
         }
     }
 

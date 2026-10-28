@@ -2898,6 +2898,11 @@ data class SuggestionSourceSettings(
      * toggle, [SuggestionStripSettings.systemSmartReplies].
      */
     val inlineAutofill: Boolean = true,
+    /**
+     * In a password field with no saved login on the strip, a chip that opens
+     * the phone's password manager to copy one from (#1003).
+     */
+    val passwordManagerChip: Boolean = true,
 ) {
     /**
      * Every word blocked while [languageId] is being typed: the global list
@@ -10850,6 +10855,7 @@ class SettingsRepository(private val context: Context) {
         private val LEARN_FROM_TEXT_PAIRS = booleanPreferencesKey("learn_from_text_pairs")
         private val INLINE_EMOJI_SEARCH = booleanPreferencesKey("inline_emoji_search")
         private val INLINE_AUTOFILL = booleanPreferencesKey("inline_autofill")
+        private val PASSWORD_MANAGER_CHIP = booleanPreferencesKey("password_manager_chip")
         private val GESTURE_TYPING = booleanPreferencesKey("gesture_typing")
         private val LETTER_SWIPE_ACTION = stringPreferencesKey("letter_swipe_action")
         private val GESTURE_SPACE_MULTI_WORD = booleanPreferencesKey("gesture_space_multi_word")
@@ -12866,6 +12872,7 @@ class SettingsRepository(private val context: Context) {
             inlineEmojiSearch = p[INLINE_EMOJI_SEARCH]
                 ?: defaults.suggestionSources.inlineEmojiSearch,
             inlineAutofill = p[INLINE_AUTOFILL] ?: defaults.suggestionSources.inlineAutofill,
+            passwordManagerChip = p[PASSWORD_MANAGER_CHIP] ?: defaults.suggestionSources.passwordManagerChip,
         )
 
     private fun readGesture(p: Preferences, defaults: KeyboardSettings) =
@@ -19985,6 +19992,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setInlineAutofill(value: Boolean) =
         editPrefs { it[INLINE_AUTOFILL] = value }
+
+    suspend fun setPasswordManagerChip(value: Boolean) =
+        editPrefs { it[PASSWORD_MANAGER_CHIP] = value }
 
     suspend fun setGestureTyping(value: Boolean) =
         editPrefs { it[GESTURE_TYPING] = value }

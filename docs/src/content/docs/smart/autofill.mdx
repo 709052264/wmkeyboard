@@ -42,6 +42,12 @@ The feature needs Android 11 (API 30) or newer. On older versions, the setting d
 
 Both sides have to opt in. The keyboard declares that it can host inline suggestions, and your password manager has to support them too. If either half is missing, Android falls back to the manager's own dropdown drawn over the keyboard.
 
+### When nothing comes up
+
+<SettingsPath path="Typing / Suggestions / Password manager button" />
+
+Some apps and sites never ask Android to autofill their login screen, so neither chips nor a dropdown appear. A keyboard can't make that request for them: only the app can. What the keyboard can do is open the manager. In a password field with nothing from the manager on the strip, a button names the password manager set as your system autofill service, **Open Bitwarden** for example. Tap it, unlock the manager and copy the password; back in the field, the [paste chip](/smart/chips/) offers it, masked. The ✕ hides the button for that field. It doesn't appear in a PIN or code box, or while a one-time code is on offer. On by default, Android 9 and later, and only with a password manager chosen in Android's autofill settings.
+
 ## Smart replies
 
 When you tap into a reply box in a messaging app, Android System Intelligence may offer a few one-tap answers to whatever's on screen. Up to three of them appear at a time, and they're drawn by the system, not by the keyboard, the same way password manager chips are.

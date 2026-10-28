@@ -3725,6 +3725,9 @@ private fun TopBar(
         // only ever be seen by someone who had turned the suggestion bar on
         // permanently.
         state.autofillChips.isNotEmpty() || state.smartReplyChips.isNotEmpty() ||
+        // The password manager chip (#1003), for the same reason: it is up
+        // exactly when a login field has nothing else on the strip.
+        state.showsPasswordManagerChip() ||
         // A Chinese reading kept out of the field (#973) is drawn here and
         // nowhere else, so it holds the row even before a candidate is found.
         (state.composingPreview.isNotEmpty() && state.readingInKeyboard())
@@ -4533,6 +4536,21 @@ private fun RowScope.StripOfferChips(
                 modifier = Modifier.size(18.dp),
             )
         }
+        return true
+    }
+    // No saved login came up by itself in a password field (#1003): the
+    // keyboard cannot ask the autofill service for one, only the app can, so
+    // the chip opens the manager to copy one from instead.
+    val passwordManager = state.passwordManagerApp
+    if (passwordManager != null && state.showsPasswordManagerChip()) {
+        OfferChip(
+            label = stringResource(R.string.ime_password_manager_chip, passwordManager),
+            icon = Icons.Outlined.Password,
+            declineDescription = stringResource(R.string.ime_password_manager_dismiss_desc),
+            onAccept = { onStripOfferAction(StripOfferAction.OpenPasswordManager) },
+            onDecline = { onStripOfferAction(StripOfferAction.DismissPasswordManager) },
+            modifier = Modifier.padding(horizontal = 4.dp),
+        )
         return true
     }
     // A dead key is armed: show which accent the next letter will
@@ -32880,3 +32898,10 @@ private fun KeyboardSettings.applyLayoutSizing(sizing: LayoutAppearance?): Keybo
         },
     )
 }
+
+/**
+ * Whether the password manager chip (#1003) is up: a text password field, so
+ * not a PIN or a code box, with no one-time code on offer for it.
+ */
+internal fun KeyboardUiState.showsPasswordManagerChip(): Boolean =
+    secureField && passwordManagerApp != null && fieldKind == FieldKind.TEXT && otpSuggestion == null

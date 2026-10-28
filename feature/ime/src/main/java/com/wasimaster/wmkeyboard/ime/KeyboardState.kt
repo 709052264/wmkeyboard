@@ -2606,6 +2606,12 @@ sealed interface StripOfferAction {
 
     /** The 繁 button beside the candidates on a Chinese or Cantonese layout (#962), the same kind of button as [ToggleAnsi]. */
     data object ToggleTraditional : StripOfferAction
+
+    /** The password manager chip in a password field (#1003): open the manager's app. */
+    data object OpenPasswordManager : StripOfferAction
+
+    /** The same chip's ✕: not in this field. */
+    data object DismissPasswordManager : StripOfferAction
 }
 
 /**
@@ -3413,6 +3419,14 @@ data class KeyboardUiState(
      * These take the whole strip while they are up.
      */
     val autofillChips: List<android.view.View> = emptyList(),
+    /**
+     * The app of the phone's autofill service (#1003), by name, while the
+     * field is a password field and the chip for it is on; null otherwise.
+     * The keyboard cannot ask the service to fill a field, only the app can,
+     * so when no saved login comes up by itself the chip opens the manager
+     * to copy one from.
+     */
+    val passwordManagerApp: String? = null,
     /**
      * Smart replies and other platform-sourced chips off the same inline
      * suggestions API, inflated by Android System Intelligence rather than an

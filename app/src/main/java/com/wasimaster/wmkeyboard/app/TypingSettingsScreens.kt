@@ -1169,6 +1169,15 @@ internal fun TypingSuggestionsSettings(
                 default = SettingsDefaults.suggestionSources.inlineAutofill,
             ) { scope.launch { repository.setInlineAutofill(it) } }
         }
+        item(visible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P, level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.typing_password_manager_chip_title,
+                stringResource(R.string.typing_password_manager_chip_subtitle),
+                settings.watch { it.suggestionSources.passwordManagerChip },
+                info = stringResource(R.string.typing_password_manager_chip_info),
+                default = SettingsDefaults.suggestionSources.passwordManagerChip,
+            ) { scope.launch { repository.setPasswordManagerChip(it) } }
+        }
         item(visible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R, level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.typing_smart_replies_title,
