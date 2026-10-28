@@ -133,7 +133,7 @@
 		("kf" (set CnstID 39) (set CmpdCnstFlag 0) "ক্ষ")
 		("zf" (set CnstID 190) (set CmpdCnstFlag 0) "্য")
 		("rr" (set CnstID 187) (set CmpdCnstFlag 1) "রর")
-		("gg" (set CnstID 188) (set CmpdCnstFlag 1) (set Cnst1 3) (set Cnst2 3) "জ্ঞ")
+		("gg" (set CnstID 188) (set CmpdCnstFlag 1) "জ্ঞ")
 	)
 	(kar
 		("o" "")
@@ -241,14 +241,11 @@
 		("." "।")
 		(".." ".")
 		("..." "..")
-		("...." "...")
-		("....." "....")
-		("......" ".....")
-		("......." "......")
+		("...." (set overflow 1) "...")
 
 		("$" "৳")
 		("$f" "₹")
-		(",,," ",,")
+		(",,," (set overflow 2) ",,")
 		(".f" "॥")
 		(".ff" "৺")
 		("+" "+")
@@ -258,6 +255,12 @@
 		("$$" "$")
 		("=" "=")
 		("=f" "≠")
+	)
+	(dot
+		("." ".")
+	)
+	(comma
+		("," ",")
 	)
 	(prithayok
 		(";" ";")
@@ -403,7 +406,14 @@
 		(fkar (commit)  (shift shor_state))
 		(prithayok (commit) )
 		(ongko )
-		(biram (shift shor_state)) ;; কারণ, যাতে বিরামের মাঝে পৃথায়ক ব্যবহার করা যায়।
+		(biram
+			(cond
+				((= overflow 1) (shift dot_state))
+				((= overflow 2) (shift comma_state))
+				(1 (shift init))
+			)
+		)
+		;; কারণ, যাতে বিরামের মাঝে পৃথায়ক ব্যবহার করা যায়।
 		(byanjon
 			(set Cnst1 CnstID) (set CnstBufr 1) (mark cstm1) (mark cstm2) (mark cstm3) (mark cstm4) (set Cnst2 0) (set Cnst3 0) (set Cnst4 0) (shift byanjon_state)
 		)
@@ -426,7 +436,14 @@
 		)
 		(shor )
 		(fkar )
-		(biram ) ;; কারণ, যাতে বিরামের মাঝে পৃথায়ক ব্যবহার করা যায়।
+		(biram
+			(cond
+				((= overflow 1) (shift dot_state))
+				((= overflow 2) (shift comma_state))
+				(1 (shift init))
+			)
+		)
+		;; কারণ, যাতে বিরামের মাঝে পৃথায়ক ব্যবহার করা যায়।
 		(prithayok (delete @-)  (shift init) )
 		(ongko (shift init))
 		(byanjon
@@ -438,7 +455,14 @@
 	(byanjon_state
 		(prithayok (delete @-)  (shift init))
 		(ongko  (shift init))
-		(biram  (shift shor_state)) ;; কারণ, যাতে বিরামের মাঝে পৃথায়ক ব্যবহার করা যায়।
+		(biram
+			(cond
+				((= overflow 1) (shift dot_state))
+				((= overflow 2) (shift comma_state))
+				(1 (shift init))
+			)
+		)
+		;; কারণ, যাতে বিরামের মাঝে পৃথায়ক ব্যবহার করা যায়।
 		(kar
 			(cond
 				( (& (| (= Cnst1 27) (= Cnst1 187)) (= KAR 1)) (move @-) (move @-) (move @-) (insert "‍") (move @>) (set KAR 0) )  ;; র, রর ইত্যাদিতে অ্যা কার দেওয়ার জন্য
@@ -473,6 +497,8 @@
 			)
 
 			(cond
+				((& (= Cnst2 188)(= Cnst1 32)) (delete cstm2) (delete @-3) (insert "গঘ"))
+				((& (= Cnst2 5)(= Cnst1 32)) (delete cstm2) (delete @-1) (insert "নঘ"))
 				((& (= Cnst2 187)(= Cnst1 187)) (delete cstm2) (delete @-2) (insert "রররর") (reset_cnst_buffer_after_cnjnct))
 				((& (= Cnst2 187)(= Cnst1 189)) (delete cstm2) (delete @-2) (insert "রড়") (set CnstID 191) (reset_cnst_buffer_after_cnjnct))
 				((& (= Cnst2 191)(= Cnst1 189)) (delete cstm2) (delete @-2) (insert "রঢ়") (reset_cnst_buffer_after_cnjnct))
@@ -616,7 +642,7 @@
 						((&(= Cnst1 19) (= Fflag 0)) (delete cstm1) (delete @-) (insert "দহ") (move @-) (mark cstm2) (move @>) (mark cstm1) (set CnstBufr 2) (set Cnst2 18) (set Cnst1 32))
 						((&(= Cnst1 22) (= Fflag 0)) (delete cstm1) (delete @-) (insert "পহ") (move @-) (mark cstm2) (move @>) (mark cstm1) (set CnstBufr 2) (set Cnst2 21) (set Cnst1 32))
 						((&(= Cnst1 29) (= Fflag 0)) (delete cstm1) (delete @-) (insert "সহ") (move @-) (mark cstm2) (move @>) (mark cstm1) (set CnstBufr 2) (set Cnst2 31) (set Cnst1 32))
-						((&(= Cnst1 188) (= Fflag 0)) (delete cstm1) (delete @-3) (insert "গগ") (move @-) (mark cstm2) (move @>) (mark cstm1) (set CnstBufr 2) (set Cnst2 3) (set Cnst1 3))
+						((&(= Cnst1 188) (= Fflag 0)) (delete cstm1) (delete @-3) (insert "গ্‌গ") (move @-) (mark cstm2) (move @>) (mark cstm1) (set CnstBufr 2) (set Cnst2 3) (set Cnst1 3))
 						(1 (commit)(shift init))
 					)
 				)
@@ -632,7 +658,7 @@
 						((&(= Cnst1 19) (= Fflag 0)) (delete cstm1) (delete @-) (insert "দহ") (move @-) (mark cstm2) (move @>) (mark cstm1) (set CnstBufr 2) (set Cnst2 18) (set Cnst1 32))
 						((&(= Cnst1 22) (= Fflag 0)) (delete cstm1) (delete @-) (insert "পহ") (move @-) (mark cstm2) (move @>) (mark cstm1) (set CnstBufr 2) (set Cnst2 21) (set Cnst1 32))
 						((&(= Cnst1 29) (= Fflag 0)) (delete cstm1) (delete @-) (insert "সহ") (move @-) (mark cstm2) (move @>) (mark cstm1) (set CnstBufr 2) (set Cnst2 31) (set Cnst1 32))
-						((&(= Cnst1 188) (= Fflag 0)) (delete cstm1) (delete @-3) (insert "গগ") (move @-) (mark cstm2) (move @>) (mark cstm1) (set CnstBufr 2) (set Cnst2 3) (set Cnst1 3))
+						((&(= Cnst1 188) (= Fflag 0)) (delete cstm1) (delete @-3) (insert "গ্‌গ") (move @-) (mark cstm2) (move @>) (mark cstm1) (set CnstBufr 2) (set Cnst2 3) (set Cnst1 3))
 						(1 (delete @-2) (insert "ঁ") (shift shor_state))
 					)
 				)
@@ -715,6 +741,16 @@
 	)
 	(slash_state
 		(slash5)
+		(backspace)
+	)
+	(dot_state
+		(t (set overflow 0))
+		(dot (commit))
+		(backspace)
+	)
+	(comma_state
+		(t (set overflow 0))
+		(comma (commit))
 		(backspace)
 	)
 	(fusion_possible
