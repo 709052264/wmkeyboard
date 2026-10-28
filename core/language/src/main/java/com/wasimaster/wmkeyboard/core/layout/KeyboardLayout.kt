@@ -553,8 +553,13 @@ fun Key.holdIsSpokenFor(): Boolean = repeatOnHold || action.holdIsSpokenFor()
  * key owns its whole gesture, tap and flick and hold together, and a repeat has
  * nowhere to live inside it. That is a fact about the key rather than about
  * typing text, which is why it is here and not there.
+ *
+ * Any other key keeps its repeat beside flick arms (#865): a still hold
+ * repeats, and a flick that leaves the key before the repeat starts is an arm,
+ * as on the delete and arrow keys.
  */
-fun Key.canRepeatOnHold(): Boolean = flick.isEmpty() && flickActions.isEmpty() && action.canRepeatOnHold()
+fun Key.canRepeatOnHold(): Boolean =
+    (flick.isEmpty() || (action != KeyAction.Text && action !is KeyAction.KeymanKey)) && action.canRepeatOnHold()
 
 /**
  * Whether a held finger on this key fires it over and over.
@@ -994,7 +999,7 @@ sealed interface FlickArm {
  * Whether [Key.flickActions] work on this key (issue #549).
  *
  * Every key but the ones whose drag or hold is already the gesture: a braille
- * dot's chord, a component's cell, and a key told to repeat while held. A flick arm on one of those would either
+ * dot's chord and a component's cell. A flick arm on one of those would either
  * never be reached or take away what the key is for, so the editor does not
  * offer them and the keyboard does not read them.
  *
@@ -1007,14 +1012,16 @@ sealed interface FlickArm {
  *
  * So are the caret keys whose hold repeats (#865): a still hold still
  * repeats, and a flick before the repeat starts is an arm, word left or
- * right on an arrow, page up or down.
+ * right on an arrow, page up or down. A key its author told to repeat while
+ * held is one too (#865): the arrow row's keys are raw arrow key presses
+ * told to repeat, and they are the arrows people put word and page moves on.
  *
  * And so is the space bar (#863), on the delete key's terms: its swipes and
  * hold are its own, but an arm takes the directions it covers, and the swipes
  * keep the rest. No space on a flick of the space bar is the arm asked for.
  */
 fun Key.takesFlickActions(): Boolean =
-    action == KeyAction.Space || !holdIsSpokenFor() || action.deletesBackward() || action.deletesForward() ||
+    action == KeyAction.Space || !action.holdIsSpokenFor() || action.deletesBackward() || action.deletesForward() ||
         (action as? KeyAction.Edit)?.op?.repeats == true
 
 /**

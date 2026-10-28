@@ -61,7 +61,7 @@ class FlickArmTest {
     @Test
     fun `keys whose drag or hold is already the gesture take no action arms`() {
         val arms = mapOf(FlickDirection.LEFT to left)
-        assertFalse(Key("x", repeatOnHold = true, flickActions = arms).hasFlicks())
+        assertFalse(Key("", action = KeyAction.BrailleDot(1), flickActions = arms).hasFlicks())
         assertTrue(Key("", action = KeyAction.Shift, flickActions = arms).hasFlicks())
     }
 
@@ -91,6 +91,18 @@ class FlickArmTest {
         val arrow = Key("", action = KeyAction.Edit(TextEditAction.LEFT), flickActions = arms)
         assertTrue(arrow.hasFlicks())
         assertTrue(arrow.flickArm(FlickDirection.LEFT) is FlickArm.Action)
+    }
+
+    @Test
+    fun `a key told to repeat keeps its repeat and takes arms`() {
+        // Issue #865: the arrow row's ← is a raw arrow key press told to repeat.
+        val arms = mapOf(FlickDirection.LEFT to KeyAlternate(KeyAction.Edit(TextEditAction.WORD_LEFT)))
+        val arrow = Key("←", action = KeyAction.SendKey(21), repeatOnHold = true, flickActions = arms)
+        assertTrue(arrow.hasFlicks())
+        assertTrue(arrow.flickArm(FlickDirection.LEFT) is FlickArm.Action)
+        assertTrue(arrow.canRepeatOnHold())
+        // A kana pad key still owns its whole gesture.
+        assertFalse(Key("か", flick = mapOf(FlickDirection.LEFT to "き"), repeatOnHold = true).canRepeatOnHold())
     }
 
     @Test

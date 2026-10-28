@@ -29344,12 +29344,12 @@ private fun Modifier.pointerInputKey(
                 // A chord ran before the finger reached an arm: the lift is the chord's.
                 var chordWon = false
                 // A caret key with arms (#865) still repeats on a still hold,
-                // as it does without them; once it has, arms are off and the
+                // as it does without them; so does any key told to repeat, the
+                // arrow row's among them. Once it has, arms are off and the
                 // lift adds nothing.
                 var centreRepeated = false
-                val centreRepeat = if (key.action is KeyAction.Edit && key.holdRepeats() &&
-                    !key.opensAlternatesPopup()
-                ) {
+                val centreRepeat = if (key.holdRepeats() && !key.opensAlternatesPopup()) {
+                    val intervalMs = if (key.action is KeyAction.Edit) textEditing.repeatMs else keyRepeat.customKeyMs
                     scope.launch {
                         delay(keyRepeat.startDelayMs.toLong())
                         if (dir != null) return@launch
