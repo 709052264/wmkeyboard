@@ -10,8 +10,8 @@
 #   ANDROID_NDK=/path/to/ndk native/ctranslate2-jni/build.sh
 set -euo pipefail
 
-CT2_TAG=v4.8.3
-CT2_COMMIT=8d91aa08225004755360daa43deb62b35b1ed65d
+CT2_TAG=v4.8.4
+CT2_COMMIT=5de572ef60b67a0276c5989ee73d0072808ff4c3
 SPM_TAG=v0.2.2
 SPM_COMMIT=e0cce7d37b065b5140349dbe12c6bcf6192fdd78
 # The tag SentencePiece's own CMake would fetch (SPM_ABSL_PROVIDER=module).

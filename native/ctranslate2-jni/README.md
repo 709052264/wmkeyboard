@@ -28,7 +28,7 @@ pinned commits unless `CT2_SRC` and `SPM_SRC` point at checkouts of them
 
 | Source | Pin | Licence |
 |---|---|---|
-| OpenNMT/CTranslate2 | `v4.8.3`, `8d91aa08225004755360daa43deb62b35b1ed65d` | MIT |
+| OpenNMT/CTranslate2 | `v4.8.4`, `5de572ef60b67a0276c5989ee73d0072808ff4c3` | MIT |
 | its submodules `ruy` (+ `cpuinfo`), `spdlog` (bundles {fmt}), `cpu_features` | the commits that tag records | Apache-2.0 (+ BSD-2), MIT, Apache-2.0 |
 | google/sentencepiece | `v0.2.2`, `e0cce7d37b065b5140349dbe12c6bcf6192fdd78` (bundles protobuf-lite, darts-clone) | Apache-2.0 (BSD-3, BSD-2) |
 | abseil/abseil-cpp | `20260526.0`, `5650e9cf76d3be4318d5fa3af38ee483ddfd5e4a`, the tag SentencePiece's CMake fetches | Apache-2.0 |
@@ -68,7 +68,7 @@ them from Hugging Face only after the user accepts that licence
 | `-z max-page-size=16384` | 16 KB page devices |
 | `-ffile-prefix-map` for both source trees, the build directory and the NDK | the same bytes from any machine with NDK r29, which F-Droid's reproducible build relies on |
 
-Size, stripped, NDK r29: arm64-v8a 2,701,024 bytes, x86_64 3,053,168, the
+Size, stripped, NDK r29: arm64-v8a 2,745,040 bytes, x86_64 3,098,352, the
 armeabi-v7a stub 2,772.
 
 ## Contract with Kotlin
@@ -190,7 +190,7 @@ vocabulary. Rows kept:
 | Tamil | 5,748 | 2.2 % |
 | Thai | 5,242 | 2.0 % |
 
-CTranslate2 4.8.3 has a bug here that the bridge works around:
+CTranslate2 4.8.4 (like 4.8.3) has a bug here that the bridge works around:
 `update_output_layer` builds its reverse map (`_to_output_word_id`) with
 `emplace` and clears it only on the way back to the full vocabulary. Two
 different cuts in a row keep the first one's entries, so the forced target
