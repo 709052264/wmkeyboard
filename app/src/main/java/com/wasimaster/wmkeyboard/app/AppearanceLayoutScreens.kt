@@ -857,6 +857,15 @@ internal fun AppearanceToolboxSettings(
         }
         item(level = SettingLevel.STANDARD) {
             ToggleSetting(
+                R.string.appearance_toolbox_back_lowers_title,
+                stringResource(R.string.appearance_toolbox_back_lowers_subtitle),
+                settings.watch { it.toolbox.backLowersKeys },
+                info = stringResource(R.string.appearance_toolbox_back_lowers_info),
+                default = SettingsDefaults.toolbox.backLowersKeys,
+            ) { scope.launch { repository.setToolboxBackLowersKeys(it) } }
+        }
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
                 R.string.appearance_toolbox_search_button_title,
                 stringResource(R.string.appearance_toolbox_search_button_subtitle),
                 settings.watch { it.toolbox.searchButton },

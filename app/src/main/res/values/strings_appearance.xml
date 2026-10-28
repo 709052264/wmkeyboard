@@ -152,6 +152,9 @@
     <string name="appearance_toolbox_paginate_info">When this is off, the toolbox is one grid that scrolls up and down. When it is on, the toolbox becomes pages that you swipe between. Dots below the grid show your position. Every tool then keeps the same place, so you can find it from memory. To move a tool to another page, drag it and hold it against the side edge of the toolbox until the page turns.</string>
     <string name="appearance_toolbox_search_button_title">Toolbox search</string>
     <string name="appearance_toolbox_search_button_subtitle">A search button on the toolbar while the toolbox is open</string>
+    <string name="appearance_toolbox_back_lowers_title">Back puts a tool\'s keys down first</string>
+    <string name="appearance_toolbox_back_lowers_subtitle">The next Back closes the tool</string>
+    <string name="appearance_toolbox_back_lowers_info">With the keys up under a tool\'s own box, such as Translate or find and replace, the first Back takes the keys down so the whole tool shows, and the second closes the tool. Off, Back closes the tool at once. Either way, the keyboard button at the end of the box\'s suggestion strip puts the keys down.</string>
     <string name="appearance_toolbox_search_button_info">While the toolbox is open, the toolbar shows a search button. Tapping it opens the search over the whole keyboard, with a back button that returns to the toolbox. Type a tool\'s name to find it, wherever it is, folders included. Turn this off to leave the toolbox without a search.</string>
     <string name="appearance_toolbox_search_at_end_title">Search button at the far end</string>
     <string name="appearance_toolbox_search_at_end_subtitle">Put the toolbox search at the far end of the toolbar, away from the back button</string>

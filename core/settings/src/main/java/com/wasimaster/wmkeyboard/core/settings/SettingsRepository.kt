@@ -2287,6 +2287,13 @@ data class ToolboxSettings(
     val sort: ToolboxSort = ToolboxSort.CUSTOM,
     /** The order of the search's list before anything is typed into it. */
     val searchSort: ToolboxSort = ToolboxSort.CUSTOM,
+    /**
+     * Back puts a tool box's keys down first (#961), and only the next Back
+     * closes the tool. Off by default (#1004): one more press to leave every
+     * tool was a cost paid by everyone, for what the keyboard button at the
+     * end of the box's strip already does.
+     */
+    val backLowersKeys: Boolean = false,
 ) {
     /** The caption size to draw at, resolving 0 against the toolbar's setting. */
     fun labelSizeOr(toolbarLabelSize: Int): Int =
@@ -11767,6 +11774,7 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBOX_SEARCH_AT_END = booleanPreferencesKey("toolbox_search_at_end")
         private val TOOLBOX_SORT = stringPreferencesKey("toolbox_sort")
         private val TOOLBOX_SEARCH_SORT = stringPreferencesKey("toolbox_search_sort")
+        private val TOOLBOX_BACK_LOWERS_KEYS = booleanPreferencesKey("toolbox_back_lowers_keys")
         private val SUGGESTION_TEXT_SCALE = floatPreferencesKey("suggestion_text_scale")
         private val LEARNED_WORD_MIN_COUNT = intPreferencesKey("learned_word_min_count")
         private val NEW_WORD_SIGHTINGS = intPreferencesKey("new_word_sightings")
@@ -13913,6 +13921,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.toolbox.sort,
             searchSort = p[TOOLBOX_SEARCH_SORT]?.let { runCatching { ToolboxSort.valueOf(it) }.getOrNull() }
                 ?: defaults.toolbox.searchSort,
+            backLowersKeys = p[TOOLBOX_BACK_LOWERS_KEYS] ?: defaults.toolbox.backLowersKeys,
         )
 
     private fun readSensorTools(p: Preferences, defaults: KeyboardSettings) =
@@ -16073,6 +16082,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setToolboxSearchAtEnd(value: Boolean) =
         editPrefs { it[TOOLBOX_SEARCH_AT_END] = value }
+
+    suspend fun setToolboxBackLowersKeys(value: Boolean) =
+        editPrefs { it[TOOLBOX_BACK_LOWERS_KEYS] = value }
 
     suspend fun setToolboxSort(value: ToolboxSort) =
         editPrefs { it[TOOLBOX_SORT] = value.name }

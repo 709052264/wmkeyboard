@@ -50654,7 +50654,10 @@ open class WMKeyboardService : InputMethodService() {
             // it holds. The next Back does what it always did. Not the chat
             // composer or a plugin's box, whose own Back below already puts
             // the keys away and keeps what was typed.
-            state.panelFieldTarget() != CaptureTarget.AI_CHAT &&
+            // Only with the switch on (#1004): by default Back closes the tool
+            // as it did before, and the strip's keyboard button lowers the keys.
+            state.settings.toolbox.backLowersKeys &&
+                state.panelFieldTarget() != CaptureTarget.AI_CHAT &&
                 state.panelFieldTarget() != CaptureTarget.PLUGIN &&
                 captureKeysLowerable(state) -> ({ lowerCaptureKeys() })
             // Inner layers close before their panel, like the media sheet: a
