@@ -218,6 +218,11 @@
     <string name="voice_mic_switch_title">Microphone switch</string>
     <string name="voice_mic_switch_subtitle">Pick the microphone, and switch it from the voice panel</string>
     <string name="voice_mic_switch_info">On, you can choose a microphone below, and a button on the voice panel and both voice bars shows the microphone in use and switches to the next one that is connected.\n\nOff, voice typing always listens through the microphone Android picks. The keyboard does not move the audio to a headset, and the button is gone.</string>
+    <string name="voice_system_service_title">Recognition service</string>
+    <string name="voice_system_service_subtitle">Which app does the recognising</string>
+    <string name="voice_system_service_info">Any app on the phone that offers speech recognition to other apps can do it here: Marmalade, Transcribro, FUTO Voice Input and the like, as well as the phone\'s own. The phone\'s default is whichever one Android has set in its own voice input settings. Prefer on-device recognition only applies to that default.</string>
+    <string name="voice_system_service_default">Phone\'s default</string>
+    <string name="voice_system_service_missing">An app that is no longer installed</string>
     <string name="voice_system_on_device_title">Prefer on-device recognition</string>
     <string name="voice_system_on_device_subtitle">Use the speech model on your phone when it has one for the language</string>
     <string name="voice_system_on_device_info">On Android 12 and later the system recognizer can run on your phone when the language model is installed. If the model on the phone hears nothing at all, the keyboard switches that language to the recognizer service until the keyboard restarts.\n\nTurn this off to always use the recognizer service. That service can send the audio over the internet while you speak.</string>

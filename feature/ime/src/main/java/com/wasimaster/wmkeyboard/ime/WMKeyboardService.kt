@@ -31392,6 +31392,10 @@ open class WMKeyboardService : InputMethodService() {
             }
             return
         }
+        // Another app's recognition service, when the user picked one (#993).
+        voiceEngine.service = _uiState.value.settings.whisper.systemService
+            .takeIf { it.isNotBlank() }
+            ?.let(android.content.ComponentName::unflattenFromString)
         if (!server && onDevice == null && !voiceEngine.isAvailable()) {
             fail(VoiceStatus.UNAVAILABLE)
             return

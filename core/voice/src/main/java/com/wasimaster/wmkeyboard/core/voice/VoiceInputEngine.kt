@@ -1,7 +1,9 @@
 package com.wasimaster.wmkeyboard.core.voice
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.speech.RecognitionService
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -86,9 +88,22 @@ class VoiceInputEngine(private val context: Context) {
     /** Starts, or restarts, [resultCheck] for the session running now. */
     private var awaitResult: (() -> Unit)? = null
 
+    /**
+     * A recognition service the user picked by name (#993): another app's,
+     * such as Marmalade, Transcribro or FUTO Voice Input, in place of the one
+     * the phone has set as its default. Null is the default. A pick whose app
+     * has since gone is passed over for the default rather than failing.
+     */
+    var service: ComponentName? = null
+
+    /** [service], when its app still offers it. */
+    private fun pickedService(): ComponentName? =
+        service?.takeIf { picked -> recognitionServices(context).any { it.first == picked } }
+
     /** False on devices without any recognition service (no GMS). */
     fun isAvailable(): Boolean =
-        SpeechRecognizer.isRecognitionAvailable(context) ||
+        pickedService() != null ||
+            SpeechRecognizer.isRecognitionAvailable(context) ||
             (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
                 SpeechRecognizer.isOnDeviceRecognitionAvailable(context))
 
@@ -118,15 +133,16 @@ class VoiceInputEngine(private val context: Context) {
         alsoListenFor: List<String> = emptyList(),
     ) {
         cancel()
-        val onDevice = allowOnDevice &&
+        val picked = pickedService()
+        val onDevice = picked == null && allowOnDevice &&
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
             languageTag !in onDeviceFailedTags &&
             languageTag !in onDeviceStalledTags &&
             SpeechRecognizer.isOnDeviceRecognitionAvailable(context)
-        val session = if (onDevice) {
-            SpeechRecognizer.createOnDeviceSpeechRecognizer(context)
-        } else {
-            SpeechRecognizer.createSpeechRecognizer(context)
+        val session = when {
+            picked != null -> SpeechRecognizer.createSpeechRecognizer(context, picked)
+            onDevice -> SpeechRecognizer.createOnDeviceSpeechRecognizer(context)
+            else -> SpeechRecognizer.createSpeechRecognizer(context)
         }
         recognizer = session
         finishing = false
@@ -492,4 +508,20 @@ data class VoiceBiasRequest(val words: List<String>, val deviceContext: Boolean)
     companion object {
         val NONE = VoiceBiasRequest(emptyList(), deviceContext = false)
     }
+}
+
+/**
+ * Every recognition service installed on the phone (#993), with its label,
+ * the default among them. What the system recognizer's settings offer to pick
+ * from; the manifest's `<queries>` names the intent so Android 11 and later
+ * show them.
+ */
+fun recognitionServices(context: Context): List<Pair<ComponentName, String>> {
+    val pm = context.packageManager
+    return runCatching {
+        pm.queryIntentServices(Intent(RecognitionService.SERVICE_INTERFACE), 0).mapNotNull { info ->
+            val si = info.serviceInfo ?: return@mapNotNull null
+            ComponentName(si.packageName, si.name) to info.loadLabel(pm).toString()
+        }
+    }.getOrDefault(emptyList()).distinctBy { it.first }
 }

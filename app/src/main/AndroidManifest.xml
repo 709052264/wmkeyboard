@@ -245,6 +245,11 @@
              entry API 30+ hides it from PackageManager and the smart home tool
              would offer a Google Home row on a phone that cannot use one. -->
         <package android:name="com.google.android.apps.chromecast.app" />
+        <!-- Speech recognisers, so the phone's recognizer can be any app's
+             recognition service and not only the default (#993). -->
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
         <!-- Speech synthesisers, for the vocabulary card's speaker button when
              Wiktionary has no recording (or the network is not to be used). -->
         <intent>

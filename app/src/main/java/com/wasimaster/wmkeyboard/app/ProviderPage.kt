@@ -455,12 +455,34 @@ private fun SearxSettings(repository: SettingsRepository, settings: LiveSettings
     }
 }
 
-/** The phone's recognizer: whether it may go online. */
+/** The phone's recognizer: which app's service it is, and whether it may go online. */
 @Composable
 private fun SystemRecognizerSettings(repository: SettingsRepository, settings: LiveSettings) {
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val picked = settings.watch { it.whisper.systemService }
     SettingsGroup {
+        // #993: any app's recognition service, not only the phone's default.
         item(level = SettingLevel.STANDARD) {
+            val installed = remember { com.wasimaster.wmkeyboard.core.voice.recognitionServices(context) }
+            val defaultLabel = stringResource(R.string.voice_system_service_default)
+            val options = listOf("" to defaultLabel) +
+                installed.map { (component, label) -> component.flattenToString() to label } +
+                // A pick whose app has gone stays listed, so it can be changed back.
+                listOfNotNull(
+                    picked.takeIf { it.isNotBlank() && installed.none { (c, _) -> c.flattenToString() == it } }
+                        ?.let { it to stringResource(R.string.voice_system_service_missing) },
+                )
+            ChoiceSetting(
+                R.string.voice_system_service_title,
+                subtitle = stringResource(R.string.voice_system_service_subtitle),
+                info = stringResource(R.string.voice_system_service_info),
+                options = options,
+                selected = picked,
+                default = SettingsDefaults.whisper.systemService,
+            ) { scope.launch { repository.setVoiceSystemService(it) } }
+        }
+        item(level = SettingLevel.STANDARD, visible = picked.isBlank()) {
             ToggleSetting(
                 R.string.voice_system_on_device_title,
                 stringResource(R.string.voice_system_on_device_subtitle),

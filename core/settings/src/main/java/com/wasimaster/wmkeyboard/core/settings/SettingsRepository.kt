@@ -6341,6 +6341,13 @@ data class WhisperSettings(
      */
     val systemOnDevice: Boolean = true,
     /**
+     * The recognition service the system recognizer uses (#993), as a
+     * flattened component name: another app's, such as Marmalade or
+     * Transcribro, in place of the phone's default. Blank is the default,
+     * which is also what a pick whose app has gone falls back to.
+     */
+    val systemService: String = "",
+    /**
      * Language id → the engine, and maybe the model, dictation in that
      * language uses: `system`, `server`, `whistle`, `whisper`, or
      * `<engine>:<modelId>` for a pinned Whisper or ExecuTorch model. A
@@ -11560,6 +11567,7 @@ class SettingsRepository(private val context: Context) {
         private val VOICE_MIC_SWITCH = booleanPreferencesKey("voice_mic_switch")
         private val VOICE_ENGINE_PICKER = booleanPreferencesKey("voice_engine_picker")
         private val VOICE_SYSTEM_ON_DEVICE = booleanPreferencesKey("voice_system_on_device")
+        private val VOICE_SYSTEM_SERVICE = stringPreferencesKey("voice_system_service")
         private val VOICE_BY_LANG = stringPreferencesKey("voice_by_lang")
         private val VOICE_AI_TIDY = booleanPreferencesKey("voice_ai_tidy")
         private val VOICE_UI_RETURN_MODE = stringPreferencesKey("voice_ui_return_mode")
@@ -14027,6 +14035,7 @@ class SettingsRepository(private val context: Context) {
             serverPrompt = p[VOICE_SERVER_PROMPT] ?: defaults.whisper.serverPrompt,
             languages = p[VOICE_LANGUAGES]?.let(::decodeVoiceLanguages) ?: defaults.whisper.languages,
             systemOnDevice = p[VOICE_SYSTEM_ON_DEVICE] ?: defaults.whisper.systemOnDevice,
+            systemService = p[VOICE_SYSTEM_SERVICE] ?: defaults.whisper.systemService,
             voiceByLang = p[VOICE_BY_LANG]?.let { decodeWhisperModelByLang(it) } ?: defaults.whisper.voiceByLang,
         )
 
@@ -15465,6 +15474,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setVoiceSystemOnDevice(value: Boolean) =
         editPrefs { it[VOICE_SYSTEM_ON_DEVICE] = value }
+
+    suspend fun setVoiceSystemService(value: String) =
+        editPrefs { it[VOICE_SYSTEM_SERVICE] = value }
 
     /**
      * Gives [languageId] its own engine and model ([VoiceChoiceRef.encode]),
