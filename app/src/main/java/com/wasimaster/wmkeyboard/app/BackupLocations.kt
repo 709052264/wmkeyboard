@@ -577,25 +577,19 @@ private fun LocationEditorSheet(
             draft.sftp
         },
         nas = if (draft.nas.certPin.isEmpty() && !certForgotten && live?.nas?.server == draft.nas.server) {
-            draft.nas.copy(certPin = live?.nas?.certPin.orEmpty())
+            draft.nas.copy(certPin = live.nas.certPin)
         } else {
             draft.nas
         },
         // Tokens a backup refreshed while the sheet was open; signing out
         // here (an empty uid, no trust token) keeps the draft's.
         proton = if (draft.proton.uid.isNotEmpty() && live?.proton?.uid == draft.proton.uid) {
-            draft.proton.copy(
-                accessToken = live?.proton?.accessToken ?: draft.proton.accessToken,
-                refreshToken = live?.proton?.refreshToken ?: draft.proton.refreshToken,
-            )
+draft.proton.copy(accessToken = live.proton.accessToken, refreshToken = live.proton.refreshToken)
         } else {
             draft.proton
         },
         icloud = if (draft.icloud.trustToken.isNotEmpty() && live?.icloud?.trustedAtMs == draft.icloud.trustedAtMs) {
-            draft.icloud.copy(
-                cookies = live?.icloud?.cookies ?: draft.icloud.cookies,
-                trustToken = live?.icloud?.trustToken ?: draft.icloud.trustToken,
-            )
+draft.icloud.copy(cookies = live.icloud.cookies, trustToken = live.icloud.trustToken)
         } else {
             draft.icloud
         },

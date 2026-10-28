@@ -10,7 +10,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Lan
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudDone
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Devices
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Hub
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Inventory
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Inventory2
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudSync
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudQueue
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Layers
@@ -516,7 +516,7 @@ internal object ChoiceOptionIcons {
         put(BackupDestination.NEARBY) { Icons.Outlined.Phonelink }
         put(BackupDestination.BOX) { Icons.Outlined.CloudQueue }
         put(BackupDestination.PCLOUD) { Icons.Outlined.CloudSync }
-        put(BackupDestination.SYNOLOGY) { Icons.Outlined.Inventory }
+        put(BackupDestination.SYNOLOGY) { Icons.Outlined.Inventory2 }
         put(BackupDestination.QNAP) { Icons.Outlined.Hub }
         put(BackupDestination.NFS) { Icons.Outlined.Devices }
         put(BackupDestination.MEGA) { Icons.Outlined.Security }
