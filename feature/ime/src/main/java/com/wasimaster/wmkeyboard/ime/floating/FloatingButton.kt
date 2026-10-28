@@ -99,6 +99,9 @@ internal class FloatingButton(
 
         /** The keyboard's window, which a button over the keys is a panel of (#926); null while it has none. */
         fun keyboardWindowToken(): IBinder? = null
+
+        /** That window's top-left corner on screen, which a panel's x and y count from; null while it has none. */
+        fun keyboardWindowOrigin(): IntArray? = null
     }
 
     private var setting = SummonButtonSettings()
@@ -317,11 +320,21 @@ internal class FloatingButton(
         layout.x = if (idle && setting.tuck) tuckedX() else restX()
         val rest = (yFraction.coerceIn(0f, 1f) * roomY).roundToInt()
         val ceiling = ceiling()
-        layout.y = if (ceiling != null && rest > ceiling) ceiling.coerceAtLeast(0) else rest
-        if (roomX == 0) layout.x = 0
+        layout.y = (if (ceiling != null && rest > ceiling) ceiling.coerceAtLeast(0) else rest) - origin()[1]
+        if (roomX == 0) layout.x = -origin()[0]
     }
 
-    private fun restX(): Int = (xFraction.coerceIn(0f, 1f) * room().first).roundToInt()
+    /**
+     * Where the windows' x and y count from on screen. The screen's corner for
+     * an overlay; the keyboard window's for a panel over the keys (#926),
+     * which Android places inside its parent. Counted from the screen there,
+     * the button sat lower by the keyboard window's offset, and a drag saved
+     * that as where it was put, so it was somewhere else once the keyboard
+     * went.
+     */
+    private fun origin(): IntArray = if (onPanel) host.keyboardWindowOrigin() ?: NO_OFFSET else NO_OFFSET
+
+    private fun restX(): Int = (xFraction.coerceIn(0f, 1f) * room().first).roundToInt() - origin()[0]
 
     /** The lowest the button's window may sit, clear of a docked keyboard; null over the keys (#926) or with none. */
     private fun ceiling(): Int? =
@@ -332,7 +345,7 @@ internal class FloatingButton(
     /** Half the disc off the side it rests on. */
     private fun tuckedX(): Int {
         val hidden = dp(FLOATING_SHADOW_ROOM_DP + setting.sizeDp / 2f)
-        return if (onLeft) -hidden else room().first + hidden
+        return (if (onLeft) -hidden else room().first + hidden) - origin()[0]
     }
 
     /** How far the button's top-left corner can travel on each axis. */
@@ -1064,13 +1077,14 @@ internal class FloatingButton(
                 target.armed = armed
                 if (armed) haptic(HapticFeedbackConstants.LONG_PRESS)
             }
+            val (ox, oy) = origin().let { it[0] to it[1] }
             if (armed && center != null) {
-                layout.x = (center.x - windowPx / 2f).roundToInt()
-                layout.y = (center.y - windowPx / 2f).roundToInt()
+                layout.x = (center.x - windowPx / 2f).roundToInt() - ox
+                layout.y = (center.y - windowPx / 2f).roundToInt() - oy
             } else {
                 val (roomX, roomY) = room()
-                layout.x = (downX + dx.roundToInt()).coerceIn(0, roomX)
-                layout.y = (downY + dy.roundToInt()).coerceIn(0, roomY)
+                layout.x = (downX + dx.roundToInt()).coerceIn(-ox, roomX - ox)
+                layout.y = (downY + dy.roundToInt()).coerceIn(-oy, roomY - oy)
             }
             runCatching { windowManager.updateViewLayout(this, layout) }
         }
@@ -1090,9 +1104,11 @@ internal class FloatingButton(
                 return
             }
             val (roomX, roomY) = room()
-            val left = layout.x + windowPx / 2 < (roomX + windowPx) / 2
+            // Saved in the screen's terms, whichever window the button is.
+            val (screenX, screenY) = origin().let { layout.x + it[0] to layout.y + it[1] }
+            val left = screenX + windowPx / 2 < (roomX + windowPx) / 2
             xFraction = if (left) 0f else 1f
-            yFraction = if (roomY == 0) 0f else layout.y.toFloat() / roomY
+            yFraction = if (roomY == 0) 0f else screenY.toFloat() / roomY
             val ceiling = ceiling()
             if (ceiling != null && layout.y > ceiling) {
                 layout.y = ceiling.coerceAtLeast(0)
@@ -1181,6 +1197,7 @@ internal class FloatingButton(
 
         const val APPEAR_MS = 260L
         const val SNAP_MS = 260L
+        private val NO_OFFSET = IntArray(2)
         const val FADE_IN_MS = 120L
         const val FADE_OUT_MS = 420L
 
