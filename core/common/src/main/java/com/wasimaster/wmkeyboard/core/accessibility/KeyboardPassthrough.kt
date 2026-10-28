@@ -30,6 +30,12 @@ object KeyboardPassthrough {
 
     private val _region = MutableStateFlow<Rect?>(null)
 
+    /** The key grid's rectangle as the keyboard last laid it out. */
+    private var gridRect: Rect? = null
+
+    /** Whether the keyboard window is on screen, as the IME last said. */
+    private var keyboardShown = false
+
     /**
      * The keyboard window in display coordinates, or null when nothing should
      * bypass touch exploration — the keyboard is hidden, or the user has not
@@ -48,7 +54,22 @@ object KeyboardPassthrough {
     val serviceConnected: StateFlow<Boolean> = _serviceConnected.asStateFlow()
 
     fun publishRegion(rect: Rect?) {
-        _region.value = rect
+        gridRect = rect
+        _region.value = rect.takeIf { keyboardShown }
+    }
+
+    /**
+     * The IME's window came up or went away. Kept apart from [publishRegion]
+     * because the grid does not hear about a hide: the keyboard stops handing
+     * its composition new state while it is off screen, so the grid neither
+     * clears its rectangle on the way down nor publishes it again on the way
+     * back up. A rectangle left standing there kept a slab of whatever screen
+     * came next out of TalkBack's reach, and one cleared by the hide never came
+     * back for the next field.
+     */
+    fun setKeyboardShown(shown: Boolean) {
+        keyboardShown = shown
+        _region.value = gridRect.takeIf { shown }
     }
 
     internal fun setServiceConnected(connected: Boolean) {

@@ -1027,7 +1027,10 @@ internal fun KeyPressSettings(
                 R.string.keypress_long_press_delay_title,
                 subtitle = stringResource(R.string.keypress_long_press_delay_subtitle),
                 value = settings.watch { it.longPressDelayMs }.toFloat(),
-                range = 100f..800f,
+                // To 3 s: a screen reader's double tap and hold reaches the
+                // key as a held press, and 800 ms ran out before a TalkBack
+                // user had heard which key they were on.
+                range = 100f..3000f,
                 display = { context.getString(R.string.keypress_value_ms, it.toInt()) },
                 info = stringResource(R.string.keypress_long_press_delay_info),
                 default = SettingsDefaults.longPressDelayMs.toFloat(),
@@ -1038,7 +1041,7 @@ internal fun KeyPressSettings(
                 R.string.keypress_repeat_start_title,
                 subtitle = stringResource(R.string.keypress_repeat_start_subtitle),
                 value = settings.watch { it.keyRepeat.startDelayMs }.toFloat(),
-                range = 150f..800f,
+                range = 150f..3000f,
                 display = { context.getString(R.string.keypress_value_ms, it.toInt()) },
                 info = stringResource(R.string.keypress_repeat_start_info),
                 default = SettingsDefaults.keyRepeat.startDelayMs.toFloat(),

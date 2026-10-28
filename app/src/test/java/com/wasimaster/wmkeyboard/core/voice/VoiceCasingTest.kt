@@ -127,6 +127,26 @@ class VoiceCasingTest {
     }
 
     @Test
+    fun `a lower-case phrase that opens a sentence is raised`() {
+        // A recognizer that formats nothing (Vosk, Sherpa): the phrase after a
+        // dictated full stop went in as "Done. and then".
+        assertEquals("And then", VoiceCasing.apply("and then", sentenceStart = true))
+        assertEquals("Hello. How are you", VoiceCasing.apply("hello. how are you", sentenceStart = true))
+    }
+
+    @Test
+    fun `a word spelled with an inner capital is not raised`() {
+        assertEquals("iPhone is here", VoiceCasing.apply("iPhone is here", sentenceStart = true))
+        assertEquals("eBay sold it", VoiceCasing.apply("eBay sold it", sentenceStart = true))
+    }
+
+    @Test
+    fun `without raise the opening is left as heard`() {
+        assertEquals("and then", VoiceCasing.apply("and then", sentenceStart = true, raise = false))
+        assertEquals("on this device", VoiceCasing.apply("On this device", sentenceStart = false, raise = false))
+    }
+
+    @Test
     fun `the field's own caps mode has no say — an empty field keeps the capital`() {
         // The regression this pins: a plain inputType="text" field never asks
         // for sentence capitals, and Automatic capitals may be off, yet a

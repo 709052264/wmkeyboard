@@ -32,7 +32,13 @@ The Accessibility screen gathers the options into four groups: vision, motion, s
 - **Explore.** The standard screen-reader keyboard pattern. Slide your finger across the keys to hear each one, then double-tap to type it (or lift, depending on your screen reader). This changes behavior only while a screen reader is running touch exploration. With none running, the keyboard types normally either way.
 - **Gestures.** Keeps the keyboard's own touch handling active even while a screen reader runs, so the <KeyCap>Space</KeyCap> cursor slide, the <KeyCap>⌫</KeyCap> word-swipe, glide typing and handwriting all keep working. Each key still announces itself when you touch it, and types only when you lift your finger. This mode needs the pass-through service described below. Without that service it behaves exactly like Explore. The Play Store build doesn't offer this mode: it carries no accessibility service, so the choice would only ever be Explore. Install from GitHub or F-Droid if you rely on it.
 
-In every mode, a screen reader says each key once, by its own name. The small long-press hint drawn in a key's corner is never spoken, so moving across the letters doesn't read out the symbols they hold (`@`, `$`, `(` and so on) in between.
+In every mode, a screen reader says each key once, by its own name. A letter is said as itself, "b" rather than "b, button"; the keys that do something other than type (<KeyCap>Space</KeyCap>, <KeyCap>⌫</KeyCap>, <KeyCap>Shift</KeyCap>, <KeyCap>Enter</KeyCap>) are still called buttons. The small long-press hint drawn in a key's corner is never spoken, so moving across the letters doesn't read out the symbols they hold (`@`, `$`, `(` and so on) in between.
+
+### Holding a key with a screen reader
+
+In Labels, Explore and Gestures, holding a key does what it does without a screen reader. With TalkBack, find the key, then double-tap and hold it. Holding a letter opens its popup of accents and symbols, and holding <KeyCap>⌫</KeyCap> deletes one character after another until you let go. The popup is read out: the first alternate is said as it opens, and each one after it as you slide your finger onto it. Lift to type the one you last heard. In Gestures mode an ordinary touch and hold works the same way.
+
+A screen-reader hold is slower than a sighted one, so the [press and hold delay](#touch-accommodations) and the key repeat delay both go up to 3 seconds.
 
 :::note
 A fresh install already has **Explore** turned on, not Off: every key speaks its name from the first launch, and the drag-to-hear, lift-to-type gesture is there the moment a screen reader is.
@@ -42,7 +48,7 @@ A fresh install already has **Explore** turned on, not Off: every key speaks its
 
 Setting TalkBack support to **Gestures** reveals an extra row asking you to turn on the "WM Keyboard gestures" accessibility service, and the mode falls back to Explore-by-touch behavior until you do.
 
-This service is deliberately narrow. It requests no accessibility events and can't read anything on screen. Its only job is to tell Android to route touches on the key grid straight to the keyboard, instead of through the screen reader's touch exploration. The carve-out covers the key grid alone. The suggestion strip, the toolbar and every panel stay explorable by your screen reader as usual, as does the rest of the device. The service never turns touch exploration on by itself, and it takes effect only while a screen reader you already enabled is exploring by touch.
+This service is deliberately narrow. It requests no accessibility events and can't read anything on screen. Its only job is to tell Android to route touches on the key grid straight to the keyboard, instead of through the screen reader's touch exploration. The carve-out covers the key grid alone, and only while it is on screen. The suggestion strip, the toolbar and every panel stay explorable by your screen reader as usual, as does the rest of the device. When the keyboard goes away the carve-out goes with it, and it stands aside while you dictate, so your screen reader's own swipes work over the voice controls and the keys under them. The service never turns touch exploration on by itself, and it takes effect only while a screen reader you already enabled is exploring by touch.
 
 <PhoneFrame caption="The extra row that appears when TalkBack support is set to Gestures, before the service is granted.">
   <Shot id="accessibility/gestures-service-required" alt="The extra row that appears when TalkBack support is set to Gestures, before the service is granted." />
@@ -126,7 +132,7 @@ Every settings screen has a small keyboard button in its bottom corner, above th
 
 **Ignore repeated presses** discards a second press of the *same* key when it lands inside a window after the first. The window runs from 0 ms (off, so every press registers) up to 500 ms, and defaults to off. It's aimed at hand tremor or spasticity, where one intended tap shouldn't turn into two characters. Only a repeat of the same key is filtered, so typing two different keys quickly is never blocked. Set the window too high and it starts eating deliberate double letters like "ll" or "ee".
 
-**Press and hold delay** controls how long you hold a key before its alternate-character popup opens, from 100 ms up to 800 ms, defaulting to 300 ms. Raise it if you trigger the popups by accident. Lower it if holding a key feels sluggish.
+**Press and hold delay** controls how long you hold a key before its alternate-character popup opens, from 100 ms up to 3000 ms, defaulting to 300 ms. Raise it if you trigger the popups by accident, or if you hold keys with a screen reader and need time to hear the key first. Lower it if holding a key feels sluggish.
 
 Two links round out the group. **Key size and spacing** opens [Size, position & one-handed use](/typing/size-position/) for taller keys and wider gaps. **Haptics and sound** opens the Key press screen, covered on [Sound & vibration](/typing/feedback/), for feedback on every press.
 

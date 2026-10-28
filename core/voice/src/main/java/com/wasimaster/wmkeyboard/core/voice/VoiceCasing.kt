@@ -44,13 +44,20 @@ object VoiceCasing {
      * [text] with its opening capital lowered unless [sentenceStart] says the
      * caret sits where a sentence begins, and with every *later* sentence in
      * it opened with a capital.
+     *
+     * With [raise], a phrase that does open a sentence gets the capital the
+     * recognizer left off. Whisper and the system recognizer capitalize every
+     * utterance, but Vosk, Sherpa and a third-party recognizer that formats
+     * nothing hand over lower case, and the phrase after a dictated full stop
+     * then went in as "Done. and then".
      */
-    fun apply(text: String, sentenceStart: Boolean): String =
-        capitalizeInnerSentences(openingCase(text, sentenceStart))
+    fun apply(text: String, sentenceStart: Boolean, raise: Boolean = true): String =
+        capitalizeInnerSentences(openingCase(text, sentenceStart, raise))
 
     /** [text] with only its opening capital judged against [sentenceStart]. */
-    private fun openingCase(text: String, sentenceStart: Boolean): String {
-        if (sentenceStart || text.isEmpty()) return text
+    private fun openingCase(text: String, sentenceStart: Boolean, raise: Boolean): String {
+        if (text.isEmpty()) return text
+        if (sentenceStart) return if (raise) raisedOpening(text) else text
         val first = text[0]
         if (!first.isUpperCase()) return text
         val end = text.indexOfFirst { it.isWhitespace() }.let { if (it < 0) text.length else it }
@@ -60,6 +67,18 @@ object VoiceCasing {
         // that way.
         if (word.drop(1).any { it.isUpperCase() }) return text
         return first.lowercaseChar() + text.substring(1)
+    }
+
+    /**
+     * [text] with its first letter raised, unless the first word is spelled
+     * with a capital further in (iPhone, eBay) and so is cased on purpose.
+     */
+    private fun raisedOpening(text: String): String {
+        val first = text[0]
+        if (!first.isLowerCase()) return text
+        val end = text.indexOfFirst { it.isWhitespace() }.let { if (it < 0) text.length else it }
+        if (text.substring(1, end).any { it.isUpperCase() }) return text
+        return first.titlecaseChar() + text.substring(1)
     }
 
     /**

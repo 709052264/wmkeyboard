@@ -88,7 +88,7 @@ object ForeignSettingsMap {
     private const val MIN_KEY_HEIGHT_DP = SettingsRepository.KEY_HEIGHT_MIN_DP
     private const val MAX_KEY_HEIGHT_DP = SettingsRepository.KEY_HEIGHT_MAX_DP
     private val HAPTIC_RANGE = 5..60
-    private val LONG_PRESS_RANGE = 100..800
+    private val LONG_PRESS_RANGE = 100..3000
     private const val MIN_VOLUME = 0.05f
     private const val SCALE_EPSILON = 0.01
 

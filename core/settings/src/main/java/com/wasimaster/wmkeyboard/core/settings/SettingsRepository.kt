@@ -21724,7 +21724,7 @@ class SettingsRepository(private val context: Context) {
     }
 
     suspend fun setLongPressDelayMs(value: Int) =
-        editPrefs { it[LONG_PRESS_DELAY] = value.coerceIn(100, 800) }
+        editPrefs { it[LONG_PRESS_DELAY] = value.coerceIn(100, 3000) }
 
     suspend fun setDeleteRepeatIntervalMs(value: Int) =
         editPrefs { it[KEY_REPEAT_DELETE] = value.coerceIn(20, 200) }
@@ -21742,7 +21742,7 @@ class SettingsRepository(private val context: Context) {
         editPrefs { it[KEY_REPEAT_FLICKS] = value }
 
     suspend fun setKeyRepeatStartDelayMs(value: Int) =
-        editPrefs { it[KEY_REPEAT_START_DELAY] = value.coerceIn(150, 800) }
+        editPrefs { it[KEY_REPEAT_START_DELAY] = value.coerceIn(150, 3000) }
 
     suspend fun setLongPressHints(value: Boolean) =
         editPrefs { it[LONG_PRESS_HINTS] = value }

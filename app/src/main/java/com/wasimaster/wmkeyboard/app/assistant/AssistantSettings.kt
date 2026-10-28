@@ -141,7 +141,7 @@ internal sealed class AssistantSetting(
                 { it.spacebarLiveWpm }, { setSpacebarLiveWpm(it) },
             ),
             Number(
-                "long_press_delay", R.string.keypress_long_press_delay_title, 100..800, "ms",
+                "long_press_delay", R.string.keypress_long_press_delay_title, 100..3000, "ms",
                 { it.longPressDelayMs }, { setLongPressDelayMs(it) },
             ),
             // The two the glide check-up fits (issue #966 §5.5). Here so its

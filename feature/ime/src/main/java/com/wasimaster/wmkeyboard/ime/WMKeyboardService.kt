@@ -9062,6 +9062,7 @@ open class WMKeyboardService : InputMethodService() {
         val arriving = !windowOnScreen
         if (arriving) floatingButtonDismissed = false
         windowOnScreen = true
+        KeyboardPassthrough.setKeyboardShown(true)
         syncSummonButton()
         // A tool the floating button asked for while the keyboard was down,
         // now that there is a keyboard for its panel (#755). Posted, not run
@@ -9127,6 +9128,7 @@ open class WMKeyboardService : InputMethodService() {
         // Nothing to draw from here until the window comes back, so the
         // composition stops being handed new state — see [_shownState].
         windowOnScreen = false
+        KeyboardPassthrough.setKeyboardShown(false)
         keyguardWatchJob?.cancel()
         forcedShowUp = false
         lifecycleOwner.onStop()
@@ -9184,8 +9186,9 @@ open class WMKeyboardService : InputMethodService() {
         // The key grid publishes its own pass-through rectangle while it is on
         // screen (see KeyRows); the window going away is the one case Compose
         // can miss, and a stale carve-out would keep a slab of the screen from
-        // reaching TalkBack.
-        KeyboardPassthrough.publishRegion(null)
+        // reaching TalkBack. Withdrawn rather than cleared: the grid will not
+        // publish it again when the next field brings the same board back.
+        KeyboardPassthrough.setKeyboardShown(false)
         stopReadAloud()
         stopReadBack()
         vocabProgress.save()
@@ -32655,9 +32658,12 @@ open class WMKeyboardService : InputMethodService() {
         commitComposing(ic, autocorrect = false)
         if (settings.voiceBar.interactiveTyping()) refreshVoiceContext()
         val sentenceStart = voiceSentenceStart
-        val cased = casedVoiceText(processed)
-        val spaced = if (plain) cased else spacedVoiceText(cased)
+        val cased = casedVoiceText(processed, raise = !plain)
+        val spaced = if (plain) cased else spacedAfterVoiceMark(ic, spacedVoiceText(cased))
         ic.commitText(spaced, 1)
+        // The phrase may have ended a sentence: a letter typed next on the keys
+        // takes the capital a typed full stop would have given it.
+        if (!plain) refreshShiftForContext()
         learn(cased)
         lastVoiceCommit = spaced
         // Counted beside the typing, never in it (#761).
@@ -32872,10 +32878,26 @@ open class WMKeyboardService : InputMethodService() {
     /**
      * The recognizer's automatic capital kept only where the text in front of
      * the caret opens a sentence — in every voice typing mode, plain included
-     * (see [commitVoiceUtterance]).
+     * (see [commitVoiceUtterance]). [raise] also puts one on where the
+     * recognizer left it off, which plain voice typing does not ask for.
      */
-    private fun casedVoiceText(text: String): String =
-        VoiceCasing.apply(text, sentenceStart = voiceSentenceStart)
+    private fun casedVoiceText(text: String, raise: Boolean): String =
+        VoiceCasing.apply(text, sentenceStart = voiceSentenceStart, raise = raise)
+
+    /**
+     * [text] with the space [AutoTextSettings.spaceAfterPunctuation] types
+     * after a mark, when the phrase ends on one. Without it a dictated "Done."
+     * left the caret against the full stop, and the next word typed on the
+     * keys went in as "Done.Then". Only where the setting would space a typed
+     * mark: a prose field, and not in front of a space already there.
+     */
+    private fun spacedAfterVoiceMark(ic: InputConnection, text: String): String {
+        val state = _uiState.value
+        if (!state.settings.autoText.spaceAfterPunctuation || !state.allowsTypingIntelligence) return text
+        if (text.lastOrNull()?.let { it in AUTO_SPACE_PUNCTUATION } != true) return text
+        val after = ic.getTextAfterCursor(1, 0)?.firstOrNull()
+        return if (after != null && after.isWhitespace()) text else "$text "
+    }
 
     /**
      * Reads the characters around the cursor to decide whether dictated text
@@ -33362,6 +33384,8 @@ open class WMKeyboardService : InputMethodService() {
         val cased = VoiceCasing.apply(
             words,
             sentenceStart = VoiceCasing.startsSentence(head.takeLast(VoiceCasing.CONTEXT_CHARS)),
+            // A search is not a sentence.
+            raise = !plainVoice() && !target.isSearch,
         )
         val spaced = if (plainVoice()) {
             cased

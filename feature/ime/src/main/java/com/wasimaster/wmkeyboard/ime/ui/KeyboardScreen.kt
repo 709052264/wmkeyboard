@@ -569,6 +569,7 @@ import com.wasimaster.wmkeyboard.ime.TextRepeatAction
 import com.wasimaster.wmkeyboard.ime.TypingTestAction
 import com.wasimaster.wmkeyboard.ime.speedtest.SpeedTestAction
 import com.wasimaster.wmkeyboard.ime.VoiceBarAction
+import com.wasimaster.wmkeyboard.ime.VoiceStatus
 import com.wasimaster.wmkeyboard.ime.fieldVoiceSpeaks
 import com.wasimaster.wmkeyboard.ime.voiceChipOnly
 import com.wasimaster.wmkeyboard.ime.voiceStripShown
@@ -21008,6 +21009,9 @@ private fun GlideStrokeOverlay(
     }
 }
 
+/** A dictation under way: hearing, finishing a phrase, or transcribing one. */
+private val DictationRunning = setOf(VoiceStatus.LISTENING, VoiceStatus.FINISHING, VoiceStatus.TRANSCRIBING)
+
 /**
  * Publishes the key grid's rectangle for touch-exploration pass-through, and
  * takes it back. Its own function to keep [KeyRows] under ART's huge-method
@@ -21024,9 +21028,14 @@ private fun KeyGridPassthrough(state: KeyboardUiState, boxOrigin: Offset, boxSiz
     // and every panel stay outside it, so TalkBack keeps exploring those
     // normally. A panel replacing the keys takes this composable with it,
     // which retracts the carve-out on its own.
+    //
+    // Nor while dictation runs: the voice strip sits over these keys, and a
+    // screen-reader user listening to a dictation wants TalkBack's own swipes
+    // back over the whole keyboard, not a grid that is not being typed on.
     val passthroughKeys = LocalTouchExploration.current &&
         state.settings.accessibility.screenReader == ScreenReaderMode.PASSTHROUGH &&
-        LocalPassthroughService.current
+        LocalPassthroughService.current &&
+        state.voice.status !in DictationRunning && !state.voice.bar
     val hostView = LocalView.current
     // A board drawn as a picture in the settings app (the theme editor, the
     // layout cards) is not the keyboard: it must neither carve a pass-through
@@ -24475,7 +24484,10 @@ internal fun KeyButton(
                     // hold's punctuation between the letters.
                     Modifier.clearAndSetSemantics {
                         contentDescription = label
-                        role = Role.Button
+                        // A letter is said as itself: "b", not "b, button" on
+                        // every key explored. The keys that do something else
+                        // (space, delete, shift, enter) keep the role.
+                        if (key.action != KeyAction.Text) role = Role.Button
                         if (octopusWord != null) {
                             // Hovering the key says the letter, then what it is
                             // offering. A custom action rather than the click:
@@ -24507,14 +24519,19 @@ internal fun KeyButton(
             // node the pointer positions are measured from and not the smaller
             // face that is drawn. Off entirely when nothing will read it.
             .then(
-                if (semanticsDriven || !holdToSelect) Modifier
+                if (!holdToSelect) Modifier
                 else Modifier.onGloballyPositioned {
                     alternatesHold.cell = Rect(it.positionInWindow(), it.size.toSize())
                 }
             )
+            // Kept under Explore too, where TalkBack's double tap types through
+            // the click action above. Its double tap and hold is not an action:
+            // the framework hands it on as a real press held on the key, and
+            // only this detector can turn that into the alternates popup or a
+            // repeating backspace. Hovering never reaches it — it waits for a
+            // pointer that is down.
             .then(
-                if (semanticsDriven) Modifier
-                else Modifier.pointerInputKey(
+                Modifier.pointerInputKey(
                     key, settings.longPressDelayMs, settings.keyRepeat, settings.textEditing,
                     spaceShortSwipe = settings.spaceShortSwipe,
                     spaceLongSwipe = settings.spaceLongSwipe,
@@ -24778,6 +24795,7 @@ internal fun KeyButton(
                 DisposableEffect(alternatesHold) {
                     onDispose { alternatesHold.cancel() }
                 }
+                if (touchExploration) AlternatesAnnouncer(key, alternatesHold.takeIf { holdToSelect }, view)
             }
             AlternatesPopup(
                 key = key,
@@ -24994,6 +25012,34 @@ internal fun KeyButton(
                     onDismiss = onDismiss,
                 )
             }
+        }
+    }
+}
+
+/**
+ * Says the alternates popup out loud while a screen reader runs, because
+ * nothing else does: the popup is a window of its own, and under a held press
+ * TalkBack is not exploring it. With [hold] the finger is choosing, so each
+ * entry is said as it is highlighted, the first one as the popup opens. Without
+ * it the popup waits for a second tap, and the entries are said once, in order.
+ */
+@Composable
+private fun AlternatesAnnouncer(key: Key, hold: AlternatesHold?, view: View) {
+    val spoken = remember(key) {
+        key.alternateEntries().map { entry ->
+            when (entry) {
+                is AlternateEntry.Character -> entry.text
+                is AlternateEntry.Action -> entry.alternate.label
+            }
+        }
+    }
+    LaunchedEffect(hold, spoken) {
+        if (hold == null) {
+            if (spoken.isNotEmpty()) view.announceForAccessibility(spoken.joinToString(", "))
+            return@LaunchedEffect
+        }
+        snapshotFlow { hold.selected.intValue }.collect { index ->
+            spoken.getOrNull(index)?.let(view::announceForAccessibility)
         }
     }
 }
