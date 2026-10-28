@@ -12,7 +12,7 @@ import LayoutExplorer from '@components/LayoutExplorer.astro';
 import fancy from '../../../../../app/src/main/assets/layouts/fancy.wmlayout.json';
 import Shot from '@components/Shot.astro';
 
-Fancy Text isn't a language. It's 32 Unicode "font" styles on a single keyboard, plus a Normal style that types plain letters. Add it once, pick a style from the strip above the keys, and every letter key immediately shows the styled glyph. What you type is already 𝓯𝓪𝓷𝓬𝔂: there's no separate conversion step afterward, and the suggestion strip and autocorrect work on the plain letters underneath.
+Fancy Text isn't a language. It's 32 Unicode "font" styles on a single keyboard, plus a Normal style that types plain letters and any [fonts you make yourself](#your-own-fonts). Add it once, pick a style from the strip above the keys, and every letter key immediately shows the styled glyph. What you type is already 𝓯𝓪𝓷𝓬𝔂: there's no separate conversion step afterward, and the suggestion strip and autocorrect work on the plain letters underneath.
 
 <PhoneFrame caption="The Bold style active in a text field: typing hello commits 𝐡𝐞𝐥𝐥𝐨 directly, and the style strip sits above the keys.">
   <Shot id="languages/fancy-text-bold-field" alt="The Bold style active in a text field: typing hello commits 𝐡𝐞𝐥𝐥𝐨 directly." />
@@ -59,6 +59,22 @@ The full set, with the name each one shows:
 | Double Underline | Overline | Slashthrough |
 | Wavy Underline | Dotted | Upside Down |
 | Currency | Bypass | |
+
+## Your own fonts
+
+<SettingsPath path="Languages & layouts / Fancy Text / Your fonts" />
+
+When the style you want isn't in the list, make it. Fancy-text websites build many of their "fonts" out of look-alike symbols (ᗩᗷᑕ, ค๒ς, Λß¢), and any of them can become a style here. Tap **Add a font**, give it a name, and paste the font's letters:
+
+- **Small letters, a to z.** Required. Paste the 26 letters in order. If you paste a to z, A to Z and 0 to 9 in one go (62 characters, or 52 without digits), the keyboard shares them out over the three fields for you.
+- **Capitals, A to Z.** Optional. Left empty, shift types the small letters, the way Small Caps does.
+- **Digits, 0 to 9.** Optional. Left empty, digits stay plain.
+
+Each field counts what it read, so you can see straight away if a letter went missing. An alphabet that stops short is fine: the letters it doesn't reach type plain. Characters are counted the way you see them, so a letter with a stroke or an accent stacked on it counts once. To give one letter several characters, such as (a) or 【a】, separate the letters with spaces and each item counts as one letter.
+
+**Write backwards** is for upside-down fonts. It reverses the line so the text reads correctly with the phone turned round, and like the built-in Upside Down style it types letter by letter, without suggestions.
+
+A preview at the top of the form writes a pangram in the font as you go. Once saved, the font appears at the end of the strip over the keys, in the **Style** row, and in the selection actions' Fancy conversions, and the keyboard switches to it. Tap a font in the list to change it, or swipe it away to delete it. If the font you delete is the one in use, the keyboard goes back to Bold. You can keep up to 50 fonts. They're part of your settings, so a settings backup carries them to a new phone.
 
 ## The keyboard itself
 

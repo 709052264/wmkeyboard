@@ -174,4 +174,43 @@ class FancyStylesTest {
             )
         }
     }
+
+    @Test
+    fun `an alphabet splits into user-perceived characters, or into spaced items`() {
+        // Astral pairs and a letter with a combining mark each count once.
+        assertEquals(listOf("\uD835\uDCEA", "\uD835\uDCEB", "c\u0336"), FancyStyles.splitAlphabet("\uD835\uDCEA\uD835\uDCEBc\u0336"))
+        assertEquals(listOf("(a)", "(b)", "(c)"), FancyStyles.splitAlphabet("  (a) (b)\n(c) "))
+        assertEquals(emptyList<String>(), FancyStyles.splitAlphabet("   "))
+    }
+
+    @Test
+    fun `a pasted alphabet maps in order, short alphabets leave the rest plain`() {
+        val style = FancyStyles.fromAlphabets(
+            id = FancyStyles.CUSTOM_PREFIX + "t",
+            name = "ab",
+            lower = "\u0250\u0071",
+            digits = "\u24EA\u2460",
+        )
+        assertEquals("\u0250\u0071", style.sample)
+        // No capitals given: capitals type the small forms.
+        assertEquals("\u0250\u0250\u0071z \u24EA\u24602", FancyStyles.transform("aAbz 012", style))
+    }
+
+    @Test
+    fun `custom styles follow the built-in ones, cannot shadow them, and unstyle`() {
+        val builtInCount = FancyStyles.builtIn.size
+        try {
+            val mine = FancyStyles.fromAlphabets(FancyStyles.CUSTOM_PREFIX + "x", "Mine", "(a) (b)")
+            val shadow = FancyStyles.fromAlphabets("bold", "Fake", "x")
+            FancyStyles.useCustom(listOf(mine, shadow))
+            assertEquals(builtInCount + 1, FancyStyles.all.size)
+            assertEquals(mine, FancyStyles.all.last())
+            assertEquals(mine, FancyStyles.byId(mine.id))
+            assertEquals("\uD835\uDC1B", FancyStyles.transform("b", FancyStyles.byId("bold")!!))
+            assertEquals("ab", FancyStyles.unstyle("(a)(b)"))
+        } finally {
+            FancyStyles.useCustom(emptyList())
+        }
+        assertEquals(builtInCount, FancyStyles.all.size)
+    }
 }

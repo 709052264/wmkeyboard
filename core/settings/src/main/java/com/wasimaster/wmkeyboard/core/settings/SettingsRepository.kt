@@ -107,6 +107,7 @@ import com.wasimaster.wmkeyboard.core.tools.defaultAltCalendars
 import com.wasimaster.wmkeyboard.core.tools.isSouthernHemisphere
 import com.wasimaster.wmkeyboard.core.script.ComposerType
 import com.wasimaster.wmkeyboard.core.script.DeviceLocales
+import com.wasimaster.wmkeyboard.core.script.FancyStyles
 import com.wasimaster.wmkeyboard.core.script.LanguageDef
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.script.NumeralCommitScope
@@ -9180,6 +9181,13 @@ data class LayoutBehaviorSettings(
      */
     val fancyToolAutoOff: Boolean = true,
     /**
+     * The Fancy Text fonts the user made from pasted alphabets, in the order
+     * they were made; the strip lists them after the built-in styles. Read
+     * into [FancyStyles] with every settings read (see [FancyStyles.useCustom]),
+     * so [fancyStyleId] can name one like any built-in style.
+     */
+    val customFancyFonts: List<CustomFancyFont> = emptyList(),
+    /**
      * The secondary layout the Secondary layout tool shows (a `LayoutSpec.id`),
      * or null for the first one the user has. Null rather than a required pick
      * so the tool works the moment a first secondary layout exists; the page
@@ -10900,6 +10908,7 @@ class SettingsRepository(private val context: Context) {
         private val FANCY_TOOL_KEEPS_LANGUAGE =
             booleanPreferencesKey("fancy_tool_keeps_language")
         private val FANCY_TOOL_AUTO_OFF = booleanPreferencesKey("fancy_tool_auto_off")
+        private val FANCY_CUSTOM_FONTS = stringPreferencesKey("fancy_custom_fonts")
         private val CUSTOM_LAYOUT_TOOL = stringPreferencesKey("custom_layout_tool")
         private val NUMBER_ROW_SHIFT_SYMBOLS = booleanPreferencesKey("number_row_shift_symbols")
         private val NUMBER_ROW_IN_SYMBOLS = booleanPreferencesKey("number_row_in_symbols")
@@ -13572,6 +13581,12 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.layoutBehavior.fancyToolKeepsLanguage,
             fancyToolAutoOff = p[FANCY_TOOL_AUTO_OFF]
                 ?: defaults.layoutBehavior.fancyToolAutoOff,
+            // Installed into the style table here, on the read, rather than by
+            // whoever collects the settings: every process that reads them
+            // (the keyboard, the settings app, the selection actions) then
+            // knows the user's fonts before the first style is looked up.
+            customFancyFonts = decodeCustomFancyFonts(p[FANCY_CUSTOM_FONTS])
+                .also { fonts -> FancyStyles.useCustom(fonts.map { it.toFancyStyle() }) },
             // Empty is "the first one", the same spelling the fancy style uses.
             customLayoutToolId = p[CUSTOM_LAYOUT_TOOL]?.takeIf { it.isNotEmpty() }
                 ?: defaults.layoutBehavior.customLayoutToolId,
@@ -22187,6 +22202,25 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setFancyToolAutoOff(value: Boolean) =
         editPrefs { it[FANCY_TOOL_AUTO_OFF] = value }
+
+    /**
+     * Rewrites the user's Fancy Text fonts; see
+     * [LayoutBehaviorSettings.customFancyFonts]. The transform runs against
+     * the stored list inside the edit, and the result is cleaned and capped
+     * like a read. A deleted font that was the picked style, or the Fancy
+     * tool's pinned one, takes that pick with it in the same edit, so neither
+     * is left naming a style that no longer exists.
+     */
+    suspend fun editCustomFancyFonts(transform: (List<CustomFancyFont>) -> List<CustomFancyFont>) =
+        editPrefs { prefs ->
+            val next = cleanCustomFancyFonts(transform(decodeCustomFancyFonts(prefs[FANCY_CUSTOM_FONTS])))
+            if (next.isEmpty()) prefs.remove(FANCY_CUSTOM_FONTS)
+            else prefs[FANCY_CUSTOM_FONTS] = encodeCustomFancyFonts(next)
+            val kept = next.mapTo(HashSet()) { it.id }
+            fun gone(id: String?) = id != null && id.startsWith(FancyStyles.CUSTOM_PREFIX) && id !in kept
+            if (gone(prefs[FANCY_STYLE])) prefs.remove(FANCY_STYLE)
+            if (gone(prefs[FANCY_TOOL_STYLE])) prefs.remove(FANCY_TOOL_STYLE)
+        }
 
     /** The secondary layout the Secondary layout tool shows; null (stored empty) is the first one. */
     suspend fun setCustomLayoutToolLayout(id: String?) =

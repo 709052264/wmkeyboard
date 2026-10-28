@@ -757,6 +757,7 @@ internal object SettingsRowIcons {
         put(R.string.languages_cjk_space_steps_title) { Icons.Outlined.SwapHoriz }
         put(R.string.languages_cjk_fuzzy_pairs_reset_title) { Icons.Outlined.Restore }
         put(R.string.languages_fancy_style_row_title) { Icons.Outlined.TextFormat }
+        put(R.string.languages_fancy_fonts_add_title) { Icons.Outlined.TextFormat }
         put(R.string.languages_spelling_map_row_title) { Icons.Outlined.Spellcheck }
         put(R.string.languages_autocorrect_title) { Icons.Outlined.Spellcheck }
         put(R.string.languages_space_after_suggestion_title) { Icons.Outlined.SpaceBar }

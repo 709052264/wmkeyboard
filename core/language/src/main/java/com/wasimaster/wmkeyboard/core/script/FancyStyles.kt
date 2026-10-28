@@ -1,5 +1,8 @@
 package com.wasimaster.wmkeyboard.core.script
 
+import java.text.BreakIterator
+import java.util.Locale
+
 /**
  * One Fancy Text style: a per-letter map onto a Unicode "font"
  * (mathematical alphanumerics, enclosed letters, combining marks).
@@ -94,6 +97,13 @@ object FancyStyles {
     const val LANG_ID = "fancy"
 
     /**
+     * What every user-made style's id starts with. The settings app mints
+     * `custom_<random>` ids, so a font the user made can never take the id of
+     * a built-in style added in a later release.
+     */
+    const val CUSTOM_PREFIX = "custom_"
+
+    /**
      * Every styled set of 0–9 Unicode has, each a run of code points rather
      * than typed glyphs (astral digits are surrogate pairs, see the note on
      * the table). Several sets lack a zero, or keep it somewhere else: those
@@ -160,7 +170,8 @@ object FancyStyles {
     fun digitForms(digit: Char): List<String> =
         if (digit in '0'..'9') ALL_DIGIT_SETS.mapNotNull { it[digit] } else emptyList()
 
-    val all: List<FancyStyle> = listOf(
+    /** The styles that ship with the app, in strip order. [all] adds the user's after them. */
+    val builtIn: List<FancyStyle> = listOf(
         style(
             NORMAL_ID, "Normal", "Normal",
             ('a'..'z').map { it.toString() },
@@ -600,9 +611,120 @@ object FancyStyles {
         ),
     )
 
-    private val index = all.associateBy { it.id }
+    /**
+     * The table in force: [builtIn] then the user's own styles, with the
+     * lookups built from it. Swapped whole by [useCustom] rather than edited,
+     * so a reader on the keyboard's thread never sees half an update.
+     */
+    private class Table(val custom: List<FancyStyle>) {
+        val all: List<FancyStyle> = builtIn + custom
+        val index: Map<String, FancyStyle> = all.associateBy { it.id }
 
-    fun byId(id: String): FancyStyle? = index[id]
+        /**
+         * Every styled form of every style, back to the plain letter or digit
+         * it stands for. Lowercase first, so a style whose capitals are its
+         * small letters (small caps) reads back lowercase. Reversed styles are
+         * left out: upside-down borrows plain letters (n for u), which would
+         * rewrite every plain word read through here.
+         */
+        val plainOf: Map<String, Char> by lazy {
+            buildMap {
+                for (style in all) {
+                    if (style.assembly == FancyAssembly.REVERSED) continue
+                    for (map in listOf(style.lower, style.upper, style.digits)) {
+                        for ((plain, form) in map) {
+                            val ascii = form.length == 1 && form[0] < '\u0080'
+                            if (form != plain.toString() && !ascii) putIfAbsent(form, plain)
+                        }
+                    }
+                }
+            }
+        }
+
+        val longestForm: Int by lazy { plainOf.keys.maxOf { it.length } }
+    }
+
+    @Volatile
+    private var table = Table(emptyList())
+
+    /**
+     * Every style: the built-in ones, then the fonts the user made, in the
+     * order they made them.
+     */
+    val all: List<FancyStyle> get() = table.all
+
+    /** The fonts the user made, as last handed to [useCustom]. */
+    val custom: List<FancyStyle> get() = table.custom
+
+    fun byId(id: String): FancyStyle? = table.index[id]
+
+    /**
+     * Installs the user's own styles after the built-in ones. Called with
+     * every settings read, so the keyboard, the settings app and the
+     * selection actions all see a font the moment it is saved; an unchanged
+     * list is a no-op, so that costs nothing on the reads that change
+     * something else.
+     */
+    fun useCustom(styles: List<FancyStyle>) {
+        if (styles == table.custom) return
+        table = Table(styles.filter { isFreeId(it.id) })
+    }
+
+    /** A user style may not shadow a built-in one. */
+    private fun isFreeId(id: String): Boolean = builtIn.none { it.id == id }
+
+    /**
+     * A style from the alphabets a user pasted: [lower] spells a to z,
+     * [upper] A to Z and [digits] 0 to 9, each read by [splitAlphabet]. An
+     * alphabet can stop short: the letters it does not reach stay plain. An
+     * empty [upper] types the small forms for capitals too, the way small
+     * caps does, since many of the fonts people copy from the web are
+     * single-case. [reversed] writes the line back to front, for an
+     * upside-down font.
+     */
+    fun fromAlphabets(
+        id: String,
+        name: String,
+        lower: String,
+        upper: String = "",
+        digits: String = "",
+        reversed: Boolean = false,
+    ): FancyStyle {
+        val small = splitAlphabet(lower)
+        val capitals = splitAlphabet(upper).ifEmpty { small }
+        val lowerMap = ('a'..'z').zip(small).toMap()
+        val upperMap = ('A'..'Z').zip(capitals).toMap()
+        val digitMap = ('0'..'9').zip(splitAlphabet(digits)).toMap()
+        val assembly = if (reversed) FancyAssembly.REVERSED else FancyAssembly.IN_ORDER
+        val draft = FancyStyle(id, name, name, lowerMap, upperMap, assembly, digitMap)
+        return draft.copy(sample = transform(name, draft))
+    }
+
+    /**
+     * The forms an alphabet field holds, in order. With whitespace in it, the
+     * field is a list and each whitespace-separated item is one form, so a
+     * letter can be written as several characters (`(a) (b) (c)`). Without
+     * any, each user-perceived character is one form: a surrogate pair, or a
+     * letter with the marks stacked on it, counts once.
+     */
+    fun splitAlphabet(text: String): List<String> {
+        val trimmed = text.trim()
+        if (trimmed.isEmpty()) return emptyList()
+        if (trimmed.any { it.isWhitespace() }) return trimmed.split(WHITESPACE)
+        val breaks = BreakIterator.getCharacterInstance(Locale.ROOT)
+        breaks.setText(trimmed)
+        val out = ArrayList<String>(trimmed.length)
+        var start = breaks.first()
+        var end = breaks.next()
+        while (end != BreakIterator.DONE) {
+            out.add(trimmed.substring(start, end))
+            start = end
+            end = breaks.next()
+        }
+        return out
+    }
+
+    private val WHITESPACE = Regex("\\s+")
 
     /**
      * [text] with every mapped letter and digit swapped for its styled
@@ -665,35 +787,15 @@ object FancyStyles {
     )
 
     /**
-     * Every styled form of every style, back to the plain letter or digit it
-     * stands for. Lowercase first, so a style whose capitals are its small
-     * letters (small caps) reads back lowercase. Upside-down is left out: its
-     * table borrows plain letters (n for u), which would rewrite every plain
-     * word read through here.
-     */
-    private val plainOf: Map<String, Char> by lazy {
-        buildMap {
-            for (style in all) {
-                if (style.assembly == FancyAssembly.REVERSED) continue
-                for (map in listOf(style.lower, style.upper, style.digits)) {
-                    for ((plain, form) in map) {
-                        val ascii = form.length == 1 && form[0] < '\u0080'
-                        if (form != plain.toString() && !ascii) putIfAbsent(form, plain)
-                    }
-                }
-            }
-        }
-    }
-
-    private val longestForm: Int by lazy { plainOf.keys.maxOf { it.length } }
-
-    /**
      * [text] with every styled letter and digit put back to plain, and the
      * separators [FancyAssembly.ZERO_WIDTH_SEPARATED] adds taken out: the
      * words a styled field holds, for anything that reads them as words.
      * Reversed text stays in the order it is written.
      */
     fun unstyle(text: CharSequence): String {
+        val table = table
+        val plainOf = table.plainOf
+        val longestForm = table.longestForm
         val out = StringBuilder(text.length)
         var i = 0
         while (i < text.length) {

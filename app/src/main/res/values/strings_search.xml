@@ -151,6 +151,7 @@
     <string name="search_kw_languages_mozc_engine">google input 日本語入力 変換 文節 bunsetsu segment kanji</string>
     <string name="search_kw_languages_conjunct_backspace">hindi devanagari indic akshara cluster</string>
     <string name="search_kw_languages_fancy_style_row">unicode aesthetic cursive strikethrough</string>
+    <string name="search_kw_languages_fancy_fonts_add">custom font own style alphabet paste make create</string>
     <string name="search_kw_languages_translit_hints_row">transliteration phonetic romanized</string>
     <string name="search_kw_languages_phonetic_strip_fixed">avro ridmik suggestion strip order fixed pinned english typed word</string>
     <string name="search_kw_languages_raw_keys_chip">khipro raw input typed roman latin modifier suggestion</string>

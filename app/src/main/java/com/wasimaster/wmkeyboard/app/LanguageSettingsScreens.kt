@@ -1155,6 +1155,9 @@ internal fun LanguageDetailScreen(
     if (langId == "fancy") {
         SettingsGroup(stringResource(R.string.languages_fancy_style_title)) {
             item(level = SettingLevel.STANDARD) {
+                // Read so the options are drawn again when a font of the
+                // user's own is added; the table itself is not snapshot state.
+                settings.watch { it.layoutBehavior.customFancyFonts }
                 ChoiceSetting(
                     R.string.languages_fancy_style_row_title,
                     subtitle = stringResource(R.string.languages_fancy_style_row_subtitle),
@@ -1166,6 +1169,7 @@ internal fun LanguageDetailScreen(
                 ) { scope.launch { repository.setFancyStyle(it.id) } }
             }
         }
+        CustomFancyFontsGroup(repository, settings)
     }
 
     // Vietnamese tone marking. One answer for both boards: Telex and VNI are

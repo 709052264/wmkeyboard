@@ -8161,9 +8161,11 @@ private fun PhoneticCandidateBar(barState: KeyboardUiState, onPick: (String) -> 
  */
 internal fun fancyStyleFor(state: KeyboardUiState): FancyStyle? =
     if (state.language.id == FancyStyles.LANG_ID) {
+        // A font the user has since deleted falls back to the default style
+        // rather than to null, which would read as "not the fancy keyboard".
         FancyStyles.byId(
             state.activeFancyStyleId ?: state.settings.layoutBehavior.fancyStyleId,
-        )
+        ) ?: FancyStyles.byId(FancyStyles.DEFAULT_ID)
     } else {
         null
     }
