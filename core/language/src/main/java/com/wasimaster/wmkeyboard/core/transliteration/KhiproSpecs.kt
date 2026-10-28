@@ -6,6 +6,7 @@ import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoints
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceRepo
 import com.wasimaster.wmkeyboard.core.integrity.IntegrityChecks
+import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import java.io.File
 import java.io.IOException
@@ -191,12 +192,13 @@ object KhiproSpecs {
 
     /**
      * Whether [refreshIfDue] would look now: a cheap read for the keyboard to
-     * ask as a word starts, before it starts anything.
+     * ask as a word starts, before it starts anything. Never on a build with
+     * no internet, where newer rules only come in from a file.
      */
     fun isDue(): Boolean {
         val now = System.currentTimeMillis()
         val state = _state.value
-        return context != null && !state.checking && now - lastAttempt >= RETRY_AFTER_MS &&
+        return context != null && InternetPermission.granted && !state.checking && now - lastAttempt >= RETRY_AFTER_MS &&
             (!loaded || now - state.checkedAt >= CHECK_EVERY_MS)
     }
 

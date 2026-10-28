@@ -84,6 +84,7 @@ import com.wasimaster.wmkeyboard.core.layout.composerType
 import com.wasimaster.wmkeyboard.core.layout.language
 import com.wasimaster.wmkeyboard.core.layout.isShippedLayoutId
 import com.wasimaster.wmkeyboard.core.layout.resolveLayout
+import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import com.wasimaster.wmkeyboard.core.prediction.DivvunRuntime
 import com.wasimaster.wmkeyboard.core.prediction.PhoneticSchemes
 import com.wasimaster.wmkeyboard.core.prediction.VoikkoRuntime
@@ -2345,6 +2346,9 @@ private fun KhiproSpecsGroup() {
     val subtitle = when {
         !ready -> null
         date == null -> stringResource(R.string.languages_khipro_specs_unsupported)
+        // The build with no internet: a check could only fail, and the reason
+        // it gave was whichever gate stopped it first, data saving's included.
+        !InternetPermission.granted -> stringResource(R.string.languages_khipro_specs_no_internet, date)
         state.checking -> stringResource(R.string.languages_khipro_specs_checking)
         state.failure != null -> stringResource(R.string.languages_khipro_specs_failed, date, state.failure.orEmpty())
         state.downloaded -> stringResource(R.string.languages_khipro_specs_downloaded, date)
@@ -2353,7 +2357,7 @@ private fun KhiproSpecsGroup() {
     SettingsGroup(stringResource(R.string.languages_khipro_specs_group)) {
         item(level = SettingLevel.STANDARD) {
             NavRow(R.string.languages_khipro_specs_title, subtitle = subtitle) {
-                if (date == null || state.checking) return@NavRow
+                if (date == null || state.checking || !InternetPermission.granted) return@NavRow
                 scope.launch {
                     val message = when (val outcome = withContext(Dispatchers.IO) { KhiproSpecs.refresh() }) {
                         is KhiproSpecs.Outcome.Installed -> context.getString(

@@ -284,6 +284,7 @@
     <string name="languages_khipro_specs_downloaded">Updated rules from <xliff:g id="date" example="25 Oct 2026">%1$s</xliff:g>. Tap to check for newer ones.</string>
     <string name="languages_khipro_specs_checking">Checking for newer rules…</string>
     <string name="languages_khipro_specs_failed">Rules from <xliff:g id="date" example="25 Oct 2026">%1$s</xliff:g>. The last check installed nothing: <xliff:g id="reason" example="HTTP 404">%2$s</xliff:g>. Tap to try again.</string>
+    <string name="languages_khipro_specs_no_internet">Rules from <xliff:g id="date" example="25 Oct 2026">%1$s</xliff:g>. This build has no internet, so newer rules come in from a file: Import from a file on this screen takes the set\'s files.</string>
     <string name="languages_khipro_specs_unsupported">The rules this version came with. This build cannot update them.</string>
     <string name="languages_khipro_specs_up_to_date">Khipro\'s rules are up to date</string>
     <string name="languages_khipro_specs_installed">Khipro\'s rules updated to <xliff:g id="date" example="25 Oct 2026">%1$s</xliff:g></string>
