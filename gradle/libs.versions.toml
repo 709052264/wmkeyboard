@@ -7,7 +7,7 @@ junit = "4.13.2"
 # Robolectric runs an Android runtime on the JVM, so a unit test can drive the
 # real IME service instead of only its pure helpers. Latest stable.
 robolectric = "4.17"
-roborazzi = "1.76.0"
+roborazzi = "1.77.0"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 appcompat = "1.8.0"
@@ -27,7 +27,7 @@ activityCompose = "1.13.0"
 # which every module compiles against.
 composeBom = "2026.09.00"
 lifecycle = "2.11.0"
-datastore = "1.2.1"
+datastore = "1.3.0"
 serializationJson = "1.12.0"
 coroutines = "1.11.0"
 emoji2 = "1.7.0"
@@ -52,11 +52,11 @@ mlkitBarcode = "17.3.0"
 # of the AAB. Sideload/F-Droid channels keep the bundled artifacts so scanners
 # work without GMS. The version lines differ because Google numbers the
 # unbundled artifacts independently of the bundled ones.
-mlkitTextRecognitionUnbundled = "19.0.1"
+mlkitTextRecognitionUnbundled = "19.0.2"
 # The Chinese, Japanese, Korean and Devanagari recognizers (#757), unbundled on
 # every channel: Play services fetches each model on first use, and the code
 # is about 3 KB each (bundled, they would cost about 4 MB per script per ABI).
-mlkitTextRecognitionScriptsUnbundled = "16.0.1"
+mlkitTextRecognitionScriptsUnbundled = "16.0.2"
 mlkitBarcodeUnbundled = "18.3.1"
 mlkitDocScanner = "16.0.0"
 # Unbundled: the model is downloaded from Play services on first use, so
