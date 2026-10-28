@@ -38,6 +38,12 @@ class DeleteSwipeCallbacks(
      * gesture to [onDeleteUnit].
      */
     val onSelect: (units: Int, byWord: Boolean, forward: Boolean) -> Int = { _, _, _ -> -1 },
+    /**
+     * Select the whole field, as the preview of an upward swipe on ⌫ that
+     * clears it. [onCommit] and [onCancel] end it as they end any preview.
+     * False when the field cannot be selected whole, and the swipe does nothing.
+     */
+    val onSelectAll: () -> Boolean = { false },
     /** The finger lifted with a preview up: delete what it selected. */
     val onCommit: () -> Unit = {},
     /** The gesture ended with nothing selected: drop the preview, delete nothing. */

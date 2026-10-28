@@ -16053,6 +16053,52 @@ open class WMKeyboardService : InputMethodService() {
         return deleteSwipeSteps.size
     }
 
+    /**
+     * An upward swipe on ⌫ clears the whole field. This selects all of it as
+     * the swipe's preview, whatever **Show what you will delete** says, so the
+     * lift's [onDeleteSwipeCommit] deletes it and a drag back down's
+     * [onDeleteSwipeCancel] puts the old cursor back: a whole message is too
+     * much to take on a stray flick with no way to see it coming. False where
+     * the field cannot be selected whole (an editor that hands over only part
+     * of its text, or a buffer the keyboard draws), and the swipe then does
+     * nothing.
+     */
+    fun onDeleteSwipeSelectAll(): Boolean {
+        val state = _uiState.value
+        state.captureTarget()?.let { target ->
+            if (target == CaptureTarget.TYPING_TEST || target == CaptureTarget.WORD_SPELL || !target.movableCaret) return false
+            if (captureSwipeStart != null) return deleteSwipeUnits > 0
+            val before = state.captureCaretText() ?: return false
+            if (before.text.isEmpty()) return false
+            captureSwipeStart = before
+            deleteSwipeBase = before.selectionStart
+            deleteSwipeEnd = before.selectionEnd
+            deleteSwipeUnits = 1
+            deleteSwipeActive = true
+            captureCaretTo(before.selectedAll())
+            return true
+        }
+        if (backspaceEditsBuffer()) return false
+        val ic = currentInputConnection ?: return false
+        if (deleteSwipeActive) resetDeleteSwipe()
+        if (!beginDeleteSwipe(ic, forward = false)) return false
+        // Read after beginDeleteSwipe has turned any composing word into
+        // plain text. Only an editor that hands over everything from offset 0
+        // can be selected whole; a window of a longer field would leave the
+        // rest behind and call the field cleared.
+        val text = runCatching { ic.getExtractedText(ExtractedTextRequest(), 0) }.getOrNull()
+            ?.takeIf { it.startOffset == 0 }?.text
+        if (text.isNullOrEmpty()) {
+            resetDeleteSwipe()
+            return false
+        }
+        ic.setSelection(0, text.length)
+        expectedSelStart = 0
+        expectedSelEnd = text.length
+        deleteSwipeUnits = 1
+        return true
+    }
+
     /** Forgets a swipe, without touching the field. */
     private fun resetDeleteSwipe() {
         deleteSwipeActive = false
@@ -35885,6 +35931,7 @@ open class WMKeyboardService : InputMethodService() {
         com.wasimaster.wmkeyboard.ime.ui.DeleteSwipeCallbacks(
             onDeleteUnit = ::onDeleteSwipeUnit,
             onSelect = ::onDeleteSwipeSelect,
+            onSelectAll = ::onDeleteSwipeSelectAll,
             onCommit = ::onDeleteSwipeCommit,
             onCancel = ::onDeleteSwipeCancel,
         )

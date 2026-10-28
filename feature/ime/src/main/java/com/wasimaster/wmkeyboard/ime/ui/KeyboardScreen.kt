@@ -29167,6 +29167,7 @@ private fun Modifier.pointerInputKey(
         }
     } else if (
         (key.action.deletesBackward() && backspaceSwipeDelete) ||
+        (key.action.deletesBackward() && textEditing.backspaceSwipeUpClears) ||
         (key.action.deletesForward() && textEditing.forwardDeleteSwipe) ||
         // A delete key given flick arms (#769) runs this machine too, swipe
         // or no swipe: the arms live in it, beside the repeat.
@@ -29197,6 +29198,13 @@ private fun Modifier.pointerInputKey(
             val flickSlopPx = flickDistanceDp.dp.toPx()
             val swipeSlopPx = if (armed) maxOf(slopPx, flickSlopPx) else slopPx
             val dir = if (forward) 1f else -1f
+            // Swiping up on backspace clears the field. An up arm keeps the
+            // direction, as it keeps any direction it points. It costs the same
+            // pull as a first word, and selects everything before the lift
+            // deletes it; back down past half of that gives it all back.
+            val clearUp = !forward && textEditing.backspaceSwipeUpClears &&
+                !hasArm(FlickDirection.UP)
+            val clearUpPx = textEditing.backspaceWordStepDp.dp.toPx()
             fun canDeleteHere(): Boolean = if (forward) canForwardDelete() else canDelete()
             // The repeat clears whole words instead of characters (issue #216),
             // at its own slower cadence — a word every 50 ms empties a
@@ -29235,6 +29243,12 @@ private fun Modifier.pointerInputKey(
                 setPressed(true)
                 onKeyPress()
                 var swiping = false
+                // An upward swipe, and whether the whole field is selected for it.
+                var clearing = false
+                var clearArmed = false
+                // Asked once: a field that cannot be selected whole will not
+                // become one while the finger is still on its way up.
+                var clearRefused = false
                 // Units the swipe has taken so far: selected and still
                 // returnable while a preview is up, already gone when not.
                 var taken = 0
@@ -29280,7 +29294,7 @@ private fun Modifier.pointerInputKey(
                         // long URL rolls a few pixels sideways, and turning that into
                         // a swipe cancelled the repeat under it: delete just stopped,
                         // the finger still down (#662).
-                        if (armed && !swiping && !longPressFired) {
+                        if (armed && !swiping && !clearing && !longPressFired) {
                             val offset = change.position - down.position
                             val live = resolveFlickDirection(offset.x, offset.y, flickSlopPx, hasArm)
                             if (live != arm) {
@@ -29311,6 +29325,29 @@ private fun Modifier.pointerInputKey(
                                 change.consume()
                                 continue
                             }
+                        }
+                        if (clearUp && !swiping && !clearing && !longPressFired) {
+                            val rise = down.position.y - change.position.y
+                            // Steeper than it is wide, so a leftward word swipe
+                            // that drifts up a little stays a word swipe.
+                            if (rise > swipeSlopPx && rise > 2f * abs(change.position.x - down.position.x)) {
+                                clearing = true
+                                repeat.cancel()
+                            }
+                        }
+                        if (clearing) {
+                            change.consume()
+                            val rise = down.position.y - change.position.y
+                            if (!clearArmed && !clearRefused && rise >= clearUpPx) {
+                                clearArmed = deleteSwipe.onSelectAll()
+                                clearRefused = !clearArmed
+                                if (clearArmed) stepFeedback()
+                            } else if (clearArmed && rise < clearUpPx / 2f) {
+                                deleteSwipe.onCancel()
+                                clearArmed = false
+                                stepFeedback()
+                            }
+                            continue
                         }
                         if (swipeOn && !swiping && !longPressFired && abs(change.position.x - down.position.x) > swipeSlopPx) {
                             swiping = true
@@ -29381,6 +29418,7 @@ private fun Modifier.pointerInputKey(
                     if (!lifted) {
                         repeat.cancel()
                         armRepeat?.cancel()
+                        if (clearArmed) deleteSwipe.onCancel()
                         if (flicked) setFlickDirection(null)
                         setPressed(false)
                     }
@@ -29398,6 +29436,10 @@ private fun Modifier.pointerInputKey(
                     // Out to an arm and back inside the flick distance: the
                     // cancel it is on every flick key.
                     flicked -> Unit
+                    clearArmed -> deleteSwipe.onCommit()
+                    // Up and back down, or up in a field that cannot be
+                    // selected whole: nothing happens.
+                    clearing -> Unit
                     // The lift is what deletes, once the finger has had the
                     // whole drag to change its mind.
                     swiping && previewing && taken > 0 -> deleteSwipe.onCommit()

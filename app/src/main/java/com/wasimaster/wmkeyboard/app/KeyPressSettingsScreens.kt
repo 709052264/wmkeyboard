@@ -906,6 +906,15 @@ internal fun KeyPressSettings(
                 }
             }
         }
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.typing_backspace_up_clears_title,
+                stringResource(R.string.typing_backspace_up_clears_subtitle),
+                settings.watch { it.textEditing.backspaceSwipeUpClears },
+                info = stringResource(R.string.typing_backspace_up_clears_info),
+                default = SettingsDefaults.textEditing.backspaceSwipeUpClears,
+            ) { scope.launch { repository.setBackspaceSwipeUpClears(it) } }
+        }
         item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.typing_forward_delete_swipe_title,

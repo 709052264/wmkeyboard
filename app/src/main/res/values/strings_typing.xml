@@ -961,6 +961,10 @@
     <string name="typing_backspace_preview_subtitle">Select the text as you swipe, and delete it when you lift your finger</string>
     <string name="typing_backspace_preview_info">The swipe highlights the text it is about to delete instead of deleting as it goes, so you can see how far you have got. Swipe back to the right to give text back, and lift your finger to delete what is left highlighted. Turn this off to delete each word or character the moment you swipe past it.</string>
 
+    <string name="typing_backspace_up_clears_title">Swipe up to clear all</string>
+    <string name="typing_backspace_up_clears_subtitle">Swipe up on backspace to delete everything in the text box</string>
+    <string name="typing_backspace_up_clears_info">Press backspace and swipe straight up. Once your finger is far enough up, the keyboard selects all the text in the box and deletes it when you lift. Bring your finger back down before you lift and nothing is deleted.\n\nThe swipe goes as far up as the first word of a backspace swipe goes sideways, the Word delete distance. In a box that shows only part of its text to the keyboard, the swipe does nothing, so it never leaves half a message behind.\n\nA backspace key with its own flick up, set in the layout editor, keeps that flick instead.</string>
+
     <string name="typing_forward_delete_swipe_title">Swipe on forward delete</string>
     <string name="typing_forward_delete_swipe_subtitle">Swipe right on the forward delete key to clear the text ahead</string>
     <string name="typing_web_backspace_key_title">Backspace as a key press on web pages</string>

@@ -202,6 +202,12 @@ While the highlight is up the swipe is still undoable: dragging back to the righ
 
 Turn the setting off to get the older behaviour, where each word or character goes the moment the swipe passes it. Deleted text cannot be given back, so dragging right only re-anchors the gesture, and the next word costs the full first-word distance again instead of picking up where the shrinking curve left off. A few editors cannot hold a selection while the keyboard drives it, and a search box drawn by the keyboard itself (emoji search, for one) has no cursor to select with. The swipe falls back to deleting as it goes in both cases, with no setting to change. It does the same over a word that is still being converted, such as pinyin or Vietnamese Telex, so what is left of the word is still read as one.
 
+### Swiping up to clear everything
+
+**Swipe up to clear all** (off by default) empties the whole text box from a swipe straight up on <KeyCap>⌫</KeyCap>. Once your finger has gone as far up as the first word of a sideways swipe costs (the **Word delete distance**, 72&nbsp;dp by default), every bit of text in the box is selected, and lifting deletes it. Bring your finger back down below halfway before you lift and the selection goes away with nothing deleted. The text is always selected first, whatever **Show what you will delete** is set to, because a whole message is a lot to lose to a stray flick.
+
+The swipe has to be steeper than it is wide, so a leftward word swipe that drifts upward stays a word swipe. It works in the keyboard's own text boxes too. A text box that shows the keyboard only part of a long text can't be selected whole, and there the swipe does nothing rather than leave the rest behind. A backspace key you gave a flick up in the [layout editor](/languages/custom-layouts/) keeps its flick.
+
 ### Holding delete to clear words
 
 <SettingsPath path="Key press / Timing" />
