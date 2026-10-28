@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.settings
 
 import java.security.SecureRandom
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -68,6 +69,14 @@ data class BackupLocation(
     val refreshToken: String = "",
     /** [BackupDestination.NEARBY]: the paired device's KDE Connect id. */
     val nearbyDeviceId: String = "",
+    val box: BoxConfig = BoxConfig(),
+    val pcloud: PCloudConfig = PCloudConfig(),
+    /** [BackupDestination.SYNOLOGY] and [BackupDestination.QNAP] both. */
+    val nas: NasConfig = NasConfig(),
+    val nfs: NfsConfig = NfsConfig(),
+    val mega: MegaConfig = MegaConfig(),
+    val icloud: ICloudConfig = ICloudConfig(),
+    val proton: ProtonConfig = ProtonConfig(),
 ) {
 
     /**
@@ -91,6 +100,13 @@ data class BackupLocation(
             BackupDestination.GIT -> git.configured
             BackupDestination.IMAP -> imap.configured
             BackupDestination.NEARBY -> nearbyDeviceId.isNotEmpty()
+            BackupDestination.BOX -> refreshToken.isNotEmpty()
+            BackupDestination.PCLOUD -> pcloud.configured
+            BackupDestination.SYNOLOGY, BackupDestination.QNAP -> nas.configured
+            BackupDestination.NFS -> nfs.configured
+            BackupDestination.MEGA -> mega.configured
+            BackupDestination.ICLOUD -> icloud.configured
+            BackupDestination.PROTON -> proton.configured
         }
 
     /** Enabled and configured: what a run actually writes to. */
@@ -111,6 +127,15 @@ data class BackupLocation(
             ByteArray(ID_BYTES).also { SecureRandom().nextBytes(it) }.joinToString("") { "%02x".format(it) }
 
         private val json = Json { ignoreUnknownKeys = true }
+
+        /** For the sections that are [kotlinx.serialization.Serializable] classes: see CloudConfigs.kt. */
+        private val sections = Json {
+            ignoreUnknownKeys = true
+            coerceInputValues = true
+        }
+
+        private fun <T> JsonObject.serialized(key: String, serializer: KSerializer<T>, default: T): T =
+            section(key)?.let { runCatching { sections.decodeFromJsonElement(serializer, it) }.getOrNull() } ?: default
 
         /** The stored list, or empty for anything that does not parse. */
         fun decodeList(raw: String?): List<BackupLocation> {
@@ -235,6 +260,13 @@ data class BackupLocation(
                 driveFolder = o.str("driveFolder").ifEmpty { DriveSpace.DEFAULT_FOLDER },
                 refreshToken = o.str("refreshToken"),
                 nearbyDeviceId = o.str("nearbyDeviceId"),
+                box = o.serialized("box", BoxConfig.serializer(), BoxConfig()),
+                pcloud = o.serialized("pcloud", PCloudConfig.serializer(), PCloudConfig()),
+                nas = o.serialized("nas", NasConfig.serializer(), NasConfig()),
+                nfs = o.serialized("nfs", NfsConfig.serializer(), NfsConfig()),
+                mega = o.serialized("mega", MegaConfig.serializer(), MegaConfig()),
+                icloud = o.serialized("icloud", ICloudConfig.serializer(), ICloudConfig()),
+                proton = o.serialized("proton", ProtonConfig.serializer(), ProtonConfig()),
             )
         }
 
@@ -339,6 +371,17 @@ data class BackupLocation(
                 )
                 BackupDestination.DROPBOX, BackupDestination.ONEDRIVE ->
                     put("refreshToken", JsonPrimitive(l.refreshToken))
+                BackupDestination.BOX -> {
+                    put("refreshToken", JsonPrimitive(l.refreshToken))
+                    put("box", sections.encodeToJsonElement(BoxConfig.serializer(), l.box))
+                }
+                BackupDestination.PCLOUD -> put("pcloud", sections.encodeToJsonElement(PCloudConfig.serializer(), l.pcloud))
+                BackupDestination.SYNOLOGY, BackupDestination.QNAP ->
+                    put("nas", sections.encodeToJsonElement(NasConfig.serializer(), l.nas))
+                BackupDestination.NFS -> put("nfs", sections.encodeToJsonElement(NfsConfig.serializer(), l.nfs))
+                BackupDestination.MEGA -> put("mega", sections.encodeToJsonElement(MegaConfig.serializer(), l.mega))
+                BackupDestination.ICLOUD -> put("icloud", sections.encodeToJsonElement(ICloudConfig.serializer(), l.icloud))
+                BackupDestination.PROTON -> put("proton", sections.encodeToJsonElement(ProtonConfig.serializer(), l.proton))
                 BackupDestination.NEARBY -> put("nearbyDeviceId", JsonPrimitive(l.nearbyDeviceId))
                 BackupDestination.DRIVE -> {
                     put("driveSpace", JsonPrimitive(l.driveSpace.id))

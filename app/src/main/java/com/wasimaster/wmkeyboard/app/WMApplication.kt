@@ -116,11 +116,13 @@ open class WMApplication : Application() {
         installLlmDelivery(this)
         // The same for ML Kit's translator and OnDeviceTranslator.
         installTranslateDelivery(this)
-        // The Dropbox and OneDrive client ids, which live in BuildConfig and
+        // The Dropbox, OneDrive and Box client ids, which live in BuildConfig and
         // so cannot be read from the library module that needs them.
         BackupClients.install(
             dropbox = BuildConfig.DROPBOX_APP_KEY,
             oneDrive = BuildConfig.ONEDRIVE_CLIENT_ID,
+            box = BuildConfig.BOX_CLIENT_ID,
+            boxSecret = BuildConfig.BOX_CLIENT_SECRET,
         )
         // Whether the translate list can offer the on-device engines: ML Kit,
         // Bergamot and NLLB sit above the module that keeps the provider lists.

@@ -233,8 +233,14 @@ what's already in the table above:
   (`www.googleapis.com`), Dropbox (`www.dropbox.com` to sign in, then
   `api.dropbox.com`, `api.dropboxapi.com` and `content.dropboxapi.com`),
   OneDrive (`login.microsoftonline.com` to sign in, then
-  `graph.microsoft.com`), or the S3, WebDAV, SFTP, SMB, FTP, Git or IMAP
-  server whose address you typed in yourself. A Nextcloud WebDAV location can
+  `graph.microsoft.com`), Box (`account.box.com` to sign in, through
+  `wmkeyboard.pages.dev/oauth/` on the way back, then `api.box.com` and
+  `upload.box.com`), pCloud (`api.pcloud.com` or `eapi.pcloud.com`, and the
+  download host it names), MEGA (`g.api.mega.co.nz` and the storage hosts it
+  names), iCloud Drive (`idmsa.apple.com` to sign in, `setup.icloud.com`, and
+  the iCloud Drive hosts that names), Proton Drive (`drive-api.proton.me` and
+  the block storage hosts it names), or the S3, WebDAV, SFTP, SMB, NFS, FTP,
+  Git, IMAP, Synology or QNAP server whose address you typed in yourself. A Nextcloud WebDAV location can
   also sign in through your own server's login page. Nothing is contacted until you add a location, so none of
   these are contacted on a fresh install. What travels is your backup file,
   and your sync file if you turn on sync between devices, and nothing else.

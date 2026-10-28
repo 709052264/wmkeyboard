@@ -7,6 +7,12 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CenterFocusStrong
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckCircle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Flag
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Lan
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudDone
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Devices
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Hub
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Inventory
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudSync
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudQueue
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Layers
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mail
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInNew
@@ -508,6 +514,14 @@ internal object ChoiceOptionIcons {
         put(BackupDestination.GIT) { Icons.Outlined.AccountTree }
         put(BackupDestination.IMAP) { Icons.Outlined.Mail }
         put(BackupDestination.NEARBY) { Icons.Outlined.Phonelink }
+        put(BackupDestination.BOX) { Icons.Outlined.CloudQueue }
+        put(BackupDestination.PCLOUD) { Icons.Outlined.CloudSync }
+        put(BackupDestination.SYNOLOGY) { Icons.Outlined.Inventory }
+        put(BackupDestination.QNAP) { Icons.Outlined.Hub }
+        put(BackupDestination.NFS) { Icons.Outlined.Devices }
+        put(BackupDestination.MEGA) { Icons.Outlined.Security }
+        put(BackupDestination.ICLOUD) { Icons.Outlined.CloudDone }
+        put(BackupDestination.PROTON) { Icons.Outlined.Lock }
 
         put(MeteredPolicy.ALLOW) { Icons.Outlined.AllInclusive }
         put(MeteredPolicy.ASK) { Icons.Outlined.HelpOutline }

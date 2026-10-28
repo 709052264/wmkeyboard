@@ -263,6 +263,7 @@ internal fun autoBackupErrorText(
     SinkError.PERMISSION_LOST.name -> context.getString(
         when {
             destination == BackupDestination.FOLDER -> R.string.backup_auto_error_permission
+            destination == BackupDestination.NFS -> R.string.backup_auto_error_permission_nfs
             destination.signsIn -> R.string.backup_auto_error_permission_account
             else -> R.string.backup_auto_error_permission_server
         },
@@ -280,6 +281,8 @@ internal fun autoBackupErrorText(
             BackupDestination.SFTP -> R.string.backup_auto_error_unsafe_sftp
             BackupDestination.GIT -> R.string.backup_auto_error_unsafe_git
             BackupDestination.SMB -> R.string.backup_auto_error_unsafe_smb
+            BackupDestination.SYNOLOGY, BackupDestination.QNAP -> R.string.backup_auto_error_unsafe_nas
+            BackupDestination.PROTON -> R.string.backup_auto_error_unsafe_proton
             else -> R.string.backup_auto_error_unsafe
         },
     )
@@ -390,6 +393,14 @@ internal fun destinationDescRes(destination: BackupDestination): Int = when (des
     BackupDestination.GIT -> R.string.backup_auto_dest_git_desc
     BackupDestination.IMAP -> R.string.backup_auto_dest_imap_desc
     BackupDestination.NEARBY -> R.string.backup_auto_dest_nearby_desc
+    BackupDestination.BOX -> R.string.backup_auto_dest_box_desc
+    BackupDestination.PCLOUD -> R.string.backup_auto_dest_pcloud_desc
+    BackupDestination.SYNOLOGY -> R.string.backup_auto_dest_synology_desc
+    BackupDestination.QNAP -> R.string.backup_auto_dest_qnap_desc
+    BackupDestination.NFS -> R.string.backup_auto_dest_nfs_desc
+    BackupDestination.MEGA -> R.string.backup_auto_dest_mega_desc
+    BackupDestination.ICLOUD -> R.string.backup_auto_dest_icloud_desc
+    BackupDestination.PROTON -> R.string.backup_auto_dest_proton_desc
 }
 
 /** One sentence for whatever a backup run turned out to be. */

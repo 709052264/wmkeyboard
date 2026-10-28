@@ -57,7 +57,7 @@ and the source it builds from.
 | **Google Play in-app updates** | asks the Play Store whether a newer version exists | nothing: F-Droid's own client handles updates |
 | **The self-updater** | downloads an APK from the project's GitHub releases and installs it | nothing, and it could not have worked here anyway: F-Droid signs its builds with its own key, so an APK from GitHub cannot install over an F-Droid install. This build has no `REQUEST_INSTALL_PACKAGES` permission and no installer code. What it has instead is a check that asks F-Droid, described below |
 | **Play Feature Delivery** | downloads a feature's native library as a separate module | nothing: this edition downloads those libraries itself, after you agree to it (see below) |
-| **Google Play services auth** | gets an OAuth token for Google Drive | Drive as a backup destination. Local storage, WebDAV, an S3-compatible bucket, an SFTP, SMB or FTP server, a Git repository, a mail account, Dropbox and OneDrive all still work |
+| **Google Play services auth** | gets an OAuth token for Google Drive | Drive as a backup destination. Local storage, WebDAV, an S3-compatible bucket, an SFTP, SMB, NFS or FTP server, a Synology or QNAP NAS, a Git repository, a mail account, Dropbox, OneDrive, Box, pCloud, MEGA, iCloud Drive and Proton Drive all still work |
 | **LiteRT-LM** | runs a language model on the device | the LiteRT-LM models (`.litertlm` and `.task` files). GGUF models still run on the device through llama.cpp, which this edition builds from source, and cloud AI providers still work with your own key |
 | **Qualcomm QNN runtime** | runs an on-device AI model on a Snapdragon phone's NPU, under Qualcomm's own licence | the **NPU** choice under Compute, which this edition could not use anyway without LiteRT-LM |
 | **LiteRT Whisper models** | offline dictation on Google's LiteRT | the older LiteRT Whisper models. Offline Whisper on whisper.cpp and the other offline voice engines still work |
@@ -187,8 +187,9 @@ leaves the rest of the keyboard working. The full list is on
 
 Backups are optional and written to the destination you choose. That can be
 local storage, a cloud drive you connect, a WebDAV server, an S3-compatible
-bucket, an SFTP, SMB or FTP server you run, a Git repository you own, or a
-folder in your own mail account. Google Drive is not offered in this edition.
+bucket, an SFTP, SMB, NFS or FTP server you run, a Synology or QNAP NAS, a
+Git repository you own, a folder in your own mail account, or a Box, pCloud,
+MEGA, iCloud Drive or Proton Drive account. Google Drive is not offered in this edition.
 By default the file is plain JSON. Turn on a backup passphrase and it is
 encrypted with AES-GCM under a PBKDF2-HMAC-SHA512 key. Nothing is uploaded
 anywhere by default and no copy is sent to the developer. See

@@ -822,4 +822,98 @@
     <string name="backup_remote_restore_all_groups">All</string>
     <!-- %1$s is a device name, %2$s the sync group it was in. -->
     <string name="backup_remote_restore_device_group">%1$s · %2$s</string>
+
+    <!-- Box, pCloud, Synology, QNAP, NFS, MEGA, iCloud Drive and Proton Drive locations. -->
+    <string name="backup_auto_dest_box" translatable="false">Box</string>
+    <string name="backup_auto_dest_box_desc">A folder in your Box. Sign in through the browser</string>
+    <string name="backup_auto_dest_pcloud" translatable="false">pCloud</string>
+    <string name="backup_auto_dest_pcloud_desc">A folder in your pCloud. Sign in with your email and password</string>
+    <string name="backup_auto_dest_synology" translatable="false">Synology</string>
+    <string name="backup_auto_dest_synology_desc">Synology Drive or a shared folder on your Synology NAS. Needs its address and your DSM account</string>
+    <string name="backup_auto_dest_qnap" translatable="false">QNAP</string>
+    <string name="backup_auto_dest_qnap_desc">A shared folder on your QNAP NAS. Needs its address and your QTS account</string>
+    <string name="backup_auto_dest_nfs" translatable="false">NFS</string>
+    <string name="backup_auto_dest_nfs_desc">A folder in an NFS export on your network. Needs the server and the export path</string>
+    <string name="backup_auto_dest_mega" translatable="false">MEGA</string>
+    <string name="backup_auto_dest_mega_desc">A folder in your MEGA, encrypted on this phone. Sign in with your email and password</string>
+    <string name="backup_auto_dest_icloud" translatable="false">iCloud Drive</string>
+    <string name="backup_auto_dest_icloud_desc">A folder in your iCloud Drive. Sign in with your Apple Account and a code from your Apple device</string>
+    <string name="backup_auto_dest_proton" translatable="false">Proton Drive</string>
+    <string name="backup_auto_dest_proton_desc">A folder in your Proton Drive, encrypted on this phone. Sign in with your Proton account</string>
+
+    <string name="backup_location_name_hint_box">Optional. For example, Work Box.</string>
+    <string name="backup_location_name_hint_pcloud">Optional. For example, pCloud backups.</string>
+    <string name="backup_location_name_hint_synology">Optional. For example, Home NAS.</string>
+    <string name="backup_location_name_hint_qnap">Optional. For example, Office NAS.</string>
+    <string name="backup_location_name_hint_nfs">Optional. For example, File server.</string>
+    <string name="backup_location_name_hint_mega">Optional. For example, MEGA.</string>
+    <string name="backup_location_name_hint_icloud">Optional. For example, iCloud.</string>
+    <string name="backup_location_name_hint_proton">Optional. For example, Proton.</string>
+
+    <string name="backup_cloud_folder_hint">A folder in your account. Use / for a folder in a folder. The app makes it if it is not there.</string>
+    <string name="backup_cloud_email_label">Email</string>
+    <string name="backup_cloud_password_hint">The app uses the password only to sign in, and does not keep it.</string>
+    <string name="backup_cloud_code_label">Verification code</string>
+    <string name="backup_cloud_code_hint">The 6-digit code from your authenticator app.</string>
+    <string name="backup_cloud_code_submit">Continue</string>
+    <!-- %1$s is the account the location is signed in to, an email address. -->
+    <string name="backup_cloud_signed_in_as">Signed in as %1$s.</string>
+    <string name="backup_cloud_sign_in_failed">The app could not sign in. Check the email and the password, then try again.</string>
+    <string name="backup_cloud_code_failed">The code was not accepted. Try again with a new code.</string>
+    <string name="backup_box_info">The app sees your whole Box, because Box has no folder only for apps. It writes only to the folder below. To take this permission back, open the apps list in your Box account settings.</string>
+
+    <string name="backup_pcloud_region_title">Data region</string>
+    <string name="backup_pcloud_region_us">United States</string>
+    <string name="backup_pcloud_region_eu">Europe</string>
+    <string name="backup_pcloud_other_region">Your account is in the other data region. The app changed it. Select Sign in again.</string>
+    <string name="backup_pcloud_info">The app keeps only the sign-in token from pCloud, not your password. To end the sign-in, open the devices list in your pCloud account settings.</string>
+
+    <string name="backup_nas_server_label">Address</string>
+    <string name="backup_nas_server_hint_synology">For example, nas.local or 192.168.1.20:5001. The app uses HTTPS on port 5001 if you type no port. QuickConnect addresses do not work.</string>
+    <string name="backup_nas_server_hint_qnap">For example, nas.local or 192.168.1.20. The app uses HTTPS on port 443 if you type no port. myQNAPcloud links do not work.</string>
+    <string name="backup_nas_path_hint_synology">From the top of the NAS. /home/Drive is your Synology Drive, so /home/Drive/WM Keyboard puts backups there. The app makes the last folders if they are not there.</string>
+    <string name="backup_nas_path_hint_qnap">From the top of the NAS, starting with a shared folder, for example /Public/WM Keyboard. The app makes the folders below the share.</string>
+    <string name="backup_nas_own_cert_title">Accept the certificate of the NAS</string>
+    <string name="backup_nas_own_cert_subtitle">Most NAS boxes on a home network use a certificate that they made themselves. The app remembers the certificate of the first connection and refuses a different one later.</string>
+    <string name="backup_nas_cert_title">Certificate</string>
+    <!-- %1$s is the start of a SHA-256 fingerprint. -->
+    <string name="backup_nas_cert_value">Remembered: %1$s…</string>
+    <string name="backup_nas_cert_none">None yet. The first backup or test remembers it.</string>
+    <string name="backup_nas_cert_forget">Forget the certificate</string>
+    <string name="backup_nas_two_step_title">Two-step verification</string>
+    <string name="backup_nas_two_step_hint">If your account uses a verification code, sign in once here with a code. The NAS then trusts this phone, and backups do not need a code.</string>
+    <string name="backup_nas_two_step_sign_in">Sign in with the code</string>
+    <string name="backup_nas_two_step_done">This phone is trusted. Backups sign in without a code.</string>
+    <string name="backup_nas_cleartext">The address must start with https://, because the sign-in sends your password. An address on your Tailscale network can use http://.</string>
+    <string name="backup_auto_error_unsafe_nas">The certificate of the NAS is not trusted, or it changed since the first connection. If the NAS made its own certificate, turn on Accept the certificate of the NAS. If you changed the certificate, select Forget the certificate.</string>
+
+    <string name="backup_nfs_export_label">Export</string>
+    <string name="backup_nfs_export_hint">The exported folder on the server, for example /srv/nfs/backups or /volume1/backups.</string>
+    <string name="backup_nfs_path_hint">A folder in the export. Leave this empty to use the top of the export. The app makes the folder if it is not there.</string>
+    <string name="backup_nfs_uid_label">User ID</string>
+    <string name="backup_nfs_gid_label">Group ID</string>
+    <string name="backup_nfs_ids_hint">The numbers the files are written as. Use the IDs of your account on the server.</string>
+    <string name="backup_nfs_port_label">NFS port</string>
+    <string name="backup_nfs_mount_port_label">Mount port</string>
+    <string name="backup_nfs_ports_hint">0 asks the server. Change this only if the server has no portmapper.</string>
+    <string name="backup_nfs_info">The export must allow connections from ports above 1024, because Android apps cannot use the others. On Linux, add insecure to the export. On a Synology NAS, turn on Allow connections from non-privileged ports. NFS sends files without encryption, so turn on Protect with a passphrase in Automatic backup.</string>
+    <string name="backup_auto_error_permission_nfs">The server refused this phone. Check that the export allows the address of this phone and connections from ports above 1024, and that the user ID can write to the folder.</string>
+
+    <string name="backup_mega_info">MEGA encrypts every file on this phone before it goes up, as the MEGA app does. The app keeps the sign-in session, not your password. To end it, close the session in the MEGA security settings.</string>
+
+    <string name="backup_icloud_apple_id_label">Apple Account</string>
+    <string name="backup_icloud_password_hint">The app keeps this password, because iCloud asks for it again about once a day.</string>
+    <string name="backup_icloud_code_hint_device">Apple sent a code to your Apple devices. Type it here.</string>
+    <string name="backup_icloud_code_hint_sms">Apple sent a code to your phone number in a text message. Type it here.</string>
+    <!-- %1$s is a date. -->
+    <string name="backup_icloud_trusted_until">Signed in. Sign in again before %1$s.</string>
+    <string name="backup_icloud_needs_approval">Your account uses Advanced Data Protection. Approve the request on your Apple device, then select Sign in again. Also turn on Access iCloud Data on the Web in the iCloud settings of your Apple device.</string>
+    <string name="backup_icloud_info">iCloud has no public interface for Android. The app uses the same one as iCloud.com, so Apple can change it without notice. Apple asks for a new code about once a month, and the location then shows that you must sign in again.</string>
+
+    <string name="backup_proton_user_label">Proton account</string>
+    <string name="backup_proton_mailbox_label">Mailbox password</string>
+    <string name="backup_proton_mailbox_hint">Your account has a second password. Type it here.</string>
+    <string name="backup_proton_captcha">Proton wants to check that you are a person. Sign in once on proton.me in a browser on this network, then try again here.</string>
+    <string name="backup_proton_info">Proton Drive encrypts every file on this phone, as the Proton apps do. Proton has no public interface for apps like this one yet, so Proton can change it, and backups can then stop until the app is updated. The app keeps the sign-in session and your key password in a protected form, not your password.</string>
+    <string name="backup_auto_error_unsafe_proton">Proton did not prove that it knows your password. The sign-in stopped, because a device between you and Proton can cause this.</string>
 </resources>

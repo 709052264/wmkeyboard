@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Back to WM Keyboard</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font: 16px/1.5 system-ui, sans-serif; margin: 0; padding: 32px 16px; text-align: center; }
+  a { font-weight: 600; }
+</style>
+</head>
+<body>
+<!--
+  Box, unlike Dropbox and OneDrive, only sends a sign-in back to an https
+  address. This page is that address: it hands the code on to the app's own
+  wmkeyboard://oauth, where BackupOAuth trades it for a token. Nothing is
+  stored or sent anywhere else; the code is useless without the app's client
+  secret, and expires in 30 seconds.
+-->
+<p id="text">Returning to WM Keyboard…</p>
+<p><a id="link" href="wmkeyboard://oauth">Open WM Keyboard</a></p>
+<script>
+  var target = 'wmkeyboard://oauth' + window.location.search;
+  document.getElementById('link').href = target;
+  window.location.replace(target);
+</script>
+</body>
+</html>

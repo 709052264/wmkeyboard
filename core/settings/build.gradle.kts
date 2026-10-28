@@ -62,6 +62,7 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.jsch)
     implementation(libs.bouncycastle.prov)
+    implementation(libs.bouncycastle.pg)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)

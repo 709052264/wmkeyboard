@@ -12,6 +12,7 @@ import com.wasimaster.wmkeyboard.core.settings.BackupLocation
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.sink.BackupClients
 import com.wasimaster.wmkeyboard.core.settings.sink.BackupLog
+import com.wasimaster.wmkeyboard.core.settings.sink.BoxSink
 import com.wasimaster.wmkeyboard.core.settings.sink.DropboxSink
 import com.wasimaster.wmkeyboard.core.settings.sink.OneDriveSink
 import java.io.File
@@ -26,7 +27,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 
 /**
- * The browser half of signing in to Dropbox or OneDrive.
+ * The browser half of signing in to Dropbox, OneDrive or Box.
  *
  * PKCE, in a plain browser tab, with no SDK from either vendor. Both flows are
  * the same four steps and differ only in two URLs, so they share this: make a
@@ -43,6 +44,9 @@ object BackupOAuth {
     const val REDIRECT_URI = "wmkeyboard://oauth"
 
     private const val VERIFIER_BYTES = 64
+
+    /** How much of the verifier goes out as Box's `state`, which it only echoes back. */
+    private const val STATE_CHARS = 32
 
     /**
      * The sign-in that is waiting for the browser to come back, if any, and
@@ -158,6 +162,17 @@ object BackupOAuth {
                 .appendQueryParameter("code_challenge_method", "S256")
                 .build()
 
+            // No PKCE parameters: Box's sign-in takes the client secret
+            // instead, and its redirect has to be an https page, which hands
+            // the code on to REDIRECT_URI (docs/public/oauth/index.html).
+            BackupDestination.BOX -> Uri.parse(BoxSink.AUTHORIZE_URL)
+                .buildUpon()
+                .appendQueryParameter("client_id", clientId)
+                .appendQueryParameter("response_type", "code")
+                .appendQueryParameter("redirect_uri", BoxSink.REDIRECT_URI)
+                .appendQueryParameter("state", verifier.take(STATE_CHARS))
+                .build()
+
             else -> return false
         }
 
@@ -203,9 +218,11 @@ object BackupOAuth {
     ) {
         val tokens = when (destination) {
             BackupDestination.DROPBOX -> BackupClients.dropbox()
+            BackupDestination.BOX -> BackupClients.box()
             else -> BackupClients.oneDrive()
         }
-        val refresh = tokens?.exchangeCode(code, verifier, REDIRECT_URI)
+        val redirect = if (destination == BackupDestination.BOX) BoxSink.REDIRECT_URI else REDIRECT_URI
+        val refresh = tokens?.exchangeCode(code, verifier, redirect)
         if (refresh == null) {
             _result.value = Result(locationId, Outcome.FAILED)
             return

@@ -86,6 +86,8 @@ import com.wasimaster.wmkeyboard.core.settings.sink.GitSink
 import com.wasimaster.wmkeyboard.core.settings.sink.NextcloudLogin
 import com.wasimaster.wmkeyboard.core.settings.sink.S3Sink
 import com.wasimaster.wmkeyboard.core.settings.sink.SftpSink
+import com.wasimaster.wmkeyboard.core.settings.sink.QnapSink
+import com.wasimaster.wmkeyboard.core.settings.sink.SynologySink
 import com.wasimaster.wmkeyboard.core.settings.sink.SinkError
 import com.wasimaster.wmkeyboard.core.settings.sink.WebDavSink
 import kotlinx.coroutines.flow.first
@@ -106,6 +108,14 @@ internal val BackupDestination.accent: Color
         BackupDestination.GIT -> Color(0xFFF05032)
         BackupDestination.IMAP -> Color(0xFFC62828)
         BackupDestination.NEARBY -> Color(0xFF7E57C2)
+        BackupDestination.BOX -> Color(0xFF0061D5)
+        BackupDestination.PCLOUD -> Color(0xFF17BED0)
+        BackupDestination.SYNOLOGY -> Color(0xFF3D5A80)
+        BackupDestination.QNAP -> Color(0xFF1565C0)
+        BackupDestination.NFS -> Color(0xFF6D4C41)
+        BackupDestination.MEGA -> Color(0xFFD9272E)
+        BackupDestination.ICLOUD -> Color(0xFF3693F3)
+        BackupDestination.PROTON -> Color(0xFF6D4AFF)
     }
 
 /** The destination's own name: "Dropbox", "WebDAV", "Folder". */
@@ -123,6 +133,14 @@ internal fun destinationName(context: Context, type: BackupDestination): String 
         BackupDestination.GIT -> R.string.backup_auto_dest_git
         BackupDestination.IMAP -> R.string.backup_auto_dest_imap
         BackupDestination.NEARBY -> R.string.backup_auto_dest_nearby
+        BackupDestination.BOX -> R.string.backup_auto_dest_box
+        BackupDestination.PCLOUD -> R.string.backup_auto_dest_pcloud
+        BackupDestination.SYNOLOGY -> R.string.backup_auto_dest_synology
+        BackupDestination.QNAP -> R.string.backup_auto_dest_qnap
+        BackupDestination.NFS -> R.string.backup_auto_dest_nfs
+        BackupDestination.MEGA -> R.string.backup_auto_dest_mega
+        BackupDestination.ICLOUD -> R.string.backup_auto_dest_icloud
+        BackupDestination.PROTON -> R.string.backup_auto_dest_proton
     },
 )
 
@@ -152,6 +170,13 @@ internal fun BackupLocation.detail(context: Context): String? = when (type) {
     BackupDestination.GIT -> git.repository.ifEmpty { null }
     BackupDestination.IMAP -> imap.user.takeIf { it.isNotEmpty() }?.let { if (it.contains('@')) it else "$it@${imap.host}" }
     BackupDestination.DRIVE -> driveFolder.takeIf { driveSpace == DriveSpace.FOLDER }
+    BackupDestination.BOX -> box.folder.ifEmpty { null }
+    BackupDestination.PCLOUD -> pcloud.email.ifEmpty { null }
+    BackupDestination.SYNOLOGY, BackupDestination.QNAP -> nas.server.ifEmpty { null }
+    BackupDestination.NFS -> nfs.host.takeIf { it.isNotEmpty() }?.let { "$it:${nfs.export}" }
+    BackupDestination.MEGA -> mega.email.ifEmpty { null }
+    BackupDestination.ICLOUD -> icloud.appleId.ifEmpty { null }
+    BackupDestination.PROTON -> proton.user.ifEmpty { null }
     else -> null
 }?.takeIf { name.isEmpty() || it != name } ?: if (name.isNotEmpty()) destinationName(context, type) else null
 
@@ -165,10 +190,18 @@ internal fun availableDestinations(): List<BackupDestination> = buildList {
     if (driveAuthorizer().available) add(BackupDestination.DRIVE)
     if (BackupClients.dropboxAvailable) add(BackupDestination.DROPBOX)
     if (BackupClients.oneDriveAvailable) add(BackupDestination.ONEDRIVE)
+    if (BackupClients.boxAvailable) add(BackupDestination.BOX)
+    add(BackupDestination.ICLOUD)
+    add(BackupDestination.PROTON)
+    add(BackupDestination.MEGA)
+    add(BackupDestination.PCLOUD)
     add(BackupDestination.WEBDAV)
     add(BackupDestination.S3)
+    add(BackupDestination.SYNOLOGY)
+    add(BackupDestination.QNAP)
     add(BackupDestination.SFTP)
     add(BackupDestination.SMB)
+    add(BackupDestination.NFS)
     add(BackupDestination.FTP)
     add(BackupDestination.GIT)
     add(BackupDestination.IMAP)
@@ -188,6 +221,14 @@ private fun nameHintRes(type: BackupDestination): Int = when (type) {
     BackupDestination.GIT -> R.string.backup_location_name_hint_git
     BackupDestination.IMAP -> R.string.backup_location_name_hint_imap
     BackupDestination.NEARBY -> R.string.backup_location_name_hint_nearby
+    BackupDestination.BOX -> R.string.backup_location_name_hint_box
+    BackupDestination.PCLOUD -> R.string.backup_location_name_hint_pcloud
+    BackupDestination.SYNOLOGY -> R.string.backup_location_name_hint_synology
+    BackupDestination.QNAP -> R.string.backup_location_name_hint_qnap
+    BackupDestination.NFS -> R.string.backup_location_name_hint_nfs
+    BackupDestination.MEGA -> R.string.backup_location_name_hint_mega
+    BackupDestination.ICLOUD -> R.string.backup_location_name_hint_icloud
+    BackupDestination.PROTON -> R.string.backup_location_name_hint_proton
 }
 
 /** What a location that cannot be tried yet is missing, in the words for its kind. */
@@ -523,6 +564,8 @@ private fun LocationEditorSheet(
     // Set by Forget the server key, so the key a backup stored meanwhile does
     // not come straight back from [live].
     var keyForgotten by remember { mutableStateOf(false) }
+    // The same for a NAS certificate, with Forget the certificate.
+    var certForgotten by remember { mutableStateOf(false) }
     // The stored token wins over the draft's: it is what the sign-in wrote.
     // An SFTP host key the draft lacks comes from the stored copy the same way,
     // since a backup that ran meanwhile may have recorded it.
@@ -532,6 +575,29 @@ private fun LocationEditorSheet(
             draft.sftp.copy(hostKey = live?.sftp?.hostKey.orEmpty())
         } else {
             draft.sftp
+        },
+        nas = if (draft.nas.certPin.isEmpty() && !certForgotten && live?.nas?.server == draft.nas.server) {
+            draft.nas.copy(certPin = live?.nas?.certPin.orEmpty())
+        } else {
+            draft.nas
+        },
+        // Tokens a backup refreshed while the sheet was open; signing out
+        // here (an empty uid, no trust token) keeps the draft's.
+        proton = if (draft.proton.uid.isNotEmpty() && live?.proton?.uid == draft.proton.uid) {
+            draft.proton.copy(
+                accessToken = live?.proton?.accessToken ?: draft.proton.accessToken,
+                refreshToken = live?.proton?.refreshToken ?: draft.proton.refreshToken,
+            )
+        } else {
+            draft.proton
+        },
+        icloud = if (draft.icloud.trustToken.isNotEmpty() && live?.icloud?.trustedAtMs == draft.icloud.trustedAtMs) {
+            draft.icloud.copy(
+                cookies = live?.icloud?.cookies ?: draft.icloud.cookies,
+                trustToken = live?.icloud?.trustToken ?: draft.icloud.trustToken,
+            )
+        } else {
+            draft.icloud
         },
     )
 
@@ -616,6 +682,38 @@ private fun LocationEditorSheet(
                 }
                 // Nothing to fill in: the pairing made it.
                 BackupDestination.NEARBY -> Unit
+                BackupDestination.BOX -> BoxPart(repository, current, draft, onMessage) {
+                    draft = it
+                    testResult = null
+                }
+                BackupDestination.PCLOUD -> PCloudPart(draft) {
+                    draft = it
+                    testResult = null
+                }
+                BackupDestination.SYNOLOGY, BackupDestination.QNAP -> NasPart(current, onForgetCertificate = {
+                    certForgotten = true
+                    draft = draft.copy(nas = draft.nas.copy(certPin = ""))
+                    testResult = null
+                }) {
+                    draft = it
+                    testResult = null
+                }
+                BackupDestination.NFS -> NfsPart(draft) {
+                    draft = it
+                    testResult = null
+                }
+                BackupDestination.MEGA -> MegaPart(draft) {
+                    draft = it
+                    testResult = null
+                }
+                BackupDestination.ICLOUD -> ICloudPart(draft) {
+                    draft = it
+                    testResult = null
+                }
+                BackupDestination.PROTON -> ProtonPart(draft) {
+                    draft = it
+                    testResult = null
+                }
             }
 
             // Test: the readiness call a backup makes first, with what is on
@@ -634,13 +732,19 @@ private fun LocationEditorSheet(
                             scope.launch {
                                 // SFTP records the server key here, into the
                                 // draft, so Save keeps what this test saw.
-                                val sink = if (current.type == BackupDestination.SFTP) {
-                                    SftpSink(current.sftp) { key ->
+                                val pinned = { pin: String ->
+                                    draft = draft.copy(nas = draft.nas.copy(certPin = pin))
+                                    certForgotten = false
+                                }
+                                val sink = when (current.type) {
+                                    BackupDestination.SFTP -> SftpSink(current.sftp) { key ->
                                         draft = draft.copy(sftp = draft.sftp.copy(hostKey = key))
                                         keyForgotten = false
                                     }
-                                } else {
-                                    AutoBackupRunner.sinkFor(context, current)
+                                    // As SFTP: the certificate this test saw goes into the draft.
+                                    BackupDestination.SYNOLOGY -> SynologySink(current.nas, pinned)
+                                    BackupDestination.QNAP -> QnapSink(current.nas, pinned)
+                                    else -> AutoBackupRunner.sinkFor(context, current)
                                 }
                                 val failure = sink?.readiness()?.exceptionOrNull()
                                     ?: if (sink == null) BackupSinkException(SinkError.NOT_CONFIGURED) else null
@@ -1303,19 +1407,19 @@ private fun ImapPart(draft: BackupLocation, onChange: (BackupLocation) -> Unit) 
 }
 
 /**
- * Dropbox or OneDrive: who is signed in, a progress bar while the browser's
+ * Dropbox, OneDrive or Box: who is signed in, a progress bar while the browser's
  * code is traded for a token, and the button.
  */
 @Composable
-private fun SignInPart(repository: SettingsRepository, location: BackupLocation, onMessage: (String) -> Unit) {
+internal fun SignInPart(repository: SettingsRepository, location: BackupLocation, onMessage: (String) -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val exchanging by BackupOAuth.exchanging.collectAsStateWithLifecycle()
     val signingIn = exchanging == location.id
-    val clientId = if (location.type == BackupDestination.DROPBOX) {
-        BackupClients.dropboxClientId
-    } else {
-        BackupClients.oneDriveClientId
+    val clientId = when (location.type) {
+        BackupDestination.DROPBOX -> BackupClients.dropboxClientId
+        BackupDestination.BOX -> BackupClients.boxClientId
+        else -> BackupClients.oneDriveClientId
     }
 
     WmRow(
@@ -1355,10 +1459,10 @@ private fun SignInPart(repository: SettingsRepository, location: BackupLocation,
     }
     StateBanner(
         stringResource(
-            if (location.type == BackupDestination.DROPBOX) {
-                R.string.backup_auto_dropbox_info
-            } else {
-                R.string.backup_auto_onedrive_info
+            when (location.type) {
+                BackupDestination.DROPBOX -> R.string.backup_auto_dropbox_info
+                BackupDestination.BOX -> R.string.backup_box_info
+                else -> R.string.backup_auto_onedrive_info
             },
         ),
     )

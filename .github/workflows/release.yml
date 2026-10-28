@@ -123,6 +123,8 @@ jobs:
           WMKB_PEXELS_API_KEY: ${{ secrets.WMKB_PEXELS_API_KEY }}
           WMKB_DROPBOX_APP_KEY: ${{ secrets.WMKB_DROPBOX_APP_KEY }}
           WMKB_ONEDRIVE_CLIENT_ID: ${{ secrets.WMKB_ONEDRIVE_CLIENT_ID }}
+          WMKB_BOX_CLIENT_ID: ${{ secrets.WMKB_BOX_CLIENT_ID }}
+          WMKB_BOX_CLIENT_SECRET: ${{ secrets.WMKB_BOX_CLIENT_SECRET }}
           WMKB_SMARTTHINGS_CLIENT_ID: ${{ secrets.WMKB_SMARTTHINGS_CLIENT_ID }}
           WMKB_SMARTTHINGS_CLIENT_SECRET: ${{ secrets.WMKB_SMARTTHINGS_CLIENT_SECRET }}
         # One variant per Gradle call. All four at once shared one Kotlin
@@ -518,6 +520,8 @@ jobs:
           WMKB_PEXELS_API_KEY: ${{ secrets.WMKB_PEXELS_API_KEY }}
           WMKB_DROPBOX_APP_KEY: ${{ secrets.WMKB_DROPBOX_APP_KEY }}
           WMKB_ONEDRIVE_CLIENT_ID: ${{ secrets.WMKB_ONEDRIVE_CLIENT_ID }}
+          WMKB_BOX_CLIENT_ID: ${{ secrets.WMKB_BOX_CLIENT_ID }}
+          WMKB_BOX_CLIENT_SECRET: ${{ secrets.WMKB_BOX_CLIENT_SECRET }}
           WMKB_SMARTTHINGS_CLIENT_ID: ${{ secrets.WMKB_SMARTTHINGS_CLIENT_ID }}
           WMKB_SMARTTHINGS_CLIENT_SECRET: ${{ secrets.WMKB_SMARTTHINGS_CLIENT_SECRET }}
         # One variant per Gradle call, as in `apks`.
@@ -682,6 +686,8 @@ jobs:
           WMKB_PEXELS_API_KEY: ${{ secrets.WMKB_PEXELS_API_KEY }}
           WMKB_DROPBOX_APP_KEY: ${{ secrets.WMKB_DROPBOX_APP_KEY }}
           WMKB_ONEDRIVE_CLIENT_ID: ${{ secrets.WMKB_ONEDRIVE_CLIENT_ID }}
+          WMKB_BOX_CLIENT_ID: ${{ secrets.WMKB_BOX_CLIENT_ID }}
+          WMKB_BOX_CLIENT_SECRET: ${{ secrets.WMKB_BOX_CLIENT_SECRET }}
           WMKB_SMARTTHINGS_CLIENT_ID: ${{ secrets.WMKB_SMARTTHINGS_CLIENT_ID }}
           WMKB_SMARTTHINGS_CLIENT_SECRET: ${{ secrets.WMKB_SMARTTHINGS_CLIENT_SECRET }}
         run: ./gradlew bundleEnRelease --stacktrace

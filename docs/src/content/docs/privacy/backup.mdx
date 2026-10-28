@@ -120,8 +120,9 @@ keys**, which only appears while the Settings section itself is included.
 That's more than the tool keys: Translate, KLIPY, GIPHY, Brave, Tavily, Unsplash,
 Pexels, every AI provider key including Grok, DeepSeek, Brave and the
 OpenAI-compatible one, the Hugging Face token, and the passwords and tokens
-for your backup locations (WebDAV, S3, SFTP, SMB, FTP, Git, IMAP, Dropbox,
-OneDrive) plus your backup passphrase.
+for your backup locations (WebDAV, S3, SFTP, SMB, NFS, Synology, QNAP, FTP,
+Git, IMAP, Dropbox, OneDrive, Box, pCloud, MEGA, iCloud Drive, Proton Drive)
+plus your backup passphrase.
 
 [AI history](/tools/ai/#history) never travels, with or without that switch,
 and there is no section for it to travel in. The two settings that control it
@@ -162,6 +163,14 @@ as you like, of any kind, on the Backup & restore screen:
 | **Google Drive** | A one-time permission, for a hidden folder of the app's own or for a folder you can see in My Drive. Either way the app can see nothing else | No, needs Play services |
 | **Dropbox** | Signing in. The app gets a folder of its own under Apps | Yes |
 | **OneDrive** | Signing in. The app gets a folder of its own under Apps | Yes |
+| **Box** | Signing in through the browser, and a folder | Yes |
+| **iCloud Drive** | Your Apple Account, its password, and a code from your Apple device about once a month | Yes |
+| **Proton Drive** | Your Proton account, signed in once. Files are encrypted on the phone | Yes |
+| **MEGA** | Your MEGA account, signed in once. Files are encrypted on the phone | Yes |
+| **pCloud** | Your pCloud account, signed in once | Yes |
+| **Synology** | Your Synology NAS: Synology Drive or any shared folder, and your DSM account | Yes |
+| **QNAP** | A shared folder on your QNAP NAS, and your QTS account | Yes |
+| **NFS** | An NFS export on your network that allows this phone | Yes |
 
 None of these send anything to a WM Keyboard server. There is no account with
 us, and nothing of yours passes through anything we run. **Test the
@@ -231,7 +240,20 @@ nothing else, and the screen says plainly what it costs. An S3 endpoint on
 plain `http` is allowed too, for the MinIO box on your own network: the
 request is signed rather than carrying the secret key, but the signature and
 the file both go over the wire in the clear, and the screen says so under the
-endpoint field. Turn on a passphrase if you use either.
+endpoint field. Turn on a passphrase if you use either. NFS has no
+encryption and no password: the server takes the phone's word for the user
+id it writes as, and the screen says so. Synology and QNAP send your
+password, so a plain `http` address is refused, and a NAS certificate that
+no authority vouches for is refused unless you accept it, after which only
+that same certificate is.
+
+**Two locations hold only what the phone encrypted.** MEGA and Proton Drive
+get files encrypted with keys the service never sees, exactly as their own
+apps do it, and Proton signs every key, name and block as well. iCloud Drive
+is reached through the interface iCloud.com uses, because Apple publishes
+none for Android, and Proton Drive through the one its apps use, which Proton
+has not opened to other apps yet. Either can change on the service's side,
+and backups there then fail until the app is updated.
 
 **Nothing is backed up while your device is locked.** The parts that matter
 most, like your learned words, live in storage that only exists once you've

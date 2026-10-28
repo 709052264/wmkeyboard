@@ -300,6 +300,11 @@ android {
         // build without them simply leaves those two destinations out.
         buildConfigField("String", "DROPBOX_APP_KEY", "\"${apiKey("wmkb.dropboxAppKey", "WMKB_DROPBOX_APP_KEY")}\"")
         buildConfigField("String", "ONEDRIVE_CLIENT_ID", "\"${apiKey("wmkb.oneDriveClientId", "WMKB_ONEDRIVE_CLIENT_ID")}\"")
+        // Box's, which also needs its client secret: Box refuses a token
+        // request without one. Neither protects anything once shipped; a
+        // build without them leaves Box out.
+        buildConfigField("String", "BOX_CLIENT_ID", "\"${apiKey("wmkb.boxClientId", "WMKB_BOX_CLIENT_ID")}\"")
+        buildConfigField("String", "BOX_CLIENT_SECRET", "\"${apiKey("wmkb.boxClientSecret", "WMKB_BOX_CLIENT_SECRET")}\"")
         // Diagnostic builds only — see the same field in :core:config, which is
         // the copy DebugLog reads. Mirrored here for the app-package screens.
         buildConfigField("Boolean", "ENABLE_CRASH_SCREEN", "${flag("wmkb.enableCrashScreen", "WMKB_ENABLE_CRASH_SCREEN")}")

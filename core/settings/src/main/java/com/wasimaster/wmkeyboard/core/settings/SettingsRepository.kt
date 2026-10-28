@@ -4117,7 +4117,7 @@ data class OtpSettings(
 /**
  * Where an automatic backup goes.
  *
- * Eleven destinations, none of them a server of ours. That is the whole shape of
+ * Twenty destinations, none of them a server of ours. That is the whole shape of
  * this feature: the app writes a file somewhere the user already has, and never
  * holds a copy.
  */
@@ -4181,6 +4181,30 @@ enum class BackupDestination(
 
     /** A folder of messages in a mail account. See [ImapConfig]. */
     IMAP("imap"),
+
+    /** A folder in the user's Box, signed in through the browser. See [BoxConfig]. */
+    BOX("box"),
+
+    /** A folder in pCloud, through its own API. See [PCloudConfig]. */
+    PCLOUD("pcloud"),
+
+    /** A Synology NAS through DSM's File Station: Synology Drive and every shared folder. */
+    SYNOLOGY("synology"),
+
+    /** A QNAP NAS through the QTS File Station. */
+    QNAP("qnap"),
+
+    /** An NFS export, version 3. See [NfsConfig]. */
+    NFS("nfs"),
+
+    /** A folder in MEGA, encrypted on the phone the way MEGA's own apps do. See [MegaConfig]. */
+    MEGA("mega"),
+
+    /** A folder in iCloud Drive, through iCloud.com's web API. See [ICloudConfig]. */
+    ICLOUD("icloud"),
+
+    /** A folder in Proton Drive, end-to-end encrypted as Proton's apps do. See [ProtonConfig]. */
+    PROTON("proton"),
 
     /**
      * A computer with WM Keyboard, paired over KDE Connect: sync files go to
@@ -4767,6 +4791,8 @@ val AutoBackupSettings.destinationConfigured: Boolean
         // Only ever a location in the list. The single destination these
         // settings describe predates them and cannot name one.
         BackupDestination.SFTP, BackupDestination.SMB, BackupDestination.GIT, BackupDestination.IMAP,
+        BackupDestination.BOX, BackupDestination.PCLOUD, BackupDestination.SYNOLOGY, BackupDestination.QNAP,
+        BackupDestination.NFS, BackupDestination.MEGA, BackupDestination.ICLOUD, BackupDestination.PROTON,
         BackupDestination.NEARBY -> false
     }
 
@@ -4790,7 +4816,12 @@ val BackupDestination.needsNetwork: Boolean
 val BackupDestination.signsIn: Boolean
     get() = this == BackupDestination.DRIVE ||
         this == BackupDestination.DROPBOX ||
-        this == BackupDestination.ONEDRIVE
+        this == BackupDestination.ONEDRIVE ||
+        this == BackupDestination.BOX ||
+        this == BackupDestination.PCLOUD ||
+        this == BackupDestination.MEGA ||
+        this == BackupDestination.ICLOUD ||
+        this == BackupDestination.PROTON
 
 /**
  * The AI reply tool's own settings (#234), nested for the reason

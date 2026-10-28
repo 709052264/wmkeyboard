@@ -23,6 +23,14 @@ import com.wasimaster.wmkeyboard.core.settings.sink.SftpSink
 import com.wasimaster.wmkeyboard.core.settings.sink.SmbSink
 import com.wasimaster.wmkeyboard.core.settings.sink.SinkError
 import com.wasimaster.wmkeyboard.core.settings.sink.WebDavSink
+import com.wasimaster.wmkeyboard.core.settings.sink.BoxSink
+import com.wasimaster.wmkeyboard.core.settings.sink.ICloudSink
+import com.wasimaster.wmkeyboard.core.settings.sink.MegaSink
+import com.wasimaster.wmkeyboard.core.settings.sink.NfsSink
+import com.wasimaster.wmkeyboard.core.settings.sink.PCloudSink
+import com.wasimaster.wmkeyboard.core.settings.sink.QnapSink
+import com.wasimaster.wmkeyboard.core.settings.sink.SynologySink
+import com.wasimaster.wmkeyboard.core.settings.sink.proton.ProtonDriveSink
 import com.wasimaster.wmkeyboard.core.util.runCancellable
 import java.io.File
 import java.io.OutputStreamWriter
@@ -251,9 +259,9 @@ object AutoBackupRunner {
     /**
      * The sink for [location], or null when this build cannot reach it.
      *
-     * Only Drive, Dropbox and OneDrive can be missing: Drive on a build with
-     * no Play services compiled in ([DriveAuth.provider] is what `:app` fills
-     * in behind that seam), the other two on a build with no client id. A null
+     * Only Drive, Dropbox, OneDrive and Box can be missing: Drive on a build
+     * with no Play services compiled in ([DriveAuth.provider] is what `:app`
+     * fills in behind that seam), the other three on a build with no client id. A null
      * is that build, not a failure.
      */
     fun sinkFor(context: Context, location: BackupLocation): BackupSink? =
@@ -287,7 +295,48 @@ object AutoBackupRunner {
             BackupDestination.NEARBY -> com.wasimaster.wmkeyboard.core.settings.sink.NearbySync
                 .dir(context, location.nearbyDeviceId)
                 ?.let { com.wasimaster.wmkeyboard.core.settings.sink.NearbySink(it, location.nearbyDeviceId) }
+            BackupDestination.BOX -> BackupClients.box()?.let {
+                BoxSink(location.refreshToken, it, location.box) { rotated ->
+                    storeRefreshToken(context, location.id, rotated)
+                }
+            }
+            BackupDestination.PCLOUD -> PCloudSink(location.pcloud)
+            BackupDestination.SYNOLOGY -> SynologySink(location.nas) { pin -> storeCertPin(context, location.id, pin) }
+            BackupDestination.QNAP -> QnapSink(location.nas) { pin -> storeCertPin(context, location.id, pin) }
+            BackupDestination.NFS -> NfsSink(location.nfs)
+            BackupDestination.MEGA -> MegaSink(location.mega)
+            BackupDestination.ICLOUD -> ICloudSink(location.icloud) { cookies, trust ->
+                storeLocation(context, location.id, "iCloud session") {
+                    it.copy(icloud = it.icloud.copy(cookies = cookies, trustToken = trust.ifEmpty { it.icloud.trustToken }))
+                }
+            }
+            BackupDestination.PROTON -> ProtonDriveSink(location.proton) { access, refresh ->
+                storeLocation(context, location.id, "Proton tokens") {
+                    it.copy(proton = it.proton.copy(accessToken = access, refreshToken = refresh))
+                }
+            }
         }
+
+    /**
+     * Saves the certificate the first connection to a NAS saw, so every later
+     * one is held to it, as [storeHostKey] does for SFTP. Only fills an empty
+     * slot.
+     */
+    private fun storeCertPin(context: Context, id: String, pin: String) {
+        storeLocation(context, id, "NAS certificate") {
+            if (it.nas.certPin.isEmpty()) it.copy(nas = it.nas.copy(certPin = pin)) else it
+        }
+    }
+
+    /**
+     * Saves what a sink learned mid-run: a rotated token, a new session.
+     * Blocking for the reason [storeRefreshToken] gives.
+     */
+    private fun storeLocation(context: Context, id: String, what: String, change: (BackupLocation) -> BackupLocation) {
+        runCatching {
+            runBlocking { SettingsRepository(context.applicationContext).updateBackupLocation(id, change) }
+        }.onFailure { BackupLog.w("could not store the $what for $id", it) }
+    }
 
     /**
      * Saves the host key the first SFTP connection saw, so every later one is

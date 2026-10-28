@@ -87,6 +87,8 @@ jsch = "2.28.8"
 # the algorithms Android's own providers lack (curve25519, ML-KEM, sntrup761,
 # ed25519, chacha20-poly1305), and the SMB sink for MD4, AES-CMAC and AES-CCM.
 # Every class is reached by a direct reference, so R8 keeps only those.
+# bcpg is its OpenPGP layer, for the Proton Drive sink's keys, names and
+# blocks (sink/proton/ProtonPgp.kt), on the same lightweight API.
 bouncycastle = "1.86"
 # APNG decoding, for animated Signal stickers. Pure Java, Apache-2.0. Its one
 # runtime dependency is appcompat, which the app already carries.
@@ -261,6 +263,7 @@ okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhtt
 okhttp-mockwebserver = { group = "com.squareup.okhttp3", name = "mockwebserver", version.ref = "okhttp" }
 jsch = { group = "com.github.mwiede", name = "jsch", version.ref = "jsch" }
 bouncycastle-prov = { group = "org.bouncycastle", name = "bcprov-jdk18on", version.ref = "bouncycastle" }
+bouncycastle-pg = { group = "org.bouncycastle", name = "bcpg-jdk18on", version.ref = "bouncycastle" }
 apng4android-apng = { group = "com.github.penfeizhou.android.animation", name = "apng", version.ref = "apng4android" }
 androidx-vectordrawable-animated = { group = "androidx.vectordrawable", name = "vectordrawable-animated", version.ref = "vectordrawableAnimated" }
 lottie = { group = "com.airbnb.android", name = "lottie", version.ref = "lottie" }

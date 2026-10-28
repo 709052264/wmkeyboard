@@ -57,8 +57,8 @@ enum class SinkError {
     UNSAFE,
 }
 
-/** The failure a [BackupSink] reports, carrying the [reason] the UI reads. */
-class BackupSinkException(
+/** The failure a [BackupSink] reports, carrying the [reason] the UI reads. Open for a sink's own detail. */
+open class BackupSinkException(
     val reason: SinkError,
     cause: Throwable? = null,
 ) : IOException(reason.name, cause)
