@@ -19941,7 +19941,7 @@ private fun KeyRows(
             // lift against whichever of the two its key takes. An upward stroke
             // off a key carrying an octopus word is left for the octopus loop,
             // which runs on the Main pass after this one.
-            .pointerInput(hintFlickOn, capitalFlickOn, octopusFlickWanted) {
+            .pointerInput(hintFlickOn, capitalFlickOn, octopusFlickWanted, gestureEnabled) {
                 if (!hintFlickOn && !capitalFlickOn) return@pointerInput
                 awaitEachGesture {
                     val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
@@ -19974,8 +19974,17 @@ private fun KeyRows(
                         points.add(GesturePoint(change.position.x, change.position.y, change.uptimeMillis))
                         if (!change.pressed) {
                             // Lifting on another letter's core is a word, not a
-                            // flick (#859), even with glide typing off.
-                            val ontoLetter = liveRects.value.anotherLetterFrom(cell, boxOrigin)
+                            // flick (#859), but only while there is glide typing
+                            // to make it one: a stroke the glide loop left alone
+                            // (inside its slop right after a tap) is still a word
+                            // to it. With glide typing off nothing reads it as a
+                            // word, and a flick up off a middle-row letter
+                            // usually lands on the letter above.
+                            val ontoLetter: (Float, Float) -> Boolean = if (gestureEnabled) {
+                                liveRects.value.anotherLetterFrom(cell, boxOrigin)
+                            } else {
+                                { _, _ -> false }
+                            }
                             val typed = when {
                                 hint != null && hintFlick(points, cell.height, minTravel, ontoLetter) ->
                                     hint.first.longPress.first()

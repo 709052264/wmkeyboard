@@ -884,7 +884,7 @@
 
     <string name="typing_capital_flick_title">Swipe up for a capital</string>
     <string name="typing_capital_flick_subtitle">A quick swipe up on a letter types it as a capital</string>
-    <string name="typing_capital_flick_info">A short, quick swipe straight up on a letter types its capital, with no need to press shift first. On a key that has its own shifted character, such as a number key with a symbol above it, the swipe types that character. The swipe must be short, straight up and fast, like the swipe down for the hint. A longer or slower drag is a glide, as before. If Words on the keys shows a word on the key, a swipe up still takes that word. A swipe that ends on another letter, such as \"de\" from d to e, is a glided word, not a flick. This setting is off by default.</string>
+    <string name="typing_capital_flick_info">A short, quick swipe straight up on a letter types its capital, with no need to press shift first. On a key that has its own shifted character, such as a number key with a symbol above it, the swipe types that character. The swipe must be short, straight up and fast, like the swipe down for the hint. A longer or slower drag is a glide, as before. If Words on the keys shows a word on the key, a swipe up still takes that word. With glide typing on, a swipe that ends on another letter, such as \"de\" from d to e, is a glided word, not a flick. This setting is off by default.</string>
 
     <string name="typing_flick_hints_title">Show flick arms on keys</string>
     <string name="typing_flick_hints_subtitle">A key with flick characters shows them small at its edges and corners</string>
