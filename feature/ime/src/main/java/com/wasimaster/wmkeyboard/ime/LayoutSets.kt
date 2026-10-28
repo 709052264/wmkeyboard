@@ -4,6 +4,7 @@ import com.wasimaster.wmkeyboard.core.keyman.KeymanLayers
 import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.Key
+import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.layout.KeyboardLayout
 import com.wasimaster.wmkeyboard.core.layout.LayoutLayer
 import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
@@ -130,12 +131,16 @@ fun compileLayoutSet(
  * longer matches the shipped key typing the same text. Empty for a shipped
  * layout as it ships.
  *
+ * A key with no popup counts too: a popup left empty, or emptied, is one the
+ * user wrote, and [withQwertyHolds] must not lend it QWERTY's symbol (an @
+ * nobody put on their own layout's a, reported in the Telegram group).
+ *
  * Compared against the shipped grid rather than recorded by the editor, so an
  * edit made before this existed, an imported file and a hand-written JSON
  * layout all count the same way.
  */
 fun authoredHolds(spec: LayoutSpec, letters: KeyboardLayout): Set<Key> {
-    val keys = letters.rows.flatten().filter { it.longPress.isNotEmpty() }
+    val keys = letters.rows.flatten().filter { it.action == KeyAction.Text }
     if (keys.isEmpty()) return emptySet()
     val shipped = if (isShippedLayoutId(spec.id)) {
         BuiltInLayouts.byId(spec.id) ?: AssetLayouts.byId(spec.id)

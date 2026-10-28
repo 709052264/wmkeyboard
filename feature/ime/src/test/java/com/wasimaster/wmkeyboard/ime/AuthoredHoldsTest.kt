@@ -1,8 +1,10 @@
 package com.wasimaster.wmkeyboard.ime
 
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
+import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.layout.LayoutLayer
 import com.wasimaster.wmkeyboard.core.layout.compile
+import com.wasimaster.wmkeyboard.core.layout.withQwertyHolds
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -40,7 +42,37 @@ class AuthoredHoldsTest {
     fun `every key of a layout of the user's own is authored`() {
         val own = german.copy(id = "custom_mine")
         val letters = own.compile(LayoutLayer.LETTERS)
-        val withPopups = letters.rows.flatten().filter { it.longPress.isNotEmpty() }.toSet()
-        assertEquals(withPopups, authoredHolds(own, letters))
+        val textKeys = letters.rows.flatten().filter { it.action == KeyAction.Text }.toSet()
+        assertEquals(textKeys, authoredHolds(own, letters))
+    }
+
+    @Test
+    fun `a layout of the user's own borrows no QWERTY holds`() {
+        val qwerty = BuiltInLayouts.QWERTY
+        val bare = qwerty.layer(LayoutLayer.LETTERS)!!.let { grid ->
+            grid.copy(rows = grid.rows.map { row -> row.map { it.copy(longPress = emptyList()) } })
+        }
+        val own = qwerty.copy(id = "custom_bare", layers = qwerty.layers + (LayoutLayer.LETTERS.key to bare))
+        val letters = own.compile(LayoutLayer.LETTERS)
+        val a = letters.withQwertyHolds(keep = authoredHolds(own, letters)).rows.flatten().first { it.label == "a" }
+        assertTrue(a.longPress.isEmpty())
+    }
+
+    @Test
+    fun `a popup emptied on an edit of a shipped layout stays empty`() {
+        val qwerty = BuiltInLayouts.QWERTY
+        val grid = qwerty.layer(LayoutLayer.LETTERS)!!
+        val edited = qwerty.copy(
+            layers = qwerty.layers + (
+                LayoutLayer.LETTERS.key to grid.copy(
+                    rows = grid.rows.map { row -> row.map { if (it.label == "a") it.copy(longPress = emptyList()) else it } },
+                )
+                ),
+        )
+        val letters = edited.compile(LayoutLayer.LETTERS)
+        val held = authoredHolds(edited, letters)
+        assertEquals(listOf("a"), held.map { it.label })
+        val a = letters.withQwertyHolds(keep = held).rows.flatten().first { it.label == "a" }
+        assertTrue(a.longPress.isEmpty())
     }
 }
