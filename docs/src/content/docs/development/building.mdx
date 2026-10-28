@@ -159,7 +159,7 @@ The script fetches Hunspell at its pinned commit, builds all three ABIs in about
 GiellaLT spellers (`.bhfst`) run on [divvunspell](https://github.com/divvun/divvunspell), the Rust library Divvun's keyboards use, wrapped in a small JNI crate under `native/divvunspell-jni/` that builds `libwmdivvun.so`. `core/prediction/src/main/java/com/wasimaster/wmkeyboard/core/prediction/DivvunNative.kt` is the Kotlin entry point, and the prebuilt `.so` files sit beside Hunspell's under `core/prediction/src/main/jniLibs/<abi>/`. They share Hunspell's `spell` gate and `:feature:spell` split, and F-Droid builds them from source through `native/build-fdroid-libs.sh`. Rebuild only after you edit `native/divvunspell-jni/`:
 
 ```sh
-# Needs rustup; the script installs Rust 1.98.1 and cargo-ndk 4.1.2
+# Needs rustup; the script installs Rust 1.99.1 and cargo-ndk 4.1.2
 ANDROID_NDK=/opt/homebrew/share/android-ndk native/divvunspell-jni/build.sh
 ```
 

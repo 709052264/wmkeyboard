@@ -27,7 +27,7 @@ anything here:
 ANDROID_NDK=/opt/homebrew/share/android-ndk native/divvunspell-jni/build.sh
 ```
 
-The script installs Rust 1.98.1 and cargo-ndk 4.1.2 if they are missing,
+The script installs Rust 1.99.1 and cargo-ndk 4.1.2 if they are missing,
 builds in a temporary target directory it removes on exit (or in
 `DIVVUN_TARGET_DIR`), and maps every build-machine path out of the output.
 The committed libraries were built with NDK r29 (`29.0.14206865`), the one

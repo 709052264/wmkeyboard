@@ -13,7 +13,7 @@
 # relies on that.
 set -euo pipefail
 
-RUST_VERSION=1.98.1
+RUST_VERSION=1.99.1
 CARGO_NDK_VERSION=4.1.2
 
 HERE=$(cd "$(dirname "$0")" && pwd -P)

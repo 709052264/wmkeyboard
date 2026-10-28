@@ -106,7 +106,7 @@ Phase 2 port. Status: done.
 - `neon::name` (and `dotprod::name`, `fp16::name` for the optional armv8.2
   extensions): `#[target_feature(enable = ...)]` over stable
   `core::arch::aarch64` intrinsics. `dotprod` and `fp16` are stable in the
-  pinned 1.98.1.
+  pinned 1.99.1.
 - `name`, the dispatcher: asks `kernels::active()` and falls back to the
   reference.
 - Tests comparing every SIMD version with the reference on seeded inputs

@@ -38,8 +38,8 @@
 # pinned version when the machine has none.
 set -euo pipefail
 
-RUSTUP_VERSION=1.28.2
-RUSTUP_SHA256=20a06e644b0d9bd2fbdbfd52d42540bdde820ea7df86e92e533c073da0cdd43c
+RUSTUP_VERSION=1.29.2
+RUSTUP_SHA256=5be191e8c70a5007074254cb74d78dbfdd25cd5a61c27de7b8e5410122ec24f4
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 
