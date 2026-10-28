@@ -70,6 +70,8 @@ import com.wasimaster.wmkeyboard.core.imagegen.ImageGenDownloads
 import com.wasimaster.wmkeyboard.core.imagegen.ImageGenEngine
 import com.wasimaster.wmkeyboard.core.imagegen.ImageGenEvent
 import com.wasimaster.wmkeyboard.core.imagegen.ImageGenImport
+import com.wasimaster.wmkeyboard.core.modules.ModuleState
+import com.wasimaster.wmkeyboard.core.imagegen.ImageGenNative
 import com.wasimaster.wmkeyboard.core.imagegen.ImageGenModels
 import com.wasimaster.wmkeyboard.core.imagegen.ImageGenRequest
 import com.wasimaster.wmkeyboard.core.imagegen.ImageRuntime
@@ -147,16 +149,24 @@ internal fun StickerGeneratorScreen(
     }
     var spec by remember { mutableStateOf<ModelSpec?>(null) }
     var tokenizer by remember { mutableStateOf<ClipTokenizer?>(null) }
+    // A model on the phone whose files could not be read (#903): said, rather
+    // than leaving Generate off with the model reading as ready.
+    var unreadable by remember { mutableStateOf(false) }
     LaunchedEffect(modelId, modelReady) {
         spec = null
         tokenizer = null
+        unreadable = false
         if (!modelReady) return@LaunchedEffect
         withContext(Dispatchers.IO) {
             val loaded = loadSpec(context, modelId)
             spec = loaded?.first
             tokenizer = loaded?.second
+            unreadable = loaded == null
         }
     }
+    // The generator's engine is a library of its own; the offline build and
+    // F-Droid before the opt-in have to be told where it comes from (#903).
+    val imageModule by ImageGenNative.moduleState.collectAsState()
 
     var prompt by remember { mutableStateOf("") }
     var style by remember { mutableStateOf(StickerPrompt.Style.byId(prefs.getString(KEY_STYLE, null))) }
@@ -418,6 +428,15 @@ internal fun StickerGeneratorScreen(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )
         }
+        val engineConsent = (imageModule as? ModuleState.Missing)?.consent
+        item(visible = engineConsent != null && engine != null && !online) {
+            val npu = (selectedCatalog?.runtime ?: spec?.runtime) == ImageRuntime.QNN
+            if (npu) {
+                NativeConsentBanner(engineConsent.orEmpty(), "imagegen", "npu")
+            } else {
+                NativeConsentBanner(engineConsent.orEmpty(), "imagegen")
+            }
+        }
     }
 
     // --- Model ---------------------------------------------------------------
@@ -577,6 +596,9 @@ internal fun StickerGeneratorScreen(
                 }
                 if (!online && engine != null && spec == null && !modelReady) {
                     CaptionText(stringResource(R.string.stickergen_need_model), modifier = Modifier.padding(top = 4.dp))
+                }
+                if (!online && engine != null && unreadable) {
+                    CaptionText(stringResource(R.string.stickergen_model_unreadable), modifier = Modifier.padding(top = 4.dp), error = true)
                 }
                 status?.let {
                     LinearProgressIndicator(

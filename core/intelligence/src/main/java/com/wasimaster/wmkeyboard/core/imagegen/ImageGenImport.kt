@@ -126,6 +126,12 @@ object ImageGenImport {
      * picture's own business, exactly as it is for the catalog's download.
      */
     private suspend fun importNpu(context: Context, staging: File, root: File): Result {
+        // Qualcomm's zip has no tokenizer, and the user should not have to
+        // find one (#903): CLIP's is the same file for every model here, so
+        // one already on the phone, SDXS's or another import's, comes along.
+        if (MnnBackend.find(staging, "merges.txt") == null) {
+            tokenizerOnPhone(context)?.let { it.copyTo(File(staging, "merges.txt")) }
+        }
         val missing = (NPU + "merges.txt").filter { MnnBackend.find(staging, it) == null }
         if (missing.isNotEmpty()) return Result.Missing(missing)
         val soc = NpuSupport.soc ?: return Result.Invalid("this phone has no supported NPU")
@@ -138,6 +144,36 @@ object ImageGenImport {
         if (!staging.renameTo(target)) return Result.Failed("could not move the model into place")
         ensureSafety(context)
         return Result.Ok(Imported(id, name, target.walkTopDown().filter { it.isFile }.sumOf { it.length() }))
+    }
+
+    /**
+     * A CLIP tokenizer already on the phone: the catalog's, downloaded with
+     * SDXS or the NPU model, else any imported model's. Checked by size and
+     * digest against the catalog's, so a damaged copy is not passed on.
+     */
+    private fun tokenizerOnPhone(context: Context): File? {
+        val noBackup = context.noBackupFilesDir
+        val part = ImageGenModels.Catalog.SDXS.parts.first { it.fileName.endsWith("merges.txt") }
+        val candidates = ImageGenModels.Catalog.entries.map { ImageGenModels.file(noBackup, it, part) } +
+            ImageGenModels.importedRoot(noBackup).listFiles().orEmpty()
+                .filter { it.isDirectory && !it.name.endsWith(".part") }
+                .mapNotNull { dir -> dir.listFiles().orEmpty().firstOrNull { it.name.endsWith("merges.txt") } }
+        return candidates.firstOrNull { file ->
+            file.isFile && file.length() == part.bytes && sha256(file).equals(part.sha256, ignoreCase = true)
+        }
+    }
+
+    private fun sha256(file: File): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        file.inputStream().use { input ->
+            val buffer = ByteArray(1 shl 16)
+            while (true) {
+                val read = input.read(buffer)
+                if (read < 0) break
+                digest.update(buffer, 0, read)
+            }
+        }
+        return digest.digest().joinToString("") { "%02x".format(it) }
     }
 
     /**
