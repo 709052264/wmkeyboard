@@ -75,10 +75,10 @@ about four minutes.
 
 ## Provenance
 
-- sherpa-onnx `v1.13.8`, commit `11afbd009a7f8c08f4bcf2fc1b265d0df4670fbf`,
+- sherpa-onnx `v2.0.1`, commit `af2d8d81dbfa61c4cea4c568da78f3982edca005`,
   unmodified, Apache-2.0.
-- ONNX Runtime headers `v1.30.0`, commit
-  `f2c39fe2f838cf35ce7da92824f5a5e3ee6e88a7`, MIT.
+- ONNX Runtime headers `v1.31.1`, commit
+  `6af1a932e2286d5c58166085d24c68783033edee`, MIT.
 
 The models are not bundled. `EtCatalog` in `:core:voice` pins each one to a
 Hugging Face revision and every file to its SHA-256, the same store and
@@ -99,8 +99,8 @@ of it themselves.
 
 | ABI | Size |
 |---|---|
-| arm64-v8a | about 2.3 MB |
-| armeabi-v7a | about 1.5 MB |
+| arm64-v8a | about 2.4 MB |
+| armeabi-v7a | about 1.6 MB |
 | x86_64 | about 2.5 MB |
 
 All three are 16 KB aligned (`-z max-page-size=16384`), as is Microsoft's
@@ -137,7 +137,7 @@ Handles are `Long`s, 0 on failure; text crosses as UTF-8 byte arrays.
   take (k2-fsa's v4 export, v4 as published, v5), 1 for TEN with sherpa-onnx's
   metadata (`model_type` `ten-vad`, `mean` and `inv_stddev` of 41, `window` of
   768), -1 otherwise. It makes exactly the checks after which sherpa-onnx
-  v1.13.8 would exit the process, on a plain ONNX Runtime session, so an
+  v2.0.1 (unchanged from v1.13.8) would exit the process, on a plain ONNX Runtime session, so an
   imported file is tried here first and never reaches sherpa-onnx unless it
   passes.
 - `nativeFireRed(model, mean, scale, threads)`: FireRedVAD's streaming model
@@ -283,7 +283,7 @@ MatMulNBits lost as much; 8-bit weight-only MatMulNBits with int8 compute
 ships, with the int8 table dequantised after its Gather and the weights in an
 external data file, which ONNX Runtime maps: 319 MB of private memory for
 the same weights inline, 87 MB mapped. Checked identical on ONNX Runtime
-1.30.0, the app's.
+1.30.0.
 
 The JVM side was run against the same files: `GemmaTokenizer` a word at a
 time gives Hugging Face tokenizers' ids on all 3,200 test texts, the bridge's

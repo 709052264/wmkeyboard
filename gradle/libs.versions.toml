@@ -123,7 +123,7 @@ litert = "1.4.2"
 # (wmkeyboard.native-pins), or copied into the APK or :feature:onnx by the
 # wmkeyboard.onnxruntime convention. libwmsherpa is built against this
 # version's headers (native/sherpa-onnx-jni/build.sh ORT_TAG): keep in step.
-onnxruntime = "1.30.0"
+onnxruntime = "1.31.1"
 # Lua interpreter for the plugin sandbox. Pure JVM, MIT, no transitive deps.
 # 3.0.1 is the LAST version published to Maven Central — the 3.0.2 git tag was
 # never released as an artifact. Do not bump without re-auditing PluginSandbox:

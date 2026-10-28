@@ -7,14 +7,14 @@
 #   ANDROID_NDK=/path/to/ndk native/sherpa-onnx-jni/build.sh
 set -euo pipefail
 
-SHERPA_TAG=v1.13.8
-SHERPA_COMMIT=11afbd009a7f8c08f4bcf2fc1b265d0df4670fbf
+SHERPA_TAG=v2.0.1
+SHERPA_COMMIT=af2d8d81dbfa61c4cea4c568da78f3982edca005
 # Headers only: the runtime itself is Microsoft's Maven Central build of the
 # same version (com.microsoft.onnxruntime:onnxruntime-android), which the
 # phone loads before this library. Keep in step with `onnxruntime` in
 # gradle/libs.versions.toml.
-ORT_TAG=v1.30.0
-ORT_COMMIT=f2c39fe2f838cf35ce7da92824f5a5e3ee6e88a7
+ORT_TAG=v1.31.1
+ORT_COMMIT=6af1a932e2286d5c58166085d24c68783033edee
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$HERE/../.." && pwd)

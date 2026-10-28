@@ -11,8 +11,8 @@ set -euo pipefail
 # Headers only, the same release libwmsherpa is built against; the runtime is
 # Microsoft's Maven Central build of it. Keep in step with `onnxruntime` in
 # gradle/libs.versions.toml and ORT_TAG in native/sherpa-onnx-jni/build.sh.
-ORT_TAG=v1.30.0
-ORT_COMMIT=f2c39fe2f838cf35ce7da92824f5a5e3ee6e88a7
+ORT_TAG=v1.31.1
+ORT_COMMIT=6af1a932e2286d5c58166085d24c68783033edee
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$HERE/../.." && pwd)

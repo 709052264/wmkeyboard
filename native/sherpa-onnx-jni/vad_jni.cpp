@@ -83,7 +83,7 @@ int countFloats(const std::string& text) {
     return count;
 }
 
-// Exactly the checks sherpa-onnx v1.13.8 makes before it exits on a model
+// Exactly the checks sherpa-onnx v2.0.1 (as v1.13.8) makes before it exits on a model
 // (silero-vad-model.cc Init/CheckV4/CheckV5, ten-vad-model.cc Check), so a
 // file that passes here never takes the keyboard down there.
 jint probe(const std::string& path) {
