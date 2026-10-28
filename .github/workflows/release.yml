@@ -26,7 +26,7 @@ jobs:
       version: ${{ steps.v.outputs.version }}
       buildable: ${{ steps.v.outputs.buildable }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - id: v
         run: |
           declared=$(grep '^wmkb.versionName=' gradle.properties | cut -d= -f2)
@@ -67,16 +67,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '21'
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
         with:
           build-scan-publish: true
           build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
@@ -248,13 +248,13 @@ jobs:
         if: always()
         run: rm -f release.keystore
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: release-apks
           path: dist/
           retention-days: 30
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: natives-standard
           path: natives/
@@ -262,7 +262,7 @@ jobs:
 
       # The resource IDs the language packs were cut against, for the
       # `pack-ids` check: the offline English build must match them.
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: resource-ids-standard
           path: build/resource-ids.txt
@@ -305,7 +305,7 @@ jobs:
       matrix:
         abi: [armeabi-v7a, arm64-v8a, x86_64]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # The buildserver image, ExecuTorch's three builds and the Gradle build
       # do not fit in the runner's default free space.
@@ -332,7 +332,7 @@ jobs:
           free -h
           df -h /
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: fdroid-build-log-${{ matrix.abi }}
@@ -434,13 +434,13 @@ jobs:
           apk=$(basename dist-ref/*-fdroid.apk .apk)
           gzip -9c 'dist/fdroid-mapping-${{ matrix.abi }}.txt' > "dist-ref/${apk}-mapping.txt.gz"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: fdroid-apk-${{ matrix.abi }}
           path: dist-ref/
           retention-days: 30
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: natives-fdroid-${{ matrix.abi }}
           path: dist/fdroid-natives-${{ matrix.abi }}/
@@ -470,16 +470,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '21'
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Restore keystore
         env:
@@ -578,13 +578,13 @@ jobs:
           done
           ls -l dist
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: offline-apks
           path: dist/
           retention-days: 30
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: resource-ids-offline
           path: build/resource-ids.txt
@@ -601,11 +601,11 @@ jobs:
     needs: [apks, offline]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: resource-ids-standard
           path: standard
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: resource-ids-offline
           path: offline
@@ -624,16 +624,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '21'
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
         with:
           build-scan-publish: true
           build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
@@ -713,7 +713,7 @@ jobs:
           gzip -9c "$map" > "dist/wmkeyboard-${version}-vc${code}-play-mapping.txt.gz"
           ls -l dist
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: play-mapping
           path: dist/*-play-mapping.txt.gz
@@ -721,7 +721,7 @@ jobs:
 
       # Not attached to the GitHub release: an AAB is not installable. The
       # play job below picks it up and uploads it to the internal track.
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: play-bundle
           path: app/build/outputs/bundle/enRelease/*.aab
@@ -744,9 +744,9 @@ jobs:
     # Fastfile's internal lane).
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: play-bundle
           path: dist
@@ -787,34 +787,34 @@ jobs:
     steps:
       # Full history: the notes script finds the previous tag and walks the
       # commits between it and this one.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: release-apks
           path: dist
 
       # Built on the other runner with the Play flags on, so it arrives as its
       # own artifact rather than in release-apks.
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: play-mapping
           path: dist
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           pattern: fdroid-apk-*
           merge-multiple: true
           path: dist
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: offline-apks
           path: dist
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           pattern: natives-*
           merge-multiple: true
@@ -991,7 +991,7 @@ jobs:
     if: github.ref_type == 'tag' && !inputs.dry_run
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: main
 

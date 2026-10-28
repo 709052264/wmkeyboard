@@ -44,19 +44,19 @@ jobs:
         contains(github.event.comment.body, 'SourceFile:')
       )
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '21'
 
       # The R8 jar is ~21 MB and the same one retraces every mapping that
       # names that compiler version.
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ${{ runner.temp }}/retrace/cache
           key: retrace-r8-jars-v1

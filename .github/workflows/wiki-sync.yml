@@ -16,10 +16,10 @@ jobs:
       contents: write
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '20'
 
@@ -28,7 +28,10 @@ jobs:
           node .github/scripts/convert-mdx.js docs/src/content/docs wiki-dist
 
       - name: Sync docs to wiki
-        uses: Andrew-Chen-Wang/github-wiki-action@v4
+        uses: Andrew-Chen-Wang/github-wiki-action@v5
         with:
           path: wiki-dist/
           commit-message: "docs: Sync wiki from Astro docs"
+          # v5 renames README.md to Home.md and rewrites .md links by default;
+          # convert-mdx.js already writes wiki-ready pages, as v4 expected.
+          preprocess: false
