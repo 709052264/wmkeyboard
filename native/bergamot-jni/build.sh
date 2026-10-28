@@ -11,8 +11,8 @@ set -euo pipefail
 # The engine Firefox ships: the `translations-wasm-v2` record names this
 # revision of mozilla/translations (inference/, bergamot-translator v0.6.0).
 BERGAMOT_COMMIT=1de4a085d3a7afb625c51a60aabb5ad298e4059f
-PCRE2_TAG=pcre2-10.45
-PCRE2_COMMIT=2dce7761b1831fd3f82a9c2bd5476259d945da4d
+PCRE2_TAG=pcre2-10.49
+PCRE2_COMMIT=6f9d7c1373262c541324a16a358785b33ef116cf
 ZSTD_TAG=v1.5.7
 ZSTD_COMMIT=f8745da6ff1ad1e7bab384bd1f9d742439278e99
 

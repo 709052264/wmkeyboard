@@ -29,7 +29,7 @@ Each ABI compiles Marian, about six minutes on an 8-core laptop.
 |---|---|---|
 | `mozilla/translations`, `inference/` (bergamot-translator v0.6.0 and its Marian fork) | `1de4a085d3a7afb625c51a60aabb5ad298e4059f`, the revision Firefox's `translations-wasm-v2` record names | MPL-2.0 (Marian: MIT) |
 | its submodules `ssplit-cpp`, `ruy` (+ `cpuinfo`), `sentencepiece`, `simd_utils`, `intgemm` | the commits that revision records | Apache-2.0, Apache-2.0, Apache-2.0, BSD-2, MIT |
-| PCRE2 (for the sentence splitter) | `pcre2-10.45`, `2dce7761b1831fd3f82a9c2bd5476259d945da4d` | BSD-3 |
+| PCRE2 (for the sentence splitter) | `pcre2-10.49`, `6f9d7c1373262c541324a16a358785b33ef116cf` | BSD-3 |
 | Zstandard (decompressor only) | `v1.5.7`, `f8745da6ff1ad1e7bab384bd1f9d742439278e99` | BSD-3 |
 
 Only `inference/` of `mozilla/translations` is checked out (a blob-less,
@@ -75,7 +75,7 @@ As pinned on 2026-10-20: 114 directions, every language to and from English,
 | `-z max-page-size=16384` | 16 KB page devices |
 | `-ffile-prefix-map` for every source tree, the build directory and the NDK | the same bytes from any machine with NDK r29, which F-Droid's reproducible build relies on |
 
-Size, stripped: arm64-v8a 6,725,880 bytes, x86_64 7,049,760, the armeabi-v7a stub 2,748.
+Size, stripped: arm64-v8a 6,732,632 bytes, x86_64 7,060,112, the armeabi-v7a stub 2,748.
 
 ## Tested
 
