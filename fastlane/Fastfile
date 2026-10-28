@@ -197,6 +197,11 @@ platform :android do
       # has ever assembled a release APK has one lying there, so 0.5.11's local
       # upload died on it after a clean build. Only the bundle goes to Play.
       skip_upload_apk: true,
+      # Seconds per Play API call, the bundle upload included. fastlane's 300
+      # cut off a ~500 MB bundle mid-upload twice on 0.6.4, after which the
+      # commit fails on "Some of the Android App Bundle uploads are not
+      # completed yet". The strings-pull upload went through at 3600.
+      timeout: 3600,
       # Binary and release notes only. The listing (text, images) has its own
       # lanes below so a routine release can never half-rewrite the store page.
       skip_upload_metadata: true,

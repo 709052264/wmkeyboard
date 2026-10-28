@@ -740,7 +740,9 @@ jobs:
     needs: [verify, bundle]
     if: github.ref_type == 'tag' && !inputs.dry_run && !contains(github.event.head_commit.message, '[skip play]')
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # The bundle upload alone can take most of an hour (see timeout: in the
+    # Fastfile's internal lane).
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
 
