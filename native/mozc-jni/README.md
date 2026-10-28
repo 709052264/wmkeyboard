@@ -64,10 +64,10 @@ release as the library, since its format is the library's.
 
 | Component | Version | Licence |
 |---|---|---|
-| Mozc | `3.34.6239`, commit `76887c679e1e4f156102e4bc62ea9cf9174678a3` | BSD-3-Clause |
+| Mozc | `3.35.6354`, commit `0136c35782536cb43d710575c311cd4185982738` | BSD-3-Clause |
 | Abseil | `20260107.1` (Mozc's `MODULE.bazel`) | Apache-2.0 |
 | Protocol Buffers | `34.1` (Mozc's `MODULE.bazel`) | BSD-3-Clause |
-| Bazel | `9.0.2`: on Linux bootstrapped from `bazel-9.0.2-dist.zip`, on macOS through bazelisk `1.29.0` | Apache-2.0, build tool only |
+| Bazel | `9.0.2`: on Linux bootstrapped from `bazel-9.0.2-dist.zip`, on macOS through bazelisk `1.30.0` | Apache-2.0, build tool only |
 | Mozc dictionary | built from Mozc's `src/data` at the same commit: IPAdic, ICOT, the Okinawa dictionary, and the Japanese usage dictionary Mozc's `MODULE.bazel` pins | see the notices |
 
 All unmodified. The licences of all of it are in the app as

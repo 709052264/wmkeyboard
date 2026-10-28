@@ -616,8 +616,8 @@ With this on, the keyboard draws Burmese in its own copy of Noto Sans Myanmar, a
     <string name="languages_mozc_status_needs_library">Waiting for the Mozc library.</string>
     <string name="languages_mozc_status_needs_data">Download the Mozc dictionary below. Mozc starts when it is here.</string>
     <string name="languages_mozc_status_starting">Starting…</string>
-    <!-- %1$s is the dictionary's version, such as 3.34.6239.102. -->
-    <string name="languages_mozc_status_ready">Ready, dictionary <xliff:g id="version" example="3.34.6239.102">%1$s</xliff:g></string>
+    <!-- %1$s is the dictionary's version, such as 3.35.6354.102. -->
+    <string name="languages_mozc_status_ready">Ready, dictionary <xliff:g id="version" example="3.35.6354.102">%1$s</xliff:g></string>
     <!-- %1$s is Mozc's own error message, in English. -->
     <string name="languages_mozc_status_failed">Mozc did not start: <xliff:g id="detail" example="invalid magic">%1$s</xliff:g></string>
     <string name="languages_mozc_clear_title">Forget what Mozc learned</string>

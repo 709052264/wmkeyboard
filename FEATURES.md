@@ -1049,7 +1049,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - 联想 after a commit — Chinese gets the built-in Mandarin predictor (word pairs pack plus your habits) whichever schema typed it; librime-predict, keyed on the exact last commit, found almost nothing after RIME's phrase commits on held-out text. Cantonese gets none
     - No Lua — librime-lua measured at +0.92 MiB (+34%) on arm64; left out, since Lua's io/os would let any imported schema run code in the keyboard. Rime Ice's Lua components are skipped
     - Before first unlock — RIME's data is credential-protected, so a locked phone types on the built-in engine
-  - Mozc engine `RARE` — Japanese Engine = Built-in | Mozc; with Mozc every Japanese layout (romaji, flick 12-key, JIS kana) converts through Google's Mozc 3.34. Built-in stays the default
+  - Mozc engine `RARE` — Japanese Engine = Built-in | Mozc; with Mozc every Japanese layout (romaji, flick 12-key, JIS kana) converts through Google's Mozc 3.35. Built-in stays the default
     - Own library on its own gate — `libwmmozc.so` (native/mozc-jni: Mozc's converter with Abseil and Protocol Buffers, built with Mozc's own Bazel Android config; 16 KB pages, JNI symbols only) behind the `mozc` gate: `:feature:mozc` on Play, NativeDelivery elsewhere, F-Droid behind its opt-in
     - Its own dictionary — Mozc's `mozc.data`, built from the same release, as a checksum-pinned CJK pack; not in the library
     - Sentence conversion and prediction — Mozc's mobile prediction: whole-sentence conversions, then partial ones that convert the start of the reading; a pick commits that much and the rest converts again; zero-query suggestions after a pick

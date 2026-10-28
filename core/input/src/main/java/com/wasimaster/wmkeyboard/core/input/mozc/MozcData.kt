@@ -26,7 +26,7 @@ import java.io.File
 object MozcData {
 
     /** The Mozc release the library and this dictionary are built from. */
-    const val MOZC_VERSION = "3.34.6239"
+    const val MOZC_VERSION = "3.35.6354"
 
     val pack: CjkDictPack = CjkDictPack(
         id = "mozc",
@@ -34,8 +34,8 @@ object MozcData {
         displayNameRes = R.string.core_input_mozc_pack_title,
         descriptionRes = R.string.core_input_mozc_pack_subtitle,
         path = "cjk/mozc/mozc-$MOZC_VERSION.data",
-        sizeBytes = 18_887_704L,
-        sha256 = "879a0132f03e4c5ee0ad0ca0f30b486f2e125ec82d7d9b86e0c3177d34b83ef9",
+        sizeBytes = 19_001_738L,
+        sha256 = "7a47a2b3958baeb0796345aec2c3f380b1d783d6fa399c8a0c358a197bee6046",
         fileName = "mozc-$MOZC_VERSION.data",
     )
 

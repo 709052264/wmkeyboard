@@ -39,15 +39,15 @@
 # the library; its SHA-256 is pinned in the catalog. See README.md.
 set -euo pipefail
 
-MOZC_TAG=3.34.6239
-MOZC_COMMIT=76887c679e1e4f156102e4bc62ea9cf9174678a3
+MOZC_TAG=3.35.6354
+MOZC_COMMIT=0136c35782536cb43d710575c311cd4185982738
 # Bazel itself, at the version Mozc's src/.bazeliskrc names.
 BAZEL_VERSION=9.0.2
 # Its source distribution archive, the one Bazel bootstraps from
 # (https://bazel.build/install/compile-source), as published with the
 # release; the checksum is releases.bazel.build's.
 BAZEL_DIST_SHA256=d80b8f708e7a5840fd09b853a4343cace7e4c3504d4e8ac67367d4cb6224436e
-BAZELISK_VERSION=1.29.0
+BAZELISK_VERSION=1.30.0
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$HERE/../.." && pwd)
@@ -126,9 +126,9 @@ ROOT=${MOZC_BAZEL_ROOT:-$WORK/bazel-root}
 # bazelisk, on PATH or fetched below, resolves to the pinned Bazel and
 # checks it.
 case "$(uname -s)-$(uname -m)" in
-    Linux-x86_64)  host=linux-amd64;  BAZELISK_SHA256=5a408715e932c0250d28bd84555f12edbf70117de42f9181691c736eacc4a992
+    Linux-x86_64)  host=linux-amd64;  BAZELISK_SHA256=a248ae2b2b62b5baebb748f6fba7203bff1a27e5d01b55399a8406744cb539e8
                    BAZEL_SHA256=422e7a1690b76d7e615c29091d3aca28d0bd3a93fe3c93cbefb8f72d774926d5 ;;
-    Darwin-arm64)  host=darwin-arm64; BAZELISK_SHA256=cee851f726789227d5561004e9904a52be45c3efb56f8b38b6993d6adbaa0409
+    Darwin-arm64)  host=darwin-arm64; BAZELISK_SHA256=555d2ff912ccd336d0060bdb5251ef2f62629c6f8fbadb59005a45d5625793ec
                    BAZEL_SHA256=525cfcbf9790af7319ea78c9ff2053b8a5634013c41783440b5d82433f14d280 ;;
     *)             host=;             BAZELISK_SHA256=; BAZEL_SHA256= ;;
 esac
@@ -180,7 +180,9 @@ fi
 # whole command line; with startup options in front it is an unknown option.
 # The bootstrap is given EMBED_LABEL so its binary says "bazel 9.0.2" like a
 # release; left alone it says "bazel 9.0.2- (@non-git)", so match the front.
-got=$("$BAZEL" --version 2>&1) || { echo "$BAZEL --version failed: $got" >&2; exit 1; }
+# stdout only: bazelisk 1.30 reports its download and signature check on stderr.
+got=$("$BAZEL" --version 2>"$WORK/bazel-version.err") ||
+    { echo "$BAZEL --version failed: $got $(cat "$WORK/bazel-version.err")" >&2; exit 1; }
 case "$got" in
     "bazel $BAZEL_VERSION"*) echo "using $got from $BAZEL" ;;
     *) echo "$BAZEL is '$got', expected bazel $BAZEL_VERSION" >&2; exit 1 ;;
