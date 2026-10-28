@@ -285,10 +285,14 @@ export function takenIds(): Set<string> {
 	return new Set(Object.values(s.manifests).map((m) => m.id));
 }
 
-/** `PluginFile.fileName`: the name, or the id, with only letters, digits, spaces, dashes and underscores. */
+/**
+ * `PluginFile.fileName`: the name, or the id, with only letters, digits, spaces,
+ * dashes and underscores, and the plugin's version after it (#970), `Demo-1.2.wmplugin`.
+ */
 export function fileNameOf(manifest: PluginManifest): string {
 	const stem = (manifest.name.trim() || manifest.id).replace(/[^\p{L}\p{N} _-]/gu, '').trim() || 'plugin';
-	return `${stem}.wmplugin`;
+	const version = manifest.pluginVersion.replace(/[^\p{L}\p{N} ._-]/gu, '').replace(/^[. ]+|[. ]+$/g, '');
+	return version ? `${stem}-${version}.wmplugin` : `${stem}.wmplugin`;
 }
 
 /** The plugin a new draft starts as (PluginIdeState.BLANK_PLUGIN_SCRIPT). */

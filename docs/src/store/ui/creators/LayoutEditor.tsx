@@ -5,7 +5,7 @@
 import { useMemo, useState } from 'preact/hooks';
 import { LANGUAGES } from '../../lib/languages';
 import { KEY_ACTION_TYPES, LAYER_KEYS, LAYER_LABELS, LAYOUT_FORMAT, PANEL_LAYER_KEYS, readLayout, type LayerSpec, type LayoutKey, type LayoutSpec } from '../../lib/payloads';
-import { slugify } from '../../lib/util';
+import { exportStamp, slugify } from '../../lib/util';
 import { CopyButton, Notice } from '../common';
 import { IconDownload, IconPlus, IconTrash, IconWarn } from '../icons';
 import { KeyboardMock } from '../previews/KeyboardMock';
@@ -237,7 +237,7 @@ export function LayoutEditor() {
 			</div>
 			<aside class="st-creator-side">
 				<ExportPanel title="Export">
-					<button class="st-btn st-btn-primary" disabled={problems.length > 0} onClick={() => saveJson(`${slugify(l.id || l.name)}.wmlayout.json`, out)}><IconDownload /> .wmlayout.json</button>
+					<button class="st-btn st-btn-primary" disabled={problems.length > 0} onClick={() => saveJson(`${slugify(l.id || l.name)}${exportStamp()}.wmlayout.json`, out)}><IconDownload /> .wmlayout.json</button>
 					<CopyButton text={json} label="Copy JSON" class="st-btn" />
 					<button class="st-btn st-btn-ghost st-btn-sm" onClick={() => { if (confirm('Discard this draft?')) { reset(); setSel(null); setLayer('letters'); } }}>Start over</button>
 				</ExportPanel>

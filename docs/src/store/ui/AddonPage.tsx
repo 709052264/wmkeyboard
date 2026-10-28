@@ -4,7 +4,7 @@ import { addRepo, allRepos, appVersion, findAddon, inCollection, navigate, novel
 import { fetchBytes, fetchText, fmtBytes, MAX_TEXT_BYTES, MB, NetError } from '../lib/net';
 import { describeManifestUrl, resolveAsset } from '../lib/resolve';
 import { typeInfo, type AddonEntry, type LoadedRepo } from '../lib/types';
-import { absoluteUrl, appLinkAddon, canWebShare, downloadBlob, payloadFileName, payloadUrl, previewUrls } from '../lib/util';
+import { absoluteUrl, appLinkAddon, canWebShare, downloadBlob, downloadFileName, payloadFileName, payloadUrl, previewUrls } from '../lib/util';
 import { languageName } from '../lib/languages';
 import { CopyButton, Dialog, Empty, Link, Notice, Qr, Spinner } from './common';
 import { IconBack, IconCopy, IconDownload, IconExternal, IconPhone, IconPlus, IconQr, IconShare, IconStar, IconWarn, TypeIcon } from './icons';
@@ -312,7 +312,7 @@ function LicenseDialog({ repo, entry, onClose }: { repo: LoadedRepo; entry: Addo
 function DownloadButton({ url, entry, label }: { url: string; entry: AddonEntry; label: string }) {
 	const [progress, setProgress] = useState<number | null>(null);
 	const [ctrl, setCtrl] = useState<AbortController | null>(null);
-	const name = payloadFileName(entry);
+	const name = downloadFileName(entry);
 
 	const start = async (e: MouseEvent) => {
 		if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;

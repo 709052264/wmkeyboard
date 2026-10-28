@@ -67,6 +67,28 @@ export function payloadFileName(entry: AddonEntry): string {
 	return last.split('?')[0] || entry.id;
 }
 
+/**
+ * The name a download saves as (#970): the payload's own name with the add-on's
+ * version after its stem, `kasroz-1.2.0.wmlayout.json`, so two versions of one
+ * add-on sitting in Downloads can be told apart. A name that already carries
+ * the version keeps it once.
+ */
+export function downloadFileName(entry: AddonEntry): string {
+	const name = payloadFileName(entry);
+	const version = (entry.version ?? '').replace(/[^\p{L}\p{N}._-]/gu, '').replace(/^[.]+|[.]+$/g, '');
+	if (!version || name.includes(version)) return name;
+	// The extension is the run of dotted parts that start with a letter:
+	// `.wmlayout.json`, `.ttf`, `.tsv.gz`.
+	const m = /^(.+?)((?:\.[A-Za-z][A-Za-z0-9]*)+)$/.exec(name);
+	return m ? `${m[1]}-${version}${m[2]}` : `${name}-${version}`;
+}
+
+/** `LayoutFile.fileName`'s stamp (#970): `-20261027-1405`, the export's local time. */
+export function exportStamp(at: Date = new Date()): string {
+	const p = (n: number) => String(n).padStart(2, '0');
+	return `-${at.getFullYear()}${p(at.getMonth() + 1)}${p(at.getDate())}-${p(at.getHours())}${p(at.getMinutes())}`;
+}
+
 export function matchesQuery(entry: AddonEntry, q: string): boolean {
 	const needle = q.trim().toLowerCase();
 	if (!needle) return true;
